@@ -9,6 +9,7 @@
         android:targetSdkVersion="16" />
 
     <application
+        android:name=".OdysseyApplication"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"

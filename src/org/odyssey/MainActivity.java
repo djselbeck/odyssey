@@ -50,7 +50,11 @@ public class MainActivity extends FragmentActivity {
     	public void onServiceConnected(ComponentName name, IBinder service) {
     		Log.v(TAG,"Service connection created");
     		Toast.makeText(MainActivity.this, "OdysseyPlaybackservice connected", Toast.LENGTH_LONG).show();
-    		mPlaybackService = IOdysseyPlaybackService.Stub.asInterface(service);
+    		OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
+    		if ( mainApplication.getPlaybackService() == null ) { 
+    			mainApplication.setPlaybackService(IOdysseyPlaybackService.Stub.asInterface(service));
+    		}
+    		mPlaybackService = mainApplication.getPlaybackService();
     	}
     	
     	@Override
@@ -72,6 +76,11 @@ public class MainActivity extends FragmentActivity {
         bindService(new Intent(IOdysseyPlaybackService.class.getName()), 
         		mConnection, Context.BIND_AUTO_CREATE);
         
+        OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
+        if ( mainApplication.getLibraryHelper() == null ) {
+        	mainApplication.setLibraryHelper(new MusicLibraryHelper());
+        }
+        
         Button playBtn = (Button)findViewById(R.id.button1);
         playBtn.setOnClickListener(mPlayListener);
         
@@ -81,7 +90,8 @@ public class MainActivity extends FragmentActivity {
 		
 		@Override
 		public void onClick(View arg0) {
-			
+			OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
+			mainApplication.getLibraryHelper().getAlbums(getContentResolver());
 		}
 	};
 
