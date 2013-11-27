@@ -6,6 +6,7 @@ import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.playbackservice.PlaybackService;
 
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -13,12 +14,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.NavUtils;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -31,7 +26,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends Activity {
 	
 	private static final String TAG = "OdysseyMainActivity";
 
@@ -39,7 +34,7 @@ public class MainActivity extends FragmentActivity {
     /**
      * The {@link ViewPager} that will host the section contents.
      */
-    ViewPager mViewPager;
+   
     
     private IOdysseyPlaybackService mPlaybackService;
     private ServiceConnection mConnection = null;
