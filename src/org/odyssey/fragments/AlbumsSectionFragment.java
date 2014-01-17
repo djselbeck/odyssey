@@ -156,6 +156,10 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 			
 			this.mCursor = c;
 			
+			if(mCursor == null){
+				return super.swapCursor(c);
+			}			
+			
 			// create sectionlist for fastscrolling
 			
 			mSectionList = new ArrayList<String>(); 

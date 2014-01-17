@@ -156,10 +156,14 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 			
 			this.mCursor = c;
 			
+			if(mCursor == null){
+				return super.swapCursor(c);
+			}			
+			
 			// create sectionlist for fastscrolling
 			
 			mSectionList = new ArrayList<String>(); 
-			
+					
 			this.mCursor.moveToPosition(0);
 			
 			char lastSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)).charAt(0);
