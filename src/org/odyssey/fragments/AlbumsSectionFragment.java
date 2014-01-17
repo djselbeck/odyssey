@@ -103,7 +103,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 			
 			this.mCursor.moveToPosition(position);			
 			
-			coverImage = (ImageView) convertView.findViewById(R.id.imageView1);	
+			coverImage = (ImageView) convertView.findViewById(R.id.imageViewAlbum);	
 			
 			albumLabel = (TextView) convertView.findViewById(R.id.textViewAlbumItem);
 			
@@ -235,7 +235,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     // New loader needed
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-		return new CursorLoader(getActivity(), MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,  MusicLibraryHelper.projection, "", null, MediaStore.Audio.AlbumColumns.ALBUM);
+		return new CursorLoader(getActivity(), MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,  MusicLibraryHelper.projectionAlbums, "", null, MediaStore.Audio.Albums.ALBUM);
 	}
 
 	@Override

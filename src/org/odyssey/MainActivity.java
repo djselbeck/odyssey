@@ -137,15 +137,6 @@ public class MainActivity extends FragmentActivity implements TabListener {
         
     }
     
-    private OnClickListener mPlayListener = new OnClickListener() {
-		
-		@Override
-		public void onClick(View arg0) {
-			OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
-			mainApplication.getLibraryHelper().getAlbums(getContentResolver());
-		}
-	};
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
