@@ -1,7 +1,11 @@
 package org.odyssey.fragments;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.R;
+import org.odyssey.manager.AsyncLoader;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -10,9 +14,9 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.util.LruCache;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,11 +24,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.SectionIndexer;
 import android.widget.TextView;
 
 public class AlbumsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    AlbumCursorAdapter mCursorAdapter;	
+    AlbumCursorAdapter mCursorAdapter;
+    ArrayList<String> mSectionList;
     
     private static final String TAG = "AlbumsSectionFragment"; 
 	
@@ -32,8 +38,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_albums, container, false);
-              
-        //MusicLibraryHelper libHelper = new MusicLibraryHelper();
                      
         mCursorAdapter = new AlbumCursorAdapter(getActivity(), null, 0);
         
@@ -49,81 +53,180 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         return rootView;
     }	
 	
-    private class AlbumCursorAdapter extends CursorAdapter {
+    private class AlbumCursorAdapter extends CursorAdapter implements SectionIndexer {
 
     	private LayoutInflater mInflater;
+    	private Cursor mCursor;
+    	private LruCache<String, Drawable> mCoverCache;
     	
 		public AlbumCursorAdapter(Context context, Cursor c, int flags) {
 			super(context, c, flags);
 			
-			mInflater = LayoutInflater.from(context);
+			this.mInflater = LayoutInflater.from(context);
+			this.mCursor = c;
+			
+			// create cache for drawable objects with given size
+			mCoverCache = new LruCache<String, Drawable>(18);
 		}
 
 		@Override
 		public void bindView(View view, Context context, Cursor cursor) {
-			int index;
-			
-			ImageView coverImage = (ImageView) view.findViewById(R.id.imageView1);
-			
-			index = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
-			
-			if ( index >= 0 ) {
-				String imagePath = cursor.getString(index);
-				if(imagePath != null)
-				{
-					Drawable tempImage = Drawable.createFromPath(imagePath);
-					coverImage.setImageDrawable(tempImage);				
-				} else {
-					coverImage.setImageResource(R.drawable.coverplaceholder);
-				}
-			}
-			
-			TextView albumLabel = (TextView) view.findViewById(R.id.textViewAlbumItem);
-			
-			index = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
-			if ( index >= 0 ) {
-				albumLabel.setText(cursor.getString(index));
-			}
+			// placeholder
 		}
 
 		@Override
 		public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
+				
+			// placeholder
+			return null;
+		}
+		
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent){
+				
+			Log.v(TAG, "Index: "+position);
 			
-			View tempView = mInflater.inflate(R.layout.item_albums, null);
 			int index = 0;
 			
-			ImageView coverImage = (ImageView) tempView.findViewById(R.id.imageView1);
+			ImageView coverImage;
+			TextView albumLabel;
 			
-			try {
-				index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ART);
+			if(convertView == null){
+				
+				convertView = mInflater.inflate(R.layout.item_albums, null);
+						
+			} 
+			
+			if(this.mCursor == null){
+				return convertView;
 			}
-			catch (IllegalArgumentException exception )
-			{
-				Log.e(TAG,"Column ALBUM_ART not found");
-				exception.printStackTrace();
-			}
+			
+			this.mCursor.moveToPosition(position);			
+			
+			coverImage = (ImageView) convertView.findViewById(R.id.imageView1);	
+			
+			albumLabel = (TextView) convertView.findViewById(R.id.textViewAlbumItem);
+			
+			index = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);	
+			
+			// set default cover
+			coverImage.setImageResource(R.drawable.coverplaceholder);
 			
 			if ( index >= 0 ) {
-				String imagePath = cursor.getString(index);
+				String imagePath = mCursor.getString(index);
 				if(imagePath != null)
-				{
-					Drawable tempImage = Drawable.createFromPath(imagePath);
-					Log.v(TAG,"minimum: " + tempImage.getMinimumHeight()+ ":" + tempImage.getMinimumWidth());
-					Log.v(TAG,"intrinsic: " + tempImage.getIntrinsicHeight()+ ":" + tempImage.getIntrinsicWidth());
-					coverImage.setImageDrawable(tempImage);				
-				} else {
-					coverImage.setImageResource(R.drawable.coverplaceholder);
+				{		
+					// check cache
+					Drawable tempCover = mCoverCache.get(imagePath);
+					
+					if(tempCover == null){
+						
+						// cache miss start async loading
+						AsyncLoader coverLoader = new AsyncLoader();
+						
+						AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();
+						
+						coverHolder.imagePath = imagePath;
+						coverHolder.coverView = coverImage;
+						
+						// save drawable in cache
+						coverHolder.coverCache = new WeakReference<LruCache<String,Drawable>>(mCoverCache);
+						
+						coverLoader.execute(coverHolder);						
+						
+					} else{
+						coverImage.setImageDrawable(tempCover);
+					}
+			
 				}
 			}
-			
-			TextView albumLabel = (TextView) tempView.findViewById(R.id.textViewAlbumItem);
-			
-			index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM);
+				
+			index = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
 			if ( index >= 0 ) {
-				albumLabel.setText(cursor.getString(index));
+				albumLabel.setText(mCursor.getString(index));
+			}	
+			
+			return convertView;
+		
+		}
+		
+		
+		@Override
+		public Cursor swapCursor(Cursor c){
+			
+			this.mCursor = c;
+			
+			// create sectionlist for fastscrolling
+			
+			mSectionList = new ArrayList<String>(); 
+			
+			this.mCursor.moveToPosition(0);
+			
+			char lastSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).charAt(0);
+			
+			mSectionList.add(""+lastSection);
+			
+			for(int i = 1; i < this.mCursor.getCount(); i++){
+			
+				this.mCursor.moveToPosition(i);
+				
+				char currentSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).charAt(0);
+				
+				if(lastSection != currentSection){
+					mSectionList.add(""+currentSection);
+					
+					lastSection = currentSection;
+				}
+				
+			}			
+			
+			return super.swapCursor(c);
+		}
+
+		@Override
+		public int getPositionForSection(int sectionIndex) {
+			
+			char section = mSectionList.get(sectionIndex).charAt(0);
+			
+			for(int i = 0; i < this.mCursor.getCount(); i++){
+				
+				this.mCursor.moveToPosition(i);
+				
+				char currentSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).charAt(0);
+				
+				if(section == currentSection){
+					return i;
+				}
+				
+			}				
+			
+			return 0;
+		}
+
+		@Override
+		public int getSectionForPosition(int pos) {
+			
+			this.mCursor.moveToPosition(pos);
+			
+			String albumName = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
+			
+			char albumSection = albumName.charAt(0);
+			
+			for( int i = 0; i < mSectionList.size(); i++){
+				
+				if(albumSection == mSectionList.get(i).charAt(0)){
+					return i;
+				}
+				
 			}
 			
-			return tempView;
+			return 0;
+		}
+
+		@Override
+		public Object[] getSections() {
+			
+			return mSectionList.toArray();
 		}
     	
     }
