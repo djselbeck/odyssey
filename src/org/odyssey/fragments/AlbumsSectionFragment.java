@@ -1,22 +1,20 @@
 package org.odyssey.fragments;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
+import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.util.LruCache;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -57,16 +55,12 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
     	private LayoutInflater mInflater;
     	private Cursor mCursor;
-    	private LruCache<String, Drawable> mCoverCache;
     	
 		public AlbumCursorAdapter(Context context, Cursor c, int flags) {
 			super(context, c, flags);
 			
 			this.mInflater = LayoutInflater.from(context);
 			this.mCursor = c;
-			
-			// create cache for drawable objects with given size
-			mCoverCache = new LruCache<String, Drawable>(18);
 		}
 
 		@Override
@@ -86,68 +80,59 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 				
 			Log.v(TAG, "Index: "+position);
 			
-			int index = 0;
+			int coverIndex = 0;
+			int labelIndex = 0;
 			
-			ImageView coverImage;
-			TextView albumLabel;
+			AsyncLoader.CoverViewHolder coverHolder = null;
 			
 			if(convertView == null){
 				
-				convertView = mInflater.inflate(R.layout.item_albums, null);
-						
-			} 
+				convertView = mInflater.inflate(R.layout.item_albums, null);	
+							
+				// create new coverholder for imageview(cover) und textview(albumlabel)
+				coverHolder = new AsyncLoader.CoverViewHolder();
+				coverHolder.coverView = (ImageView) convertView.findViewById(R.id.imageViewAlbum);
+				coverHolder.labelView = (TextView) convertView.findViewById(R.id.textViewAlbumItem);			
+				
+				convertView.setTag(coverHolder);				
+				
+			} else{
+				// get coverholder from convertview and cancel asynctask
+				coverHolder = (CoverViewHolder) convertView.getTag();
+				coverHolder.task.cancel(true);
+			}
 			
+			// set default cover
+			coverHolder.coverView.setImageResource(R.drawable.coverplaceholder);
+			
+			// get imagepath and labeltext
 			if(this.mCursor == null){
 				return convertView;
 			}
 			
 			this.mCursor.moveToPosition(position);			
 			
-			coverImage = (ImageView) convertView.findViewById(R.id.imageViewAlbum);	
+			coverIndex = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);	
+			labelIndex = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);				
 			
-			albumLabel = (TextView) convertView.findViewById(R.id.textViewAlbumItem);
+			if ( labelIndex >= 0 ) {
+				coverHolder.labelText = mCursor.getString(labelIndex);
+			} else{
+				// placeholder for empty labels
+				coverHolder.labelText = "";
+			}			
 			
-			index = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);	
-			
-			// set default cover
-			coverImage.setImageResource(R.drawable.coverplaceholder);
-			
-			if ( index >= 0 ) {
-				String imagePath = mCursor.getString(index);
-				if(imagePath != null)
-				{		
-					// check cache
-					Drawable tempCover = mCoverCache.get(imagePath);
-					
-					if(tempCover == null){
-						
-						// cache miss start async loading
-						AsyncLoader coverLoader = new AsyncLoader();
-						
-						AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();
-						
-						coverHolder.imagePath = imagePath;
-						coverHolder.coverView = coverImage;
-						
-						// save drawable in cache
-						coverHolder.coverCache = new WeakReference<LruCache<String,Drawable>>(mCoverCache);
-						
-						coverLoader.execute(coverHolder);						
-						
-					} else{
-						coverImage.setImageDrawable(tempCover);
-					}
-			
-				}
+			if ( coverIndex >= 0 ) {					
+				coverHolder.imagePath = mCursor.getString(coverIndex);	
+			} else{
+				coverHolder.imagePath = null;
 			}
-				
-			index = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
-			if ( index >= 0 ) {
-				albumLabel.setText(mCursor.getString(index));
-			}	
+			
+			// create and execute new asynctask
+			coverHolder.task = new AsyncLoader();
+			coverHolder.task.execute(coverHolder);
 			
 			return convertView;
-		
 		}
 		
 		

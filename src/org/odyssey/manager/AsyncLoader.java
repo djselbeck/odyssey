@@ -1,11 +1,10 @@
 package org.odyssey.manager;
 
-import java.lang.ref.WeakReference;
 
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.support.v4.util.LruCache;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 /*
  * Loaderclass for covers
@@ -19,8 +18,10 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Dr
 	 */
 	public static class CoverViewHolder {
 		public String imagePath;
+		public String labelText;
 		public ImageView coverView;
-		public WeakReference<LruCache<String, Drawable>> coverCache;
+		public TextView labelView;
+		public AsyncLoader task;
 	}
 
 	@Override
@@ -28,9 +29,14 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Dr
 
 		cover = params[0];
 		
-		Drawable tempImage = Drawable.createFromPath(params[0].imagePath);
+		if(cover.imagePath != null)
+		{
+			Drawable tempImage = Drawable.createFromPath(params[0].imagePath);
+			
+			return tempImage;
+		}
 		
-		return tempImage;
+		return null;
 		
 	}
 	
@@ -39,9 +45,13 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Dr
 		
 		super.onPostExecute(result);
 		
-		cover.coverCache.get().put(cover.imagePath, result);
+		// set cover if exists
+		if(result != null){		
+			cover.coverView.setImageDrawable(result);	
+		}
 		
-		cover.coverView.setImageDrawable(result);	
+		// always set label
+		cover.labelView.setText(cover.labelText);
 		
 	}
 	
