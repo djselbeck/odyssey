@@ -3,6 +3,7 @@ package org.odyssey;
 import java.util.Locale;
 
 import org.odyssey.fragments.AlbumsSectionFragment;
+import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.playbackservice.PlaybackService;
@@ -37,7 +38,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity implements TabListener {
+public class MainActivity extends FragmentActivity implements TabListener,  OnAlbumSelectedListener{
 	
 	private static final String TAG = "OdysseyMainActivity";
 
@@ -201,6 +202,13 @@ public class MainActivity extends FragmentActivity implements TabListener {
 	public void onTabUnselected(Tab tab, FragmentTransaction transaction) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void onAlbumSelected(int position) {
+		Toast.makeText(this, "index=" + position, Toast.LENGTH_SHORT).show();
+		
+		//TODO start a new fragment here
 	}   
 
 

@@ -8,6 +8,7 @@ import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -23,18 +24,41 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
 public class AlbumsSectionFragment extends Fragment implements
-		LoaderManager.LoaderCallbacks<Cursor> {
+		LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
 
 	AlbumCursorAdapter mCursorAdapter;
 	ArrayList<String> mSectionList;
+	OnAlbumSelectedListener mAlbumSelectedCallback;
 
 	private static final String TAG = "AlbumsSectionFragment";
+	
+	// Listener for communication via container activity
+	public interface OnAlbumSelectedListener {
+		public void onAlbumSelected(int position);
+	}
+	
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+        	mAlbumSelectedCallback = (OnAlbumSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+		
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -49,6 +73,8 @@ public class AlbumsSectionFragment extends Fragment implements
 		mainGridView.setNumColumns(2);
 
 		mainGridView.setAdapter(mCursorAdapter);
+		
+		mainGridView.setOnItemClickListener((OnItemClickListener) this);
 
 		// Prepare loader ( start new one or reuse old)
 		getLoaderManager().initLoader(0, null, this);
@@ -279,6 +305,13 @@ public class AlbumsSectionFragment extends Fragment implements
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		mCursorAdapter.swapCursor(null);
+	}
+	
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		// Send the event to the host activity
+		mAlbumSelectedCallback.onAlbumSelected(position);
+		
 	}
 
 }
