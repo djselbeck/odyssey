@@ -26,7 +26,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
@@ -77,7 +76,7 @@ public class AlbumsSectionFragment extends Fragment implements
 		mainGridView.setOnItemClickListener((OnItemClickListener) this);
 
 		// Prepare loader ( start new one or reuse old)
-		getLoaderManager().initLoader(0, null, this);
+		getLoaderManager().initLoader(0, null, this);		
 
 		return rootView;
 	}
