@@ -4,7 +4,6 @@ import java.util.Locale;
 
 import org.odyssey.fragments.AlbumsSectionFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
-import org.odyssey.fragments.ArtistAlbumSectionFragment;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
 import org.odyssey.fragments.ArtistsSectionFragment;
@@ -258,7 +257,7 @@ public class MainActivity extends FragmentActivity implements TabListener,  OnAl
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);	
         
         // Create fragment and give it an argument for the selected article
-    	ArtistAlbumSectionFragment newFragment = new ArtistAlbumSectionFragment(); 
+        AlbumsSectionFragment newFragment = new AlbumsSectionFragment(); 
         Bundle args = new Bundle();
         args.putInt(AlbumsTracksFragment.ARG_POSITION, position);
         newFragment.setArguments(args);

@@ -30,6 +30,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class AlbumsSectionFragment extends Fragment implements
 		LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
@@ -37,7 +38,14 @@ public class AlbumsSectionFragment extends Fragment implements
 	AlbumCursorAdapter mCursorAdapter;
 	ArrayList<String> mSectionList;
 	OnAlbumSelectedListener mAlbumSelectedCallback;
+	
+    private String[] column;
+    private String[] whereVal;
+    private String where;  
+    private String orderBy;		
+	private int mArtistId = -1;    
 
+	public final static String ARG_POSITION = "position";	
 	private static final String TAG = "AlbumsSectionFragment";
 	
 	// Listener for communication via container activity
@@ -73,13 +81,18 @@ public class AlbumsSectionFragment extends Fragment implements
 
 		mainGridView.setAdapter(mCursorAdapter);
 		
-		mainGridView.setOnItemClickListener((OnItemClickListener) this);
-
-		// Prepare loader ( start new one or reuse old)
-		getLoaderManager().initLoader(0, null, this);		
+		mainGridView.setOnItemClickListener((OnItemClickListener) this);	
 
 		return rootView;
 	}
+	
+    @Override
+    public void onStart() {
+        super.onStart();
+    	
+		// Prepare loader ( start new one or reuse old)
+		getLoaderManager().initLoader(0, getArguments(), this);    	
+    }	
 
 	private class AlbumCursorAdapter extends CursorAdapter implements
 			SectionIndexer {
@@ -287,13 +300,61 @@ public class AlbumsSectionFragment extends Fragment implements
 
 	}
 
+    private void setArtistAlbums(int position) {
+    	
+    	column = new String[4];
+    	column[0] = MediaStore.Audio.Albums.ALBUM;
+    	column[1] = MediaStore.Audio.Albums.ALBUM_ART;
+    	column[2] = MediaStore.Audio.Albums.NUMBER_OF_SONGS;
+    	column[3] = MediaStore.Audio.Albums.ARTIST;
+    	
+    	// set cursor to position
+    	Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
+				MusicLibraryHelper.projectionArtists, "", null,
+				MediaStore.Audio.Artists.ARTIST);
+    	
+    	cursor.moveToPosition(position);    	
+
+        where = android.provider.MediaStore.Audio.Albums.ARTIST + "=?";  
+        
+        orderBy = android.provider.MediaStore.Audio.Albums.ALBUM;
+        
+        int index = cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST);
+        
+        Toast.makeText(getActivity(), cursor.getString(index), Toast.LENGTH_SHORT).show();
+        
+        whereVal = new String[1];   
+        whereVal[0] = cursor.getString(index);
+    }	
+	
 	// New loader needed
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-		return new CursorLoader(getActivity(),
-				MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-				MusicLibraryHelper.projectionAlbums, "", null,
-				MediaStore.Audio.Albums.ALBUM);
+		
+		if(bundle == null) {
+			
+			return new CursorLoader(getActivity(),
+					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+					MusicLibraryHelper.projectionAlbums, "", null,
+					MediaStore.Audio.Albums.ALBUM);			
+			
+		} else {
+			
+			mArtistId = bundle.getInt(ARG_POSITION);
+			
+			setArtistAlbums(mArtistId);
+			
+//			return new CursorLoader(getActivity(),
+//					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+//					column, where, whereVal,
+//					orderBy);	
+			
+			return new CursorLoader(getActivity(),
+					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+					MusicLibraryHelper.projectionAlbums, "", null,
+					MediaStore.Audio.Albums.ALBUM);				
+			
+		}		
 	}
 
 	@Override
