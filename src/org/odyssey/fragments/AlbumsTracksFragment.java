@@ -15,16 +15,19 @@ public class AlbumsTracksFragment extends ListFragment {
 
 	private static final String TAG = "AlbumsTracksFragment";
 	
-	public final static String ARG_POSITION = "position";	
+	public final static String ARG_ALBUMKEY = "albumkey";	
 	
     private String[] column = { MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media.TRACK };
+            MediaStore.Audio.Media.DISPLAY_NAME, 
+            MediaStore.Audio.Media.TRACK, 
+            MediaStore.Audio.Media.ALBUM_KEY, 
+            MediaStore.Audio.Media.ALBUM };
 
-    private String where = android.provider.MediaStore.Audio.Media.ALBUM + "=?";  
+    private String where = android.provider.MediaStore.Audio.Media.ALBUM_KEY + "=?";  
     
     private String orderBy = android.provider.MediaStore.Audio.Media.DISPLAY_NAME;	
 
-    private int mAlbumId = 0;
+    private String mAlbumKey = "";
     private ArrayAdapter<String> mTrackListAdapter;
     
     @Override
@@ -42,27 +45,19 @@ public class AlbumsTracksFragment extends ListFragment {
         super.onStart();
         Bundle args = getArguments();
         
-    	mAlbumId = args.getInt(ARG_POSITION);       
+        mAlbumKey = args.getString(ARG_ALBUMKEY);       
         
-        setAlbumTracks(mAlbumId);
+        setAlbumTracks(mAlbumKey);
     }    
     
-    private void setAlbumTracks(int position) {
+    private void setAlbumTracks(String albumKey) {
 
     	// set cursor to position
     	Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
 				MusicLibraryHelper.projectionAlbums, "", null,
-				MediaStore.Audio.Albums.ALBUM);
-    	
-    	cursor.moveToPosition(position);
-    	
-    	// get the index of the current album
-		int index = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
-		if ( index >= 0 ) {
-			mTrackListAdapter.add("Album: " + cursor.getString(index));
-		}	    	
+				MediaStore.Audio.Albums.ALBUM);	    	
 
-        String whereVal[] = {cursor.getString(index)};
+        String whereVal[] = {albumKey};
 
         cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 column, where, whereVal, orderBy);
@@ -71,6 +66,7 @@ public class AlbumsTracksFragment extends ListFragment {
         
         // get all tracks on the current album
         if (cursor.moveToFirst()) {
+        	mTrackListAdapter.add(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)));
             do {
             	trackID = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
             	mTrackListAdapter.add(trackID);

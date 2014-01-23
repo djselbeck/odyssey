@@ -38,19 +38,15 @@ public class AlbumsSectionFragment extends Fragment implements
 	AlbumCursorAdapter mCursorAdapter;
 	ArrayList<String> mSectionList;
 	OnAlbumSelectedListener mAlbumSelectedCallback;
-	
-    private String[] column;
-    private String[] whereVal;
-    private String where;  
-    private String orderBy;		
-	private int mArtistId = -1;    
+	  	
+	private String mArtist = "";    
 
-	public final static String ARG_POSITION = "position";	
+	public final static String ARG_ARTISTNAME = "artistname";	
 	private static final String TAG = "AlbumsSectionFragment";
 	
 	// Listener for communication via container activity
 	public interface OnAlbumSelectedListener {
-		public void onAlbumSelected(int position);
+		public void onAlbumSelected(String albumKey);
 	}
 	
 	public void onAttach(Activity activity) {
@@ -222,9 +218,15 @@ public class AlbumsSectionFragment extends Fragment implements
 
 			this.mCursor.moveToPosition(0);
 
-			char lastSection = this.mCursor.getString(
-					this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM))
-					.charAt(0);
+			int index = this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
+			char lastSection = 0;
+			//TODO check this, some Artists seem to have no album
+			if( index > 0) {
+				lastSection = this.mCursor.getString(
+						this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM))
+						.charAt(0);
+			}
+
 
 			mSectionList.add("" + lastSection);
 
@@ -298,40 +300,15 @@ public class AlbumsSectionFragment extends Fragment implements
 			return mSectionList.toArray();
 		}
 
-	}
-
-    private void setArtistAlbums(int position) {
-    	
-    	column = new String[4];
-    	column[0] = MediaStore.Audio.Albums.ALBUM;
-    	column[1] = MediaStore.Audio.Albums.ALBUM_ART;
-    	column[2] = MediaStore.Audio.Albums.NUMBER_OF_SONGS;
-    	column[3] = MediaStore.Audio.Albums.ARTIST;
-    	
-    	// set cursor to position
-    	Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
-				MusicLibraryHelper.projectionArtists, "", null,
-				MediaStore.Audio.Artists.ARTIST);
-    	
-    	cursor.moveToPosition(position);    	
-
-        where = android.provider.MediaStore.Audio.Albums.ARTIST + "=?";  
-        
-        orderBy = android.provider.MediaStore.Audio.Albums.ALBUM;
-        
-        int index = cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST);
-        
-        Toast.makeText(getActivity(), cursor.getString(index), Toast.LENGTH_SHORT).show();
-        
-        whereVal = new String[1];   
-        whereVal[0] = cursor.getString(index);
-    }	
+	}	
 	
 	// New loader needed
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
 		
 		if(bundle == null) {
+			
+			// all albums
 			
 			return new CursorLoader(getActivity(),
 					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
@@ -340,20 +317,16 @@ public class AlbumsSectionFragment extends Fragment implements
 			
 		} else {
 			
-			mArtistId = bundle.getInt(ARG_POSITION);
+			// only albums of artist mArtist
 			
-			setArtistAlbums(mArtistId);
+			mArtist = bundle.getString(ARG_ARTISTNAME);
 			
-//			return new CursorLoader(getActivity(),
-//					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-//					column, where, whereVal,
-//					orderBy);	
+			String[] whereVal = {mArtist};
 			
 			return new CursorLoader(getActivity(),
 					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-					MusicLibraryHelper.projectionAlbums, "", null,
-					MediaStore.Audio.Albums.ALBUM);				
-			
+					MusicLibraryHelper.projectionAlbums, android.provider.MediaStore.Audio.Albums.ARTIST + "=?", whereVal,
+					MediaStore.Audio.Albums.ALBUM);					
 		}		
 	}
 
@@ -369,8 +342,16 @@ public class AlbumsSectionFragment extends Fragment implements
 	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		
+		//identify current album
+		Cursor cursor = mCursorAdapter.getCursor();
+		
+		cursor.moveToPosition(position);
+		
+		String artistKey = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
+		
 		// Send the event to the host activity
-		mAlbumSelectedCallback.onAlbumSelected(position);
+		mAlbumSelectedCallback.onAlbumSelected(artistKey);
 		
 	}
 

@@ -12,7 +12,8 @@ public class MusicLibraryHelper {
 			MediaStore.Audio.Albums.ALBUM_KEY,
 			MediaStore.Audio.Albums.NUMBER_OF_SONGS,
 			MediaStore.Audio.Albums._ID,
-			MediaStore.Audio.Albums.ALBUM_ART
+			MediaStore.Audio.Albums.ALBUM_ART,
+			MediaStore.Audio.Albums.ARTIST
 	};
 	public static final String[] projectionArtists = {MediaStore.Audio.Artists.ARTIST,
 		MediaStore.Audio.Artists.ARTIST_KEY,

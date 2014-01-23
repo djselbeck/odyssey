@@ -210,7 +210,7 @@ public class MainActivity extends FragmentActivity implements TabListener,  OnAl
 	}
 
 	@Override
-	public void onAlbumSelected(int position) {
+	public void onAlbumSelected(String albumKey) {
 			
 		// disable viewpager
 		mViewPager.setVisibility(View.GONE);
@@ -227,7 +227,7 @@ public class MainActivity extends FragmentActivity implements TabListener,  OnAl
         // Create fragment and give it an argument for the selected article
     	AlbumsTracksFragment newFragment = new AlbumsTracksFragment();
         Bundle args = new Bundle();
-        args.putInt(AlbumsTracksFragment.ARG_POSITION, position);
+        args.putString(AlbumsTracksFragment.ARG_ALBUMKEY, albumKey);
         newFragment.setArguments(args);    	
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -242,7 +242,7 @@ public class MainActivity extends FragmentActivity implements TabListener,  OnAl
     }
 	
 	@Override
-	public void onArtistSelected(int position) {
+	public void onArtistSelected(String artist) {
 		
 		// disable viewpager
 		mViewPager.setVisibility(View.GONE);
@@ -259,7 +259,7 @@ public class MainActivity extends FragmentActivity implements TabListener,  OnAl
         // Create fragment and give it an argument for the selected article
         AlbumsSectionFragment newFragment = new AlbumsSectionFragment(); 
         Bundle args = new Bundle();
-        args.putInt(AlbumsTracksFragment.ARG_POSITION, position);
+        args.putString(AlbumsSectionFragment.ARG_ARTISTNAME, artist);
         newFragment.setArguments(args);
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
