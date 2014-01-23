@@ -1,12 +1,13 @@
 package org.odyssey.fragments;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
+import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -22,18 +23,40 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
 
-public class ArtistsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ArtistsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
 
     ArtistsCursorAdapter mCursorAdapter;
     ArrayList<String> mSectionList;
+    OnArtistSelectedListener mArtistSelectedCallback;
     
     private static final String TAG = "ArtistsSectionFragment"; 
 	
+	// Listener for communication via container activity
+	public interface OnArtistSelectedListener {
+		public void onArtistSelected(int position);
+	}
+	
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+        	mArtistSelectedCallback = (OnArtistSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+		
+	}    
+    
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
@@ -47,6 +70,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
         
         mainGridView.setAdapter(mCursorAdapter);
         
+        mainGridView.setOnItemClickListener((OnItemClickListener) this);
+        
         // Prepare loader ( start new one or reuse old) 
         getLoaderManager().initLoader(0, null, this);
         
@@ -57,16 +82,14 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
     	private LayoutInflater mInflater;
     	private Cursor mCursor;
-    	private LruCache<String, Drawable> mCoverCache;
+    	private LruCache<String, Drawable> mCache;
     	
 		public ArtistsCursorAdapter(Context context, Cursor c, int flags) {
 			super(context, c, flags);
 			
 			this.mInflater = LayoutInflater.from(context);
 			this.mCursor = c;
-			
-			// create cache for drawable objects with given size
-			mCoverCache = new LruCache<String, Drawable>(18);
+			mCache = new LruCache<String, Drawable>(24);
 		}
 
 		@Override
@@ -83,71 +106,92 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 		
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent){
-				
-			Log.v(TAG, "Index: "+position);
-			
-			int index = 0;
-			
-			ImageView coverImage;
-			TextView artistsLabel;
-			
-			if(convertView == null){
-				
+
+			Log.v(TAG, "Index: " + position);
+
+//			int coverIndex = 0;
+			int labelIndex = 0;
+
+			AsyncLoader.CoverViewHolder coverHolder = null;
+
+			if (convertView == null) {
+
 				convertView = mInflater.inflate(R.layout.item_artists, null);
-						
-			} 
-			
-			if(this.mCursor == null){
+
+				// create new coverholder for imageview(cover) and
+				// textview(artistlabel)
+				coverHolder = new AsyncLoader.CoverViewHolder();
+				coverHolder.coverView = (ImageView) convertView
+						.findViewById(R.id.imageViewArtists);
+				coverHolder.labelView = (TextView) convertView
+						.findViewById(R.id.textViewArtistsItem);
+
+				convertView.setTag(coverHolder);
+
+			} else {
+				// get coverholder from convertview and cancel asynctask
+				coverHolder = (CoverViewHolder) convertView.getTag();
+				if (coverHolder.task != null)
+					coverHolder.task.cancel(true);
+			}
+
+			// set default cover
+
+			// get imagepath and labeltext
+			if (this.mCursor == null) {
 				return convertView;
 			}
-			
-			this.mCursor.moveToPosition(position);			
-			
-			coverImage = (ImageView) convertView.findViewById(R.id.imageViewArtists);	
-			
-			artistsLabel = (TextView) convertView.findViewById(R.id.textViewArtistsItem);
-			
-//			index = mCursor.getColumnIndex(MediaStore.Audio.Artists);	
-			
-			// set default cover
-			coverImage.setImageResource(R.drawable.coverplaceholder);
-			
-//			if ( index >= 0 ) {
-//				String imagePath = mCursor.getString(index);
-//				if(imagePath != null)
-//				{		
-//					// check cache
-//					Drawable tempCover = mCoverCache.get(imagePath);
-//					
-//					if(tempCover == null){
-//						
-//						// cache miss start async loading
-//						AsyncLoader coverLoader = new AsyncLoader();
-//						
-//						AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();
-//						
-//						coverHolder.imagePath = imagePath;
-//						coverHolder.coverView = coverImage;
-//						
-//						// save drawable in cache
-//						coverHolder.coverCache = new WeakReference<LruCache<String,Drawable>>(mCoverCache);
-//						
-//						coverLoader.execute(coverHolder);						
-//						
-//					} else{
-//						coverImage.setImageDrawable(tempCover);
+
+			this.mCursor.moveToPosition(position);
+
+//			coverIndex = mCursor
+//					.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
+			labelIndex = mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST);
+
+			if (labelIndex >= 0) {
+				// coverHolder.labelText = mCursor.getString(labelIndex);
+				String labelText = mCursor.getString(labelIndex);
+				if (labelText != null) {
+					coverHolder.labelView.setText(labelText);
+				}
+			} else {
+				// placeholder for empty labels
+				coverHolder.labelView.setText("");
+			}
+
+			// Check for valid column
+//			if (coverIndex >= 0) {
+//				// Get column value (Image-URL)
+//				coverHolder.imagePath = mCursor.getString(coverIndex);
+//				if (coverHolder.imagePath != null) {
+//					// Check cache first
+//					Drawable cacheImage = mCache.get(coverHolder.imagePath);
+//					if (cacheImage == null) {
+//						// Cache miss
+//						// create and execute new asynctask
+//						coverHolder.task = new AsyncLoader();
+//						coverHolder.cache = new WeakReference<LruCache<String, Drawable>>(
+//								mCache);
+//						coverHolder.task.execute(coverHolder);
+//					} else {
+//						// Cache hit
+//						coverHolder.coverView.setImageDrawable(cacheImage);
 //					}
-//			
+//				} else {
+//					// Cover entry has no album art
+//					coverHolder.coverView
+//							.setImageResource(R.drawable.coverplaceholder);
 //				}
+//			} else {
+//				coverHolder.coverView
+//						.setImageResource(R.drawable.coverplaceholder);
+//				coverHolder.imagePath = null;
 //			}
-				
-			index = mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST);
-			if ( index >= 0 ) {
-				artistsLabel.setText(mCursor.getString(index));
-			}	
+
+			coverHolder.coverView.setImageResource(R.drawable.coverplaceholder);
+			coverHolder.imagePath = null;			
 			
-			return convertView;
-		
+			return convertView;		
 		}
 		
 		
@@ -251,5 +295,12 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 	public void onLoaderReset(Loader<Cursor> loader) {
 		mCursorAdapter.swapCursor(null);
 	}
+	
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		// Send the event to the host activity
+		mArtistSelectedCallback.onArtistSelected(position);
+		
+	}	
     
 }

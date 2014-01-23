@@ -4,6 +4,8 @@ import java.util.Locale;
 
 import org.odyssey.fragments.AlbumsSectionFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
+import org.odyssey.fragments.ArtistAlbumSectionFragment;
+import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
 import org.odyssey.fragments.ArtistsSectionFragment;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
@@ -41,7 +43,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity implements TabListener,  OnAlbumSelectedListener{
+public class MainActivity extends FragmentActivity implements TabListener,  OnAlbumSelectedListener, OnArtistSelectedListener{
 	
 	private static final String TAG = "OdysseyMainActivity";
 
@@ -239,6 +241,38 @@ public class MainActivity extends FragmentActivity implements TabListener,  OnAl
         // Commit the transaction
         transaction.commit();
     }
+	
+	@Override
+	public void onArtistSelected(int position) {
+		
+		// disable viewpager
+		mViewPager.setVisibility(View.GONE);
+		
+        // update actionbar
+        final ActionBar actionBar = getActionBar();
+
+        actionBar.setHomeButtonEnabled(true);
+        // allow backnavigation by homebutton 
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);	
+        
+        // Create fragment and give it an argument for the selected article
+    	ArtistAlbumSectionFragment newFragment = new ArtistAlbumSectionFragment(); 
+        Bundle args = new Bundle();
+        args.putInt(AlbumsTracksFragment.ARG_POSITION, position);
+        newFragment.setArguments(args);
+
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack so the user can navigate back
+        transaction.replace(R.id.fragmentContainer, newFragment);
+        transaction.addToBackStack(null);
+
+        // Commit the transaction
+        transaction.commit();        	
+	}	
 	
 	@Override
 	public void onBackPressed() {
