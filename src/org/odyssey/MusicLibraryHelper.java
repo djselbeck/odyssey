@@ -24,7 +24,8 @@ public class MusicLibraryHelper {
 	public static final String[] projectionTracks = {MediaStore.Audio.Media.TITLE,
         MediaStore.Audio.Media.DISPLAY_NAME, 
         MediaStore.Audio.Media.TRACK, 
-        MediaStore.Audio.Media.ALBUM_KEY, 
+        MediaStore.Audio.Media.ALBUM_KEY,
+        MediaStore.Audio.Media.DURATION,
         MediaStore.Audio.Media.ALBUM		
 };	
 	
