@@ -40,8 +40,11 @@ public class AlbumsSectionFragment extends Fragment implements
 	OnAlbumSelectedListener mAlbumSelectedCallback;
 	  	
 	private String mArtist = "";    
+	private long mArtistID = -1; 
 
 	public final static String ARG_ARTISTNAME = "artistname";	
+	public final static String ARG_ARTISTID = "artistid";
+	
 	private static final String TAG = "AlbumsSectionFragment";
 	
 	// Listener for communication via container activity
@@ -320,12 +323,14 @@ public class AlbumsSectionFragment extends Fragment implements
 			// only albums of artist mArtist
 			
 			mArtist = bundle.getString(ARG_ARTISTNAME);
+			mArtistID = bundle.getLong(ARG_ARTISTID);
+			Log.v(TAG,"Getting albums for: " + mArtist + " with ID: " + mArtistID );
 			
 			String[] whereVal = {mArtist};
 			
 			return new CursorLoader(getActivity(),
-					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-					MusicLibraryHelper.projectionAlbums, android.provider.MediaStore.Audio.Albums.ARTIST + "=?", whereVal,
+					MediaStore.Audio.Artists.Albums.getContentUri("external", mArtistID),
+					MusicLibraryHelper.projectionAlbums, "", null,
 					MediaStore.Audio.Albums.ALBUM);					
 		}		
 	}

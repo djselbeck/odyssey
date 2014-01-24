@@ -40,7 +40,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 	
 	// Listener for communication via container activity
 	public interface OnArtistSelectedListener {
-		public void onArtistSelected(String artist);
+		public void onArtistSelected(String artist, long artistID);
 	}
 	
 	public void onAttach(Activity activity) {
@@ -305,9 +305,10 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 		cursor.moveToPosition(position);
 		
 		String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST));
+		long artistID = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Artists._ID));
 	
 		// Send the event to the host activity
-		mArtistSelectedCallback.onArtistSelected(artist);
+		mArtistSelectedCallback.onArtistSelected(artist,artistID);
 		
 	}	
     

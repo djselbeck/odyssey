@@ -242,7 +242,7 @@ public class MainActivity extends FragmentActivity implements TabListener,  OnAl
     }
 	
 	@Override
-	public void onArtistSelected(String artist) {
+	public void onArtistSelected(String artist, long artistID) {
 		
 		// disable viewpager
 		mViewPager.setVisibility(View.GONE);
@@ -260,6 +260,8 @@ public class MainActivity extends FragmentActivity implements TabListener,  OnAl
         AlbumsSectionFragment newFragment = new AlbumsSectionFragment(); 
         Bundle args = new Bundle();
         args.putString(AlbumsSectionFragment.ARG_ARTISTNAME, artist);
+        args.putLong(AlbumsSectionFragment.ARG_ARTISTID, artistID);
+        
         newFragment.setArguments(args);
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
