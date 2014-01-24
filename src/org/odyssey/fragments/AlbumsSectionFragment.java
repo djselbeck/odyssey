@@ -49,7 +49,7 @@ public class AlbumsSectionFragment extends Fragment implements
 	
 	// Listener for communication via container activity
 	public interface OnAlbumSelectedListener {
-		public void onAlbumSelected(String albumKey);
+		public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist);
 	}
 	
 	public void onAttach(Activity activity) {
@@ -353,10 +353,13 @@ public class AlbumsSectionFragment extends Fragment implements
 		
 		cursor.moveToPosition(position);
 		
-		String artistKey = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
+		String albumKey = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
+		String albumTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
+		String imagePath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+		String artistTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST));
 		
 		// Send the event to the host activity
-		mAlbumSelectedCallback.onAlbumSelected(artistKey);
+		mAlbumSelectedCallback.onAlbumSelected(albumKey, albumTitle, imagePath, artistTitle);
 		
 	}
 
