@@ -16,12 +16,6 @@ public class AlbumsTracksFragment extends ListFragment {
 	private static final String TAG = "AlbumsTracksFragment";
 	
 	public final static String ARG_ALBUMKEY = "albumkey";	
-	
-    private String[] column = { MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.DISPLAY_NAME, 
-            MediaStore.Audio.Media.TRACK, 
-            MediaStore.Audio.Media.ALBUM_KEY, 
-            MediaStore.Audio.Media.ALBUM };
 
     private String where = android.provider.MediaStore.Audio.Media.ALBUM_KEY + "=?";  
     
@@ -50,17 +44,12 @@ public class AlbumsTracksFragment extends ListFragment {
         setAlbumTracks(mAlbumKey);
     }    
     
-    private void setAlbumTracks(String albumKey) {
-
-    	// set cursor to position
-    	Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-				MusicLibraryHelper.projectionAlbums, "", null,
-				MediaStore.Audio.Albums.ALBUM);	    	
+    private void setAlbumTracks(String albumKey) {  	
 
         String whereVal[] = {albumKey};
 
-        cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                column, where, whereVal, orderBy);
+        Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                MusicLibraryHelper.projectionTracks, where, whereVal, orderBy);
 
         String trackID = "";
         

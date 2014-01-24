@@ -19,7 +19,13 @@ public class MusicLibraryHelper {
 		MediaStore.Audio.Artists.ARTIST_KEY,
 		MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
 		MediaStore.Audio.Artists._ID,
-		MediaStore.Audio.Artists.NUMBER_OF_ALBUMS
+		MediaStore.Audio.Artists.NUMBER_OF_ALBUMS		
+};	
+	public static final String[] projectionTracks = {MediaStore.Audio.Media.TITLE,
+        MediaStore.Audio.Media.DISPLAY_NAME, 
+        MediaStore.Audio.Media.TRACK, 
+        MediaStore.Audio.Media.ALBUM_KEY, 
+        MediaStore.Audio.Media.ALBUM		
 };	
 	
 //	public Cursor getAlbums(ContentResolver provider) {

@@ -4,6 +4,5 @@
     android:layout_height="match_parent" 
     android:layout_margin="10dp"
     android:scrollbars="vertical"
-    android:fastScrollAlwaysVisible="true"
     android:fastScrollEnabled="true">
 </GridView>
