@@ -8,10 +8,9 @@
         android:id="@+id/imageViewAlbum2"
         android:layout_width="@dimen/album_cover_height"
         android:layout_height="@dimen/album_cover_height"
-        android:layout_weight="1.0"
     />    
     
-    <ListView android:id="@+id/listViewTracks"
+    <ListView android:id="@android:id/list"
     	android:layout_width="match_parent"
         android:layout_height="match_parent"
 	/>
