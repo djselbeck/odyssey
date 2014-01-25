@@ -38,7 +38,6 @@ public class AlbumsTracksFragment extends Fragment {
     private String mAlbumTitle = "";
     private String mAlbumCoverPath = "";
     private String mAlbumArtist = "";
-    //private ArrayAdapter<String> mTrackListAdapter;
     private TrackListArrayAdapter mTrackListAdapter;
     
     private ImageView mCoverView;
@@ -51,15 +50,22 @@ public class AlbumsTracksFragment extends Fragment {
 		View rootView = inflater.inflate(R.layout.fragment_albumtracks, container,
 		                false);
 		
-		mCoverView = (ImageView) rootView.findViewById(R.id.imageViewAlbumCover);
+		// create listview header
+		View headerView = inflater.inflate(R.layout.listview_header_item, null);
 		
-		mAlbumTitleView = (TextView) rootView.findViewById(R.id.textViewAlbumTitle);
+		mCoverView = (ImageView) headerView.findViewById(R.id.imageViewAlbumCover);
 		
-		mAlbumArtistView = (TextView) rootView.findViewById(R.id.textViewArtistName);
+		mAlbumTitleView = (TextView) headerView.findViewById(R.id.textViewAlbumTitle);
 		
+		mAlbumArtistView = (TextView) headerView.findViewById(R.id.textViewArtistName);
+		
+		// create adapter for tracklist
 		mTrackListAdapter = new TrackListArrayAdapter(getActivity(), R.layout.listview_tracklist_item, new ArrayList<TrackItem>());
 		
+		//create listview for tracklist
 		ListView trackListView = (ListView) rootView.findViewById(R.id.listViewAlbumTrackList);
+		
+		trackListView.addHeaderView(headerView);
 		
 		trackListView.setAdapter(mTrackListAdapter);
 		
@@ -104,14 +110,28 @@ public class AlbumsTracksFragment extends Fragment {
         String trackTitle = "";
         long trackDuration = 0;
         int trackNumber;
+        String trackArtist ="";
+        boolean isSampler = false;
         
         // get all tracks on the current album
         if (cursor.moveToFirst()) {
+        	trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+	    	if(!trackArtist.equals(mAlbumArtist)){
+				mAlbumArtistView.setText("Sampler");
+				isSampler = true;
+			}       	
             do {
             		trackTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
             		trackDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
             		trackNumber = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
-                    mTrackListAdapter.add(new TrackItem(trackTitle,trackDuration,trackNumber));
+            		
+            		if(isSampler) {
+            			trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+            		} else {
+            			trackArtist = "";
+            		}
+            		
+                    mTrackListAdapter.add(new TrackItem(trackTitle,trackDuration,trackNumber,trackArtist));
             } while (cursor.moveToNext());         
         }
     }
@@ -137,6 +157,7 @@ public class AlbumsTracksFragment extends Fragment {
 			TextView trackTitleView;
 			TextView trackDurationView;
 			TextView trackNumberView;
+			TextView trackArtistView;
 			
 			if(convertView == null) {
 				convertView = mInflater.inflate(mLayoutResourceId, null);
@@ -145,6 +166,7 @@ public class AlbumsTracksFragment extends Fragment {
 			trackTitleView = (TextView) convertView.findViewById(R.id.textViewTrackTitleItem);
 			trackDurationView = (TextView) convertView.findViewById(R.id.textViewTrackDurationItem);
 			trackNumberView = (TextView) convertView.findViewById(R.id.textViewTrackNumberItem);
+			trackArtistView = (TextView) convertView.findViewById(R.id.textViewTrackArtistItem);
 			
 			// set tracktitle
 			TrackItem trackItem = getItem(position);
@@ -162,18 +184,20 @@ public class AlbumsTracksFragment extends Fragment {
 				trackDurationView.setText(minutes + ":" + seconds);
 			}
 			
-			//calculate track and discnumber
+			// calculate track and discnumber
 			if((""+trackItem.trackNumber).length() < 4) {
 				trackNumberView.setText(""+trackItem.trackNumber);
 			} else {
 				
-				//TODO shall we use discnumber
+				//TODO shall we use discnumber?
 				String discNumber = (""+trackItem.trackNumber).substring(0, 2);
 				String trackNumber = (""+trackItem.trackNumber).substring(2);
 				
 				trackNumberView.setText(trackNumber);
 			}
 			
+			// set artist if sampler
+			trackArtistView.setText(trackItem.trackArtist);
 			
 			return convertView;
 			
@@ -186,12 +210,14 @@ public class AlbumsTracksFragment extends Fragment {
     	public String trackTitle;
     	public long trackDuration;
     	public int trackNumber;
+    	public String trackArtist;
     	
-    	public TrackItem(String title, long duration, int number) {
+    	public TrackItem(String title, long duration, int number, String artist) {
     		super();
     		this.trackDuration = duration;
     		this.trackTitle = title;
     		this.trackNumber = number;
+    		this.trackArtist = artist;
     	}
     	
     }

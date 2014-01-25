@@ -26,7 +26,8 @@ public class MusicLibraryHelper {
         MediaStore.Audio.Media.TRACK, 
         MediaStore.Audio.Media.ALBUM_KEY,
         MediaStore.Audio.Media.DURATION,
-        MediaStore.Audio.Media.ALBUM		
+        MediaStore.Audio.Media.ALBUM,
+        MediaStore.Audio.Media.ARTIST
 };	
 	
 //	public Cursor getAlbums(ContentResolver provider) {
