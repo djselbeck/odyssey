@@ -316,7 +316,7 @@ public class AlbumsSectionFragment extends Fragment implements
 			return new CursorLoader(getActivity(),
 					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
 					MusicLibraryHelper.projectionAlbums, "", null,
-					MediaStore.Audio.Albums.ALBUM);			
+					MediaStore.Audio.Albums.ALBUM + " COLLATE NOCASE");			
 			
 		} else {
 			
@@ -331,7 +331,7 @@ public class AlbumsSectionFragment extends Fragment implements
 			return new CursorLoader(getActivity(),
 					MediaStore.Audio.Artists.Albums.getContentUri("external", mArtistID),
 					MusicLibraryHelper.projectionAlbums, "", null,
-					MediaStore.Audio.Albums.ALBUM);					
+					MediaStore.Audio.Albums.ALBUM + " COLLATE NOCASE");					
 		}		
 	}
 

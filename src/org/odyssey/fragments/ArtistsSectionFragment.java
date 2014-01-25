@@ -283,7 +283,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     // New loader needed
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-		return new CursorLoader(getActivity(), MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,  MusicLibraryHelper.projectionArtists, "", null, MediaStore.Audio.Artists.ARTIST);
+		return new CursorLoader(getActivity(), MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,  
+				MusicLibraryHelper.projectionArtists, "", null, MediaStore.Audio.Artists.ARTIST+ " COLLATE NOCASE");
 	}
 
 	@Override
