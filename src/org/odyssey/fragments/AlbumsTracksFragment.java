@@ -107,33 +107,39 @@ public class AlbumsTracksFragment extends Fragment {
         Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 MusicLibraryHelper.projectionTracks, where, whereVal, orderBy);
 
-        String trackTitle = "";
-        long trackDuration = 0;
-        int trackNumber;
-        String trackArtist ="";
         boolean isSampler = false;
         
+        ArrayList<TrackItem> trackList = new ArrayList<TrackItem>();
+        
         // get all tracks on the current album
-        if (cursor.moveToFirst()) {
-        	trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-	    	if(!trackArtist.equals(mAlbumArtist)){
-				mAlbumArtistView.setText("Sampler");
-				isSampler = true;
-			}       	
+        if (cursor.moveToFirst()) {      	
             do {
-            		trackTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-            		trackDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-            		trackNumber = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+            		TrackItem item = new TrackItem();
+            		item.trackTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+            		item.trackDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+            		item.trackNumber = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+            		item.trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
             		
-            		if(isSampler) {
-            			trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-            		} else {
-            			trackArtist = "";
+            		if(!item.trackArtist.equals(mAlbumArtist)) {
+            			
+            			if(!item.trackArtist.contains(mAlbumArtist)) {
+
+            				// trackartist not albumartist and not contains albumartist -> sampler
+            				isSampler = true;
+            			}
+
             		}
-            		
-                    mTrackListAdapter.add(new TrackItem(trackTitle,trackDuration,trackNumber,trackArtist));
+            		trackList.add(item);
             } while (cursor.moveToNext());         
         }
+
+        if(isSampler) {
+        	mAlbumArtistView.setText("");
+        }
+        
+        mTrackListAdapter.setIsSampler(isSampler);
+        
+        mTrackListAdapter.addAll(trackList);
     }
     
     private class TrackListArrayAdapter extends ArrayAdapter<TrackItem> {
@@ -141,6 +147,7 @@ public class AlbumsTracksFragment extends Fragment {
     	private Context mContext;
     	private LayoutInflater mInflater;
     	private int mLayoutResourceId;
+    	private boolean mIsSampler;
     	
     	public TrackListArrayAdapter(Context context, int layoutResourceId, ArrayList<TrackItem> data) {
     		super(context, layoutResourceId, data);
@@ -148,6 +155,7 @@ public class AlbumsTracksFragment extends Fragment {
     		mContext = context;
     		mLayoutResourceId = layoutResourceId;
     		mInflater = LayoutInflater.from(context);
+    		mIsSampler = false;
     		
     	}
     	
@@ -196,12 +204,18 @@ public class AlbumsTracksFragment extends Fragment {
 				trackNumberView.setText(trackNumber);
 			}
 			
-			// set artist if sampler
-			trackArtistView.setText(trackItem.trackArtist);
+			// set artist if sampler or multiple artists
+			if(mIsSampler || (trackItem.trackArtist.contains(mAlbumArtist) && !trackItem.trackArtist.equals(mAlbumArtist)) ) {
+				trackArtistView.setText(trackItem.trackArtist);
+			}
 			
 			return convertView;
 			
     	}
+		
+		public void setIsSampler(boolean sampler) {
+			mIsSampler = sampler;
+		}
     	
     }
     
@@ -211,6 +225,14 @@ public class AlbumsTracksFragment extends Fragment {
     	public long trackDuration;
     	public int trackNumber;
     	public String trackArtist;
+    	
+    	public TrackItem() {
+    		super();
+    		this.trackTitle = "";
+    		this.trackArtist = "";
+    		this.trackDuration = 0;
+    		this.trackNumber = 0;
+    	}
     	
     	public TrackItem(String title, long duration, int number, String artist) {
     		super();
