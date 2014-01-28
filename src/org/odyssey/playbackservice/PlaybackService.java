@@ -73,7 +73,7 @@ public class PlaybackService extends Service implements
 		mHandler = new PlaybackServiceHandler(mLooper, this);
 
 		// Create MediaPlayer
-		mPlayer = new GaplessPlayer();
+		mPlayer = new GaplessPlayer(this);
 		Log.v(TAG, "Service created");
 
 		// Set listeners

@@ -3,9 +3,11 @@ package org.odyssey.playbackservice;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.os.PowerManager;
 
 public class GaplessPlayer {
 	private MediaPlayer mCurrentMediaPlayer = null;
@@ -15,9 +17,12 @@ public class GaplessPlayer {
 	private String mPrimarySource;
 	private String mSecondarySource;
 
-	public GaplessPlayer() {
+	private PlaybackService mPlaybackService;
+
+	public GaplessPlayer(PlaybackService service) {
 		this.mTrackFinishedListeners = new ArrayList<GaplessPlayer.OnTrackFinishedListener>();
 		this.mTrackStartListeners = new ArrayList<GaplessPlayer.OnTrackStartedListener>();
+		mPlaybackService = service;
 	}
 
 	/**
@@ -41,6 +46,7 @@ public class GaplessPlayer {
 			mCurrentMediaPlayer = new MediaPlayer();
 		}
 		mCurrentPrepared = false;
+		mCurrentMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mCurrentMediaPlayer.setDataSource(uri);
 		mPrimarySource = uri;
 		mCurrentMediaPlayer.setOnPreparedListener(mPreparedListener);
@@ -58,6 +64,8 @@ public class GaplessPlayer {
 		} else if (mCurrentMediaPlayer != null
 				&& !mCurrentMediaPlayer.isPlaying() && mCurrentPrepared) {
 			mCurrentMediaPlayer.start();
+			mCurrentMediaPlayer.setWakeMode(mPlaybackService,
+					PowerManager.PARTIAL_WAKE_LOCK);
 		}
 
 	}
@@ -68,6 +76,7 @@ public class GaplessPlayer {
 	public void stop() {
 		if (mCurrentMediaPlayer != null && mCurrentPrepared) {
 			mCurrentMediaPlayer.stop();
+			mCurrentMediaPlayer.setWakeMode(mPlaybackService, 0);
 		}
 	}
 
@@ -89,6 +98,7 @@ public class GaplessPlayer {
 		} else {
 			mNextMediaPlayer = new MediaPlayer();
 		}
+		mNextMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mNextMediaPlayer.setDataSource(uri);
 		mSecondarySource = uri;
 		mNextMediaPlayer.setOnPreparedListener(mPreparedListener);
@@ -101,6 +111,7 @@ public class GaplessPlayer {
 			// If mp equals currentMediaPlayback it should start playing
 			if (mp.equals(mCurrentMediaPlayer)) {
 				mCurrentPrepared = true;
+				mp.setWakeMode(mPlaybackService, PowerManager.PARTIAL_WAKE_LOCK);
 				mp.start();
 				// Notify connected listeners
 				for (OnTrackStartedListener listener : mTrackStartListeners) {
