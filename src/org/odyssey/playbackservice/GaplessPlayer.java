@@ -6,133 +6,168 @@ import java.util.ArrayList;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
-import android.net.Uri;
 
 public class GaplessPlayer {
-	private MediaPlayer currentMediaPlayer = null;
-	private boolean currentPrepared = false;
-	private MediaPlayer nextMediaPlayer = null;
-	
+	private MediaPlayer mCurrentMediaPlayer = null;
+	private boolean mCurrentPrepared = false;
+	private MediaPlayer mNextMediaPlayer = null;
+
+	private String mPrimarySource;
+	private String mSecondarySource;
+
+	public GaplessPlayer() {
+		this.mTrackFinishedListeners = new ArrayList<GaplessPlayer.OnTrackFinishedListener>();
+		this.mTrackStartListeners = new ArrayList<GaplessPlayer.OnTrackStartedListener>();
+	}
+
 	/**
-	 * Initializes the first mediaplayers with uri and prepares it
-	 * so it can get started
-	 * @param uri - Path to media file
+	 * Initializes the first mediaplayers with uri and prepares it so it can get
+	 * started
+	 * 
+	 * @param uri
+	 *            - Path to media file
 	 * @throws IllegalArgumentException
 	 * @throws SecurityException
 	 * @throws IllegalStateException
 	 * @throws IOException
 	 */
-	public void play(String uri) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+	public void play(String uri) throws IllegalArgumentException,
+			SecurityException, IllegalStateException, IOException {
 		// Another player currently exists try reusing
-		if ( currentMediaPlayer != null ) {
-			currentMediaPlayer.stop();
-			currentMediaPlayer.reset();
+		if (mCurrentMediaPlayer != null) {
+			mCurrentMediaPlayer.stop();
+			mCurrentMediaPlayer.reset();
 		} else {
-			currentMediaPlayer = new MediaPlayer();
+			mCurrentMediaPlayer = new MediaPlayer();
 		}
-		currentPrepared = false;
-		currentMediaPlayer.setDataSource(uri);
-		currentMediaPlayer.setOnPreparedListener(mPreparedListener);
-		currentMediaPlayer.prepareAsync();
+		mCurrentPrepared = false;
+		mCurrentMediaPlayer.setDataSource(uri);
+		mPrimarySource = uri;
+		mCurrentMediaPlayer.setOnPreparedListener(mPreparedListener);
+		mCurrentMediaPlayer.prepareAsync();
 	}
-	
+
 	/**
-	 * Pauses the currently running mediaplayer
-	 * If already paused it continues the playback
+	 * Pauses the currently running mediaplayer If already paused it continues
+	 * the playback
 	 */
 	public void togglePause() {
 		// Check if Mediaplayer is running
-		if ( currentMediaPlayer != null && 
-				currentMediaPlayer.isPlaying() ) {
-			currentMediaPlayer.pause();
+		if (mCurrentMediaPlayer != null && mCurrentMediaPlayer.isPlaying()) {
+			mCurrentMediaPlayer.pause();
+		} else if (mCurrentMediaPlayer != null
+				&& !mCurrentMediaPlayer.isPlaying() && mCurrentPrepared) {
+			mCurrentMediaPlayer.start();
 		}
-		else if ( currentMediaPlayer != null && 
-			!currentMediaPlayer.isPlaying() && currentPrepared ) {
-				currentMediaPlayer.start();
-			}
-			
+
 	}
-	
+
 	/**
 	 * Stops mediaplayback
 	 */
 	public void stop() {
-		if( currentMediaPlayer != null && 
-				currentPrepared) {
-			currentMediaPlayer.stop();			
+		if (mCurrentMediaPlayer != null && mCurrentPrepared) {
+			mCurrentMediaPlayer.stop();
 		}
 	}
-	
+
 	/**
-	 * Sets next mediaplayer to uri and start preparing it.
-	 * if next mediaplayer was already initialized it gets resetted
+	 * Sets next mediaplayer to uri and start preparing it. if next mediaplayer
+	 * was already initialized it gets resetted
+	 * 
 	 * @param uri
 	 * @throws IllegalArgumentException
 	 * @throws SecurityException
 	 * @throws IllegalStateException
 	 * @throws IOException
 	 */
-	public void setNextTrack(String uri) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+	public void setNextTrack(String uri) throws IllegalArgumentException,
+			SecurityException, IllegalStateException, IOException {
 		// Next mediaplayer already set, reset
-		if ( nextMediaPlayer != null ) {
-			nextMediaPlayer.reset();
+		if (mNextMediaPlayer != null) {
+			mNextMediaPlayer.reset();
+		} else {
+			mNextMediaPlayer = new MediaPlayer();
 		}
-		else {
-			nextMediaPlayer = new MediaPlayer();
-		}
-		nextMediaPlayer.setDataSource(uri);
-		nextMediaPlayer.setOnPreparedListener(mPreparedListener);
+		mNextMediaPlayer.setDataSource(uri);
+		mSecondarySource = uri;
+		mNextMediaPlayer.setOnPreparedListener(mPreparedListener);
 	}
-	
+
 	private OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
-		
+
 		@Override
 		public void onPrepared(MediaPlayer mp) {
 			// If mp equals currentMediaPlayback it should start playing
-			if ( mp.equals(currentMediaPlayer) ) {
-				currentPrepared = true;
+			if (mp.equals(mCurrentMediaPlayer)) {
+				mCurrentPrepared = true;
 				mp.start();
+				// Notify connected listeners
+				for (OnTrackStartedListener listener : mTrackStartListeners) {
+					listener.onTrackStarted(mPrimarySource);
+				}
 			} // If it is nextMediaPlayer it should be set for currentMP
-			else if ( mp.equals(nextMediaPlayer) ) {
-				currentMediaPlayer.setNextMediaPlayer(mp);
+			else if (mp.equals(mNextMediaPlayer)) {
+				mCurrentMediaPlayer.setNextMediaPlayer(mp);
 			}
 		}
 	};
-	
+
 	private OnCompletionListener mCompletionListener = new OnCompletionListener() {
-		
+
 		@Override
 		public void onCompletion(MediaPlayer mp) {
 			// Cleanup old MP
-			currentMediaPlayer.release();
-			currentMediaPlayer = null;
+			mCurrentMediaPlayer.release();
+			mCurrentMediaPlayer = null;
 			// Set current MP to next MP
-			if ( nextMediaPlayer != null) {
-				currentMediaPlayer = nextMediaPlayer;
-				nextMediaPlayer = null;
+			if (mNextMediaPlayer != null) {
+				mCurrentMediaPlayer = mNextMediaPlayer;
+				mNextMediaPlayer = null;
 			}
 			// notify connected services
-			for ( OnTrackFinishedListener listener : mTrackFinishedListeners) {
+			for (OnTrackFinishedListener listener : mTrackFinishedListeners) {
 				listener.onTrackFinished();
 			}
 		}
 	};
-	
-	
+
 	// Notification for Services using GaplessPlayer
 	public interface OnTrackFinishedListener {
 		void onTrackFinished();
 	}
-	
+
+	public interface OnTrackStartedListener {
+		void onTrackStarted(String URI);
+	}
+
+	// Track finish notification
 	private ArrayList<OnTrackFinishedListener> mTrackFinishedListeners;
-	
+
 	public void setOnTrackFinishedListener(OnTrackFinishedListener listener) {
 		mTrackFinishedListeners.add(listener);
 	}
-	
+
 	public void removeOnTrackFinishedListener(OnTrackFinishedListener listener) {
 		mTrackFinishedListeners.remove(listener);
 	}
-	
+
+	// Track start notification
+	private ArrayList<OnTrackStartedListener> mTrackStartListeners;
+
+	public void setOnTrackStartListener(OnTrackStartedListener listener) {
+		mTrackStartListeners.add(listener);
+	}
+
+	public void removeOnTrackStartListener(OnTrackStartedListener listener) {
+		mTrackStartListeners.remove(listener);
+	}
+
+	public boolean isRunning() {
+		if (mCurrentMediaPlayer != null) {
+			return mCurrentMediaPlayer.isPlaying();
+		}
+		return false;
+	}
 
 }

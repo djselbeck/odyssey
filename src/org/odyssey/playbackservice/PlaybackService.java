@@ -5,7 +5,13 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.odyssey.MainActivity;
+import org.odyssey.R;
+
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.HandlerThread;
@@ -14,6 +20,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
 import android.os.RemoteException;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -21,6 +29,7 @@ public class PlaybackService extends Service implements
 		MediaPlayer.OnPreparedListener {
 
 	public static final String TAG = "PlaybackService";
+	public static final int NOTIFICATION_ID = 42;
 
 	public static final String ACTION_TESTPLAY = "org.odyssey.testplay";
 	public static final String ACTION_PLAY = "org.odyssey.play";
@@ -37,7 +46,6 @@ public class PlaybackService extends Service implements
 
 	// Mediaplayback stuff
 	private GaplessPlayer mPlayer;
-	private int mNotificationID = 0;
 	private ArrayList<String> mCurrentList;
 
 	@Override
@@ -66,6 +74,9 @@ public class PlaybackService extends Service implements
 		// Create MediaPlayer
 		mPlayer = new GaplessPlayer();
 		Log.v(TAG, "Service created");
+
+		// Set listeners
+		mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
 	}
 
 	@Override
@@ -86,6 +97,7 @@ public class PlaybackService extends Service implements
 		} catch (IOException e) {
 			Log.e(TAG, "URI: " + uri + "can't be played");
 		}
+		// Create notification
 	}
 
 	@Override
@@ -278,6 +290,42 @@ public class PlaybackService extends Service implements
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
 		}
+	}
+
+	private class PlaybackStartListener implements
+			GaplessPlayer.OnTrackStartedListener {
+		private PlaybackService mPlaybackService;
+
+		public PlaybackStartListener(PlaybackService service) {
+			mPlaybackService = service;
+		}
+
+		@Override
+		public void onTrackStarted(String URI) {
+			Log.v(TAG, "track starded: " + URI);
+			NotificationCompat.Builder builder = new NotificationCompat.Builder(
+					mPlaybackService).setSmallIcon(R.drawable.ic_stat_odys)
+					.setContentTitle("Odyssey").setContentText(URI);
+
+			Intent resultIntent = new Intent(mPlaybackService,
+					MainActivity.class);
+
+			TaskStackBuilder stackBuilder = TaskStackBuilder
+					.create(mPlaybackService);
+
+			stackBuilder.addParentStack(MainActivity.class);
+			stackBuilder.addNextIntent(resultIntent);
+
+			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
+					0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+			builder.setContentIntent(resultPendingIntent);
+			NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			// Make notification persistent
+			builder.setOngoing(true);
+			notificationManager.notify(NOTIFICATION_ID, builder.build());
+		}
+
 	}
 
 }
