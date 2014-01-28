@@ -21,12 +21,32 @@ public class MusicLibraryHelper {
 			MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ALBUM,
 			MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DATA };
 
-	// public Cursor getAlbums(ContentResolver provider) {
-	//
-	// Cursor testCursor =
-	// provider.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-	// projectionAlbums, "", null, MediaStore.Audio.AlbumColumns.ALBUM);
-	//
-	// return testCursor;
-	// }
+	// class for trackinformation
+	public static class TrackItem {
+		public String trackTitle;
+		public long trackDuration;
+		public int trackNumber;
+		public String trackArtist;
+		public String trackURL;
+
+		public TrackItem() {
+			super();
+			this.trackTitle = "";
+			this.trackArtist = "";
+			this.trackDuration = 0;
+			this.trackNumber = 0;
+			this.trackURL = null;
+		}
+
+		public TrackItem(String title, long duration, int number,
+				String artist, String url) {
+			super();
+			this.trackDuration = duration;
+			this.trackTitle = title;
+			this.trackNumber = number;
+			this.trackArtist = artist;
+			this.trackURL = url;
+		}
+
+	}
 }

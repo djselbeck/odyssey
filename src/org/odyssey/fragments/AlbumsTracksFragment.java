@@ -3,6 +3,7 @@ package org.odyssey.fragments;
 import java.util.ArrayList;
 
 import org.odyssey.MusicLibraryHelper;
+import org.odyssey.MusicLibraryHelper.TrackItem;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 
@@ -72,7 +73,8 @@ public class AlbumsTracksFragment extends Fragment {
 
 		// create adapter for tracklist
 		mTrackListAdapter = new TrackListArrayAdapter(getActivity(),
-				R.layout.listview_tracklist_item, new ArrayList<TrackItem>());
+				R.layout.listview_tracklist_item,
+				new ArrayList<MusicLibraryHelper.TrackItem>());
 
 		// create listview for tracklist
 		ListView trackListView = (ListView) rootView
@@ -157,12 +159,12 @@ public class AlbumsTracksFragment extends Fragment {
 
 		boolean isSampler = false;
 
-		ArrayList<TrackItem> trackList = new ArrayList<TrackItem>();
+		ArrayList<MusicLibraryHelper.TrackItem> trackList = new ArrayList<MusicLibraryHelper.TrackItem>();
 
 		// get all tracks on the current album
 		if (cursor.moveToFirst()) {
 			do {
-				TrackItem item = new TrackItem();
+				MusicLibraryHelper.TrackItem item = new MusicLibraryHelper.TrackItem();
 				item.trackTitle = cursor.getString(cursor
 						.getColumnIndex(MediaStore.Audio.Media.TITLE));
 				item.trackDuration = cursor.getLong(cursor
@@ -283,32 +285,4 @@ public class AlbumsTracksFragment extends Fragment {
 
 	}
 
-	// class for trackinformation
-	private class TrackItem {
-		public String trackTitle;
-		public long trackDuration;
-		public int trackNumber;
-		public String trackArtist;
-		public String trackURL;
-
-		public TrackItem() {
-			super();
-			this.trackTitle = "";
-			this.trackArtist = "";
-			this.trackDuration = 0;
-			this.trackNumber = 0;
-			this.trackURL = null;
-		}
-
-		public TrackItem(String title, long duration, int number,
-				String artist, String url) {
-			super();
-			this.trackDuration = duration;
-			this.trackTitle = title;
-			this.trackNumber = number;
-			this.trackArtist = artist;
-			this.trackURL = url;
-		}
-
-	}
 }
