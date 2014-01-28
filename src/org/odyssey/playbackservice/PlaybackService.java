@@ -8,6 +8,7 @@ import java.util.List;
 import org.odyssey.MainActivity;
 import org.odyssey.R;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -323,7 +324,9 @@ public class PlaybackService extends Service implements
 			NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 			// Make notification persistent
 			builder.setOngoing(true);
-			notificationManager.notify(NOTIFICATION_ID, builder.build());
+			Notification notification = builder.build();
+			notificationManager.notify(NOTIFICATION_ID, notification);
+			startForeground(NOTIFICATION_ID, notification);
 		}
 
 	}
