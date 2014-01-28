@@ -45,6 +45,11 @@ public class PlaybackService extends Service implements
 	private HandlerThread mHandlerThread;
 	private PlaybackServiceHandler mHandler;
 
+	// Notification objects
+	NotificationManager mNotificationManager;
+	NotificationCompat.Builder mNotificationBuilder;
+	Notification mNotification;
+
 	// Mediaplayback stuff
 	private GaplessPlayer mPlayer;
 	private ArrayList<String> mCurrentList;
@@ -121,6 +126,12 @@ public class PlaybackService extends Service implements
 
 	public List<String> getCurrentList() {
 		return mCurrentList;
+	}
+
+	public void stopService() {
+		stopForeground(true);
+		mNotificationBuilder.setOngoing(false);
+		mNotificationManager.cancel(NOTIFICATION_ID);
 	}
 
 	private final static class PlaybackServiceStub extends
@@ -304,7 +315,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void onTrackStarted(String URI) {
 			Log.v(TAG, "track starded: " + URI);
-			NotificationCompat.Builder builder = new NotificationCompat.Builder(
+			mNotificationBuilder = new NotificationCompat.Builder(
 					mPlaybackService).setSmallIcon(R.drawable.ic_stat_odys)
 					.setContentTitle("Odyssey").setContentText(URI);
 
@@ -320,13 +331,13 @@ public class PlaybackService extends Service implements
 			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
 					0, PendingIntent.FLAG_UPDATE_CURRENT);
 
-			builder.setContentIntent(resultPendingIntent);
-			NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			mNotificationBuilder.setContentIntent(resultPendingIntent);
+			mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 			// Make notification persistent
-			builder.setOngoing(true);
-			Notification notification = builder.build();
-			notificationManager.notify(NOTIFICATION_ID, notification);
-			startForeground(NOTIFICATION_ID, notification);
+			mNotificationBuilder.setOngoing(true);
+			mNotification = mNotificationBuilder.build();
+			mNotificationManager.notify(NOTIFICATION_ID, mNotification);
+			startForeground(NOTIFICATION_ID, mNotification);
 		}
 
 	}

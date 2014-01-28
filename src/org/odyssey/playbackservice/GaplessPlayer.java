@@ -8,8 +8,10 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.PowerManager;
+import android.util.Log;
 
 public class GaplessPlayer {
+	private final static String TAG = "GaplessPlayer";
 	private MediaPlayer mCurrentMediaPlayer = null;
 	private boolean mCurrentPrepared = false;
 	private MediaPlayer mNextMediaPlayer = null;
@@ -64,7 +66,8 @@ public class GaplessPlayer {
 		} else if (mCurrentMediaPlayer != null
 				&& !mCurrentMediaPlayer.isPlaying() && mCurrentPrepared) {
 			mCurrentMediaPlayer.start();
-			mCurrentMediaPlayer.setWakeMode(mPlaybackService,
+			mCurrentMediaPlayer.setWakeMode(
+					mPlaybackService.getApplicationContext(),
 					PowerManager.PARTIAL_WAKE_LOCK);
 		}
 
@@ -76,7 +79,7 @@ public class GaplessPlayer {
 	public void stop() {
 		if (mCurrentMediaPlayer != null && mCurrentPrepared) {
 			mCurrentMediaPlayer.stop();
-			mCurrentMediaPlayer.setWakeMode(mPlaybackService, 0);
+			// mCurrentMediaPlayer.setWakeMode(mPlaybackService, 0);
 		}
 	}
 
@@ -111,7 +114,9 @@ public class GaplessPlayer {
 			// If mp equals currentMediaPlayback it should start playing
 			if (mp.equals(mCurrentMediaPlayer)) {
 				mCurrentPrepared = true;
-				mp.setWakeMode(mPlaybackService, PowerManager.PARTIAL_WAKE_LOCK);
+				mp.setWakeMode(mPlaybackService.getApplicationContext(),
+						PowerManager.PARTIAL_WAKE_LOCK);
+				mp.setOnCompletionListener(mCompletionListener);
 				mp.start();
 				// Notify connected listeners
 				for (OnTrackStartedListener listener : mTrackStartListeners) {
@@ -135,6 +140,9 @@ public class GaplessPlayer {
 			if (mNextMediaPlayer != null) {
 				mCurrentMediaPlayer = mNextMediaPlayer;
 				mNextMediaPlayer = null;
+			} else {
+				Log.v(TAG, "Stopping service");
+				mPlaybackService.stopService();
 			}
 			// notify connected services
 			for (OnTrackFinishedListener listener : mTrackFinishedListeners) {
