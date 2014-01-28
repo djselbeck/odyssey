@@ -51,6 +51,10 @@ public class AlbumsTracksFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
+		if (savedInstanceState != null) {
+			return inflater.inflate(R.layout.fragment_albumtracks, container,
+					false);
+		}
 		View rootView = inflater.inflate(R.layout.fragment_albumtracks,
 				container, false);
 
@@ -109,12 +113,6 @@ public class AlbumsTracksFragment extends Fragment {
 			}
 		});
 
-		return rootView;
-	}
-
-	@Override
-	public void onStart() {
-		super.onStart();
 		Bundle args = getArguments();
 
 		mAlbumKey = args.getString(ARG_ALBUMKEY);
@@ -125,6 +123,14 @@ public class AlbumsTracksFragment extends Fragment {
 		setAlbumInformation();
 
 		setAlbumTracks();
+
+		return rootView;
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+
 	}
 
 	private void setAlbumInformation() {
