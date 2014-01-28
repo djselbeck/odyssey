@@ -1,5 +1,6 @@
 package org.odyssey.playbackservice;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +78,14 @@ public class PlaybackService extends Service implements
 	public void onDestroy() {
 		Toast.makeText(this, "Odyssey PlaybackService done", Toast.LENGTH_SHORT)
 				.show();
+	}
+
+	public void playURI(String uri) {
+		try {
+			mPlayer.play(uri);
+		} catch (IOException e) {
+			Log.e(TAG, "URI: " + uri + "can't be played");
+		}
 	}
 
 	@Override
