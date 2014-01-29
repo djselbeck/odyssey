@@ -26,14 +26,10 @@ public class ArtistsAlbumsTabsFragment extends Fragment implements TabListener{
             Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-		if (savedInstanceState != null) {
-			return inflater.inflate(R.layout.fragment_albumtracks, container,
-					false);
-		}        
-        
         View rootView = inflater.inflate(R.layout.fragment_artists_albums_tabs, container, false);
         
-        // Create the adapter that will return a fragment for each of the two primary sections.
+        // Create the adapter that will return a fragment for each of the three primary sections
+        // of the app.
         mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getChildFragmentManager(), getActivity());        
         
         // Set up the action bar.
@@ -48,7 +44,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment implements TabListener{
         
         // Set up the ViewPager, attaching the adapter and setting up a listener for when the
         // user swipes between sections.
-        mViewPager = (ViewPager) rootView.findViewById(R.id.pager2);
+        mViewPager = (ViewPager) rootView.findViewById(R.id.pager);
         mViewPager.setAdapter(mAppSectionsPagerAdapter);
         
         mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {

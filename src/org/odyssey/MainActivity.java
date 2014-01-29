@@ -45,21 +45,7 @@ import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener{
 	
-	private static final String TAG = "OdysseyMainActivity";
-
-
-    /**
-     * The {@link android.support.v4.view.ViewPager} that will display the object collection.
-     */
-//    ViewPager mViewPager;
-    
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide fragments for each of the
-     * three primary sections of the app. We use a {@link android.support.v4.app.FragmentPagerAdapter}
-     * derivative, which will keep every loaded fragment in memory. If this becomes too memory
-     * intensive, it may be best to switch to a {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-//    AppSectionsPagerAdapter mAppSectionsPagerAdapter;    
+	private static final String TAG = "OdysseyMainActivity"; 
     
     private IOdysseyPlaybackService mPlaybackService;
     private ServiceConnection mConnection = null;
@@ -90,45 +76,9 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
         
-//        // Create the adapter that will return a fragment for each of the three primary sections
-//        // of the app.
-//        mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getSupportFragmentManager(),this);        
-//        
-//        // Set up the action bar.
-//        final ActionBar actionBar = getActionBar();
-//
-//        // Specify that the Home/Up button should not be enabled, since there is no hierarchical
-//        // parent.
-//        actionBar.setHomeButtonEnabled(false);
-//
-//        // Specify that we will be displaying tabs in the action bar.
-//        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-//        
-//        // Set up the ViewPager, attaching the adapter and setting up a listener for when the
-//        // user swipes between sections.
-//        mViewPager = (ViewPager) findViewById(R.id.pager);
-//        mViewPager.setAdapter(mAppSectionsPagerAdapter);
-//        
-//        mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-//            @Override
-//            public void onPageSelected(int position) {
-//                // When swiping between different app sections, select the corresponding tab.
-//                // We can also use ActionBar.Tab#select() to do this if we have a reference to the
-//                // Tab.
-//                actionBar.setSelectedNavigationItem(position);
-//            }
-//        });
-//
-//        // For each of the sections in the app, add a tab to the action bar.
-//        for (int i = 0; i < mAppSectionsPagerAdapter.getCount(); i++) {
-//            // Create a tab with text corresponding to the page title defined by the adapter.
-//            // Also specify this Activity object, which implements the TabListener interface, as the
-//            // listener for when this tab is selected.
-//            actionBar.addTab(
-//                    actionBar.newTab()
-//                            .setText(mAppSectionsPagerAdapter.getPageTitle(i))
-//                            .setTabListener(this));
-//        }     
+        if(savedInstanceState != null) {
+        	return;
+        }   
         
         ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
         
@@ -156,71 +106,9 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-    
-//    /**
-//     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to one of the primary
-//     * sections of the app.
-//     */
-//    public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
-//    	Context mContext;
-//
-//        public AppSectionsPagerAdapter(FragmentManager fm, Context context) {
-//            super(fm);
-//            this.mContext = context;
-//        }
-//
-//        @Override
-//        public Fragment getItem(int i) {
-//            switch (i) {
-//                case 0:
-//                	return new ArtistsSectionFragment();
-//                case 1:
-//                	return new AlbumsSectionFragment();                    
-//                default:
-//                    return null;
-//            }
-//        }
-//
-//        @Override
-//        public int getCount() {
-//            return 2;
-//        }
-//
-//        @Override
-//        public CharSequence getPageTitle(int position) {
-//            switch ( position ) {
-//            case 0: 
-//            	return mContext.getText(R.string.section_title_artists);
-//            case 1:
-//            	return mContext.getText(R.string.section_title_albums);
-//            }
-//            return "";
-//        }
-//    }
-
-
-//	@Override
-//	public void onTabReselected(Tab tab, FragmentTransaction transaction) {
-//		// TODO Auto-generated method stub
-//		
-//	}
-//
-//	@Override
-//	public void onTabSelected(Tab tab, FragmentTransaction transaction) {
-//		mViewPager.setCurrentItem(tab.getPosition());
-//	}
-//
-//	@Override
-//	public void onTabUnselected(Tab tab, FragmentTransaction transaction) {
-//		// TODO Auto-generated method stub
-//		
-//	}
 
 	@Override
 	public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist) {
-			
-		// disable viewpager
-//		mViewPager.setVisibility(View.GONE);
 		
         // update actionbar
         final ActionBar actionBar = getActionBar();
@@ -253,9 +141,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	
 	@Override
 	public void onArtistSelected(String artist, long artistID) {
-		
-		// disable viewpager
-//		mViewPager.setVisibility(View.GONE);
 		
         // update actionbar
         final ActionBar actionBar = getActionBar();
@@ -290,19 +175,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 		android.support.v4.app.FragmentManager manager = getSupportFragmentManager();	
 		
 		super.onBackPressed();
-		
-//		if(manager.getBackStackEntryCount() == 0) {
-//	        
-//			// update actionbar
-//	        final ActionBar actionBar = getActionBar();
-//	
-//	        actionBar.setHomeButtonEnabled(false);
-//	        actionBar.setDisplayHomeAsUpEnabled(false);
-//	
-//	        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);		
-//			
-//	        // enable viewpager
-////			mViewPager.setVisibility(View.VISIBLE);
-//		} 	
+			
 	}
 }
