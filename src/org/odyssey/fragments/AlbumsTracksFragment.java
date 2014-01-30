@@ -50,9 +50,6 @@ public class AlbumsTracksFragment extends Fragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		if (savedInstanceState != null) {
-			return inflater.inflate(R.layout.fragment_albumtracks, container, false);
-		}
 		View rootView = inflater.inflate(R.layout.fragment_albumtracks, container, false);
 
 		// create listview header
