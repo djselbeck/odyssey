@@ -129,6 +129,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         newFragment.setArguments(args);    	
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack so the user can navigate back
