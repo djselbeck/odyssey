@@ -95,6 +95,7 @@ public class GaplessPlayer {
 	public void stop() {
 		if (mCurrentMediaPlayer != null && mCurrentPrepared) {
 			mCurrentMediaPlayer.stop();
+			mCurrentMediaPlayer.reset();
 			mCurrentMediaPlayer.release();
 			mCurrentMediaPlayer = null;
 			// mCurrentMediaPlayer.setWakeMode(mPlaybackService, 0);
@@ -135,6 +136,7 @@ public class GaplessPlayer {
 			mCurrentPrepared = true;
 			mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 			mp.start();
+			
 			// Notify connected listeners
 			for (OnTrackStartedListener listener : mTrackStartListeners) {
 				listener.onTrackStarted(mPrimarySource);

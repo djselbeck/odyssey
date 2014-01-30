@@ -60,6 +60,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
+    	super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_artists, container, false);
                      
         mCursorAdapter = new ArtistsCursorAdapter(getActivity(), null, 0);

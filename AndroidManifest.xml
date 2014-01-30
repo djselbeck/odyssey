@@ -8,8 +8,9 @@
         android:minSdkVersion="16"
         android:targetSdkVersion="16" />
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:name=".OdysseyApplication"
         android:allowBackup="true"
@@ -27,12 +28,14 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".playbackservice.PlaybackService" >
+        <service android:name=".playbackservice.PlaybackService" 
+            android:process=":odysseyServiceProcess">
             <intent-filter>
                 <action android:name="org.odyssey.playbackservice.IOdysseyPlaybackService" >
                 </action>
             </intent-filter>
         </service>
+
     </application>
 
 </manifest>

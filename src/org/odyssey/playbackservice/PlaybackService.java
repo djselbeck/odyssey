@@ -73,10 +73,9 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		super.onCreate();
 		Log.v(TAG, "Odyssey PlaybackService onCreate");
 		// Start Handlerthread
-		mHandlerThread = new HandlerThread(TAG + "Thread", Process.THREAD_PRIORITY_BACKGROUND);
+		mHandlerThread = new HandlerThread(TAG + "Thread", Process.THREAD_PRIORITY_AUDIO);
 		mHandlerThread.start();
-		mLooper = mHandlerThread.getLooper();
-		mHandler = new PlaybackServiceHandler(mLooper, this);
+		mHandler = new PlaybackServiceHandler(mHandlerThread.getLooper(), this);
 
 		// Create MediaPlayer
 		mPlayer = new GaplessPlayer(this);
@@ -85,7 +84,8 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		// Set listeners
 		mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
 		mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
-		Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
+		Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
+		
 
 		// Create playlist
 		mCurrentList = new ArrayList<String>();
