@@ -100,7 +100,13 @@ public class AlbumsTracksFragment extends Fragment {
 				} else {
 					// Play complete album
 					OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-
+					// Remove old tracks
+					try {
+						app.getPlaybackService().clearPlaylist();
+					} catch (RemoteException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 					for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
 						String dataPath = mTrackListAdapter.getItem(i).trackURL;
 						try {

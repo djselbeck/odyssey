@@ -57,6 +57,8 @@ public class PlaybackServiceHandler extends Handler {
 				mService.get().enqueueTracks(msgObj.getStringList());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_SETNEXTRACK) {
 
+			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_CLEARPLAYLIST) {
+				mService.get().clearPlaylist();
 			}
 
 		}

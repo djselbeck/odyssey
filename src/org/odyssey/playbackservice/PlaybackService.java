@@ -417,6 +417,14 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
 		}
+
+		@Override
+		public void clearPlaylist() throws RemoteException {
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_CLEARPLAYLIST);
+			Message msg = mService.get().getHandler().obtainMessage();
+			msg.obj = obj;
+			mService.get().getHandler().sendMessage(msg);
+		}
 	}
 
 	private class PlaybackStartListener implements GaplessPlayer.OnTrackStartedListener {
