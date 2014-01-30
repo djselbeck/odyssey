@@ -161,11 +161,12 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         newFragment.setArguments(args);
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack so the user can navigate back
         transaction.replace(R.id.fragmentContainer, newFragment);
-        transaction.addToBackStack(null);
+        transaction.addToBackStack("ArtistFragment");
 
         // Commit the transaction
         transaction.commit();        	

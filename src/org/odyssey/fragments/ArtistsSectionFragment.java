@@ -37,6 +37,10 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     OnArtistSelectedListener mArtistSelectedCallback;
     
     private static final String TAG = "ArtistsSectionFragment"; 
+    
+    private GridView mRootGrid;
+    
+    private int mLastPosition = -1;
 	
 	// Listener for communication via container activity
 	public interface OnArtistSelectedListener {
@@ -55,30 +59,44 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
                     + " must implement OnHeadlineSelectedListener");
         }
 		
-	}    
+	}   
+	
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
     	super.onCreateView(inflater, container, savedInstanceState);
+    	
         View rootView = inflater.inflate(R.layout.fragment_artists, container, false);
                      
         mCursorAdapter = new ArtistsCursorAdapter(getActivity(), null, 0);
+
+        mRootGrid = (GridView) rootView;
+
         
-        GridView mainGridView = (GridView) rootView;
+        mRootGrid.setNumColumns(2);
         
-        mainGridView.setNumColumns(2);
+        mRootGrid.setAdapter(mCursorAdapter);
         
-        mainGridView.setAdapter(mCursorAdapter);
+        mRootGrid.setOnItemClickListener((OnItemClickListener) this);
         
-        mainGridView.setOnItemClickListener((OnItemClickListener) this);
         
         // Prepare loader ( start new one or reuse old) 
         getLoaderManager().initLoader(0, null, this);
         
+               
         return rootView;
     }	
-	
+    
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	if ( mLastPosition >= 0 ) {
+    		mRootGrid.setSelection(mLastPosition);
+    		mLastPosition = -1;
+    	}
+    }
+    
     private class ArtistsCursorAdapter extends CursorAdapter implements SectionIndexer {
 
     	private LayoutInflater mInflater;
@@ -290,7 +308,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		mCursorAdapter.swapCursor(cursor);		
+		mCursorAdapter.swapCursor(cursor);
 	}
 
 	@Override
@@ -300,6 +318,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		// Save scroll position
+		mLastPosition = position;
 		
 		//identify current artist
 		Cursor cursor = mCursorAdapter.getCursor();

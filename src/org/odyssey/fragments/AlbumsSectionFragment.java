@@ -47,6 +47,9 @@ public class AlbumsSectionFragment extends Fragment implements
 	
 	private static final String TAG = "AlbumsSectionFragment";
 	
+	private GridView mRootGrid;
+	private int mLastPosition;
+	
 	// Listener for communication via container activity
 	public interface OnAlbumSelectedListener {
 		public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist);
@@ -75,13 +78,13 @@ public class AlbumsSectionFragment extends Fragment implements
 
 		mCursorAdapter = new AlbumCursorAdapter(getActivity(), null, 0);
 
-		GridView mainGridView = (GridView) rootView;
+		mRootGrid = (GridView) rootView;
 
-		mainGridView.setNumColumns(2);
+		mRootGrid.setNumColumns(2);
 
-		mainGridView.setAdapter(mCursorAdapter);
+		mRootGrid.setAdapter(mCursorAdapter);
 		
-		mainGridView.setOnItemClickListener((OnItemClickListener) this);	
+		mRootGrid.setOnItemClickListener((OnItemClickListener) this);	
 
 		return rootView;
 	}
@@ -93,6 +96,15 @@ public class AlbumsSectionFragment extends Fragment implements
 		// Prepare loader ( start new one or reuse old)
 		getLoaderManager().initLoader(0, getArguments(), this);    	
     }	
+    
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	if ( mLastPosition >= 0 ) {
+    		mRootGrid.setSelection(mLastPosition);
+    		mLastPosition = -1;
+    	}
+    }
 
 	private class AlbumCursorAdapter extends CursorAdapter implements
 			SectionIndexer {
@@ -348,6 +360,8 @@ public class AlbumsSectionFragment extends Fragment implements
 	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		// Save position for later resuming
+		mLastPosition = position;
 		
 		//identify current album
 		Cursor cursor = mCursorAdapter.getCursor();
@@ -363,5 +377,6 @@ public class AlbumsSectionFragment extends Fragment implements
 		mAlbumSelectedCallback.onAlbumSelected(albumKey, albumTitle, imagePath, artistTitle);
 		
 	}
+	
 
 }

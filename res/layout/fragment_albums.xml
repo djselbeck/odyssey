@@ -6,7 +6,5 @@
     android:verticalSpacing="10dp"
     android:horizontalSpacing="10dp"
     android:padding="10dp"    
-    android:scrollbars="vertical"
-    android:scrollbarStyle="outsideOverlay"
     android:fastScrollEnabled="true">
 </GridView>
