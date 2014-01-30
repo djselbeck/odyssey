@@ -26,8 +26,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
-public class PlaybackService extends Service implements
-		MediaPlayer.OnPreparedListener {
+public class PlaybackService extends Service implements MediaPlayer.OnPreparedListener {
 
 	public static final String TAG = "PlaybackService";
 	public static final int NOTIFICATION_ID = 42;
@@ -53,6 +52,7 @@ public class PlaybackService extends Service implements
 	// Mediaplayback stuff
 	private GaplessPlayer mPlayer;
 	private ArrayList<String> mCurrentList;
+	private int mCurrentPlayingIndex;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -71,8 +71,7 @@ public class PlaybackService extends Service implements
 		super.onCreate();
 		Log.v(TAG, "Odyssey PlaybackService onCreate");
 		// Start Handlerthread
-		mHandlerThread = new HandlerThread(TAG + "Thread",
-				Process.THREAD_PRIORITY_BACKGROUND);
+		mHandlerThread = new HandlerThread(TAG + "Thread", Process.THREAD_PRIORITY_BACKGROUND);
 		mHandlerThread.start();
 		mLooper = mHandlerThread.getLooper();
 		mHandler = new PlaybackServiceHandler(mLooper, this);
@@ -83,6 +82,12 @@ public class PlaybackService extends Service implements
 
 		// Set listeners
 		mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
+		mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
+		Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
+
+		// Create playlist
+		mCurrentList = new ArrayList<String>();
+		mCurrentPlayingIndex = -1;
 	}
 
 	@Override
@@ -93,10 +98,10 @@ public class PlaybackService extends Service implements
 
 	@Override
 	public void onDestroy() {
-		Toast.makeText(this, "Odyssey PlaybackService done", Toast.LENGTH_SHORT)
-				.show();
+		Toast.makeText(this, "Odyssey PlaybackService done", Toast.LENGTH_SHORT).show();
 	}
 
+	// Directly plays uri
 	public void playURI(String uri) {
 		try {
 			mPlayer.play(uri);
@@ -104,6 +109,45 @@ public class PlaybackService extends Service implements
 			Log.e(TAG, "URI: " + uri + "can't be played");
 		}
 		// Create notification
+	}
+
+	// Stops all playback
+	public void stop() {
+		mPlayer.stop();
+		stopService();
+	}
+
+	/**
+	 * Sets nextplayback track to uri
+	 */
+	public void setNextTrack() {
+		// Needs to set gaplessplayer next object and reorganize playlist
+		mPlayer.stop();
+		mCurrentPlayingIndex++;
+
+		// Next track is availible
+		if (mCurrentPlayingIndex < mCurrentList.size()) {
+			// Start playback of new song
+			try {
+				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
+				// Check if next song is availible (gapless)
+				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1));
+				}
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
@@ -128,14 +172,91 @@ public class PlaybackService extends Service implements
 		return mCurrentList;
 	}
 
+	public void clearPlaylist() {
+		// Stop the playback
+		mPlayer.stop();
+		// Clear the list and reset index
+		mCurrentList.clear();
+		mCurrentPlayingIndex = -1;
+
+		// TODO notify connected listeners
+	}
+
+	public void jumpToIndex(int index) {
+		Log.v(TAG, "Playback of index: " + index + " requested");
+		Log.v(TAG, "Playlist size: " + mCurrentList.size());
+		// Stop playback
+		mPlayer.stop();
+		// Set currentindex to new song
+		if (index < mCurrentList.size()) {
+			mCurrentPlayingIndex = index;
+			try {
+				Log.v(TAG, "Start playback of: " + mCurrentList.get(mCurrentPlayingIndex));
+				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
+
+				// Check if another song follows current one for gapless
+				// playback
+				if ((mCurrentPlayingIndex + 1) < mCurrentList.size()) {
+					Log.v(TAG, "Set next track to: " + mCurrentList.get(mCurrentPlayingIndex + 1));
+					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1));
+				}
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	public void enqueueTracks(ArrayList<String> tracklist) {
+		// Check if current song is old last one, if so set next song to MP for
+		// gapless playback
+		mCurrentList.addAll(tracklist);
+	}
+
+	public void enqueueTrack(String track) {
+		// Check if current song is old last one, if so set next song to MP for
+		// gapless playback
+		mCurrentList.add(track);
+	}
+
+	public void dequeueTracks(ArrayList<String> tracklist) {
+		for (String track : tracklist) {
+			dequeueTrack(track);
+		}
+	}
+
+	public void dequeueTrack(String track) {
+		// Check if track is currently playing, if so stop it
+		mCurrentList.remove(track);
+	}
+
+	public void dequeueTrack(int index) {
+		// Check if track is currently playing, if so stop it
+		if (mCurrentPlayingIndex == index) {
+
+		}
+		if (index < mCurrentList.size()) {
+			mCurrentList.remove(index);
+		}
+	}
+
 	public void stopService() {
 		stopForeground(true);
 		mNotificationBuilder.setOngoing(false);
 		mNotificationManager.cancel(NOTIFICATION_ID);
 	}
 
-	private final static class PlaybackServiceStub extends
-			IOdysseyPlaybackService.Stub {
+	private final static class PlaybackServiceStub extends IOdysseyPlaybackService.Stub {
 		private final WeakReference<PlaybackService> mService;
 
 		public PlaybackServiceStub(PlaybackService service) {
@@ -145,8 +266,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void play(String uri) throws RemoteException {
 			// Create play control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAY, uri);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAY, uri);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -155,8 +275,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void pause() throws RemoteException {
 			// Create pause control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_PAUSE);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PAUSE);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -165,8 +284,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void stop() throws RemoteException {
 			// Create stop control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_STOP);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_STOP);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -175,8 +293,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void setNextTrack(String uri) throws RemoteException {
 			// Create nexttrack control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_SETNEXTRACK, uri);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_SETNEXTRACK, uri);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -185,9 +302,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void enqueueTracks(List<String> tracks) throws RemoteException {
 			// Create enqueuetracks control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACKS,
-					(ArrayList<String>) tracks);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACKS, (ArrayList<String>) tracks);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -196,8 +311,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void enqueueTrack(String track) throws RemoteException {
 			// Create enqueuetrack control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACK, track);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACK, track);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -206,8 +320,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void dequeueTrack(String track) throws RemoteException {
 			// Create dequeuetrack control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACK, track);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACK, track);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -216,9 +329,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void dequeueTracks(List<String> tracks) throws RemoteException {
 			// Create dequeuetracks control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACKS,
-					(ArrayList<String>) tracks);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACKS, (ArrayList<String>) tracks);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -232,8 +343,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void setRandom(boolean random) throws RemoteException {
 			// Create random control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_RANDOM, random);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_RANDOM, random);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -242,8 +352,7 @@ public class PlaybackService extends Service implements
 		@Override
 		public void setRepeat(boolean repeat) throws RemoteException {
 			// Create repeat control object
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_REPEAT, repeat);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_REPEAT, repeat);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -287,8 +396,7 @@ public class PlaybackService extends Service implements
 
 		@Override
 		public void seekTo(int position) throws RemoteException {
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_SEEKTO, position);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_SEEKTO, position);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -296,16 +404,14 @@ public class PlaybackService extends Service implements
 
 		@Override
 		public void jumpTo(int position) throws RemoteException {
-			ControlObject obj = new ControlObject(
-					ControlObject.PLAYBACK_ACTION.ODYSSEY_JUMPTO, position);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_JUMPTO, position);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
 		}
 	}
 
-	private class PlaybackStartListener implements
-			GaplessPlayer.OnTrackStartedListener {
+	private class PlaybackStartListener implements GaplessPlayer.OnTrackStartedListener {
 		private PlaybackService mPlaybackService;
 
 		public PlaybackStartListener(PlaybackService service) {
@@ -315,21 +421,16 @@ public class PlaybackService extends Service implements
 		@Override
 		public void onTrackStarted(String URI) {
 			Log.v(TAG, "track starded: " + URI);
-			mNotificationBuilder = new NotificationCompat.Builder(
-					mPlaybackService).setSmallIcon(R.drawable.ic_stat_odys)
-					.setContentTitle("Odyssey").setContentText(URI);
+			mNotificationBuilder = new NotificationCompat.Builder(mPlaybackService).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText(URI);
 
-			Intent resultIntent = new Intent(mPlaybackService,
-					MainActivity.class);
+			Intent resultIntent = new Intent(mPlaybackService, MainActivity.class);
 
-			TaskStackBuilder stackBuilder = TaskStackBuilder
-					.create(mPlaybackService);
+			TaskStackBuilder stackBuilder = TaskStackBuilder.create(mPlaybackService);
 
 			stackBuilder.addParentStack(MainActivity.class);
 			stackBuilder.addNextIntent(resultIntent);
 
-			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
-					0, PendingIntent.FLAG_UPDATE_CURRENT);
+			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
 			mNotificationBuilder.setContentIntent(resultPendingIntent);
 			mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -338,6 +439,34 @@ public class PlaybackService extends Service implements
 			mNotification = mNotificationBuilder.build();
 			mNotificationManager.notify(NOTIFICATION_ID, mNotification);
 			startForeground(NOTIFICATION_ID, mNotification);
+		}
+	}
+
+	private class PlaybackFinishListener implements GaplessPlayer.OnTrackFinishedListener {
+
+		@Override
+		public void onTrackFinished() {
+			Log.v(TAG, "Playback of index: " + mCurrentPlayingIndex + " finished ");
+			// Forward current index and set new song for gapless playback
+			// if new song is availible
+			mCurrentPlayingIndex++;
+			if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+				try {
+					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1));
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SecurityException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 
 	}

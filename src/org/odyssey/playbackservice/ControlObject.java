@@ -44,4 +44,12 @@ public class ControlObject {
 	public String getStringParam() {
 		return mStringparam;
 	}
+
+	public ArrayList<String> getStringList() {
+		return mStringlist;
+	}
+
+	public int getIntParam() {
+		return mIntparam;
+	}
 }

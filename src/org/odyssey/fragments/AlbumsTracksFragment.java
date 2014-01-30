@@ -34,8 +34,7 @@ public class AlbumsTracksFragment extends Fragment {
 	public final static String ARG_ALBUMART = "albumart";
 	public final static String ARG_ALBUMARTIST = "albumartist";
 
-	private String where = android.provider.MediaStore.Audio.Media.ALBUM_KEY
-			+ "=?";
+	private String where = android.provider.MediaStore.Audio.Media.ALBUM_KEY + "=?";
 
 	private String orderBy = android.provider.MediaStore.Audio.Media.TRACK;
 
@@ -50,35 +49,26 @@ public class AlbumsTracksFragment extends Fragment {
 	private TextView mAlbumArtistView;
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		if (savedInstanceState != null) {
-			return inflater.inflate(R.layout.fragment_albumtracks, container,
-					false);
+			return inflater.inflate(R.layout.fragment_albumtracks, container, false);
 		}
-		View rootView = inflater.inflate(R.layout.fragment_albumtracks,
-				container, false);
+		View rootView = inflater.inflate(R.layout.fragment_albumtracks, container, false);
 
 		// create listview header
 		View headerView = inflater.inflate(R.layout.listview_header_item, null);
 
-		mCoverView = (ImageView) headerView
-				.findViewById(R.id.imageViewAlbumCover);
+		mCoverView = (ImageView) headerView.findViewById(R.id.imageViewAlbumCover);
 
-		mAlbumTitleView = (TextView) headerView
-				.findViewById(R.id.textViewAlbumTitle);
+		mAlbumTitleView = (TextView) headerView.findViewById(R.id.textViewAlbumTitle);
 
-		mAlbumArtistView = (TextView) headerView
-				.findViewById(R.id.textViewArtistName);
+		mAlbumArtistView = (TextView) headerView.findViewById(R.id.textViewArtistName);
 
 		// create adapter for tracklist
-		mTrackListAdapter = new TrackListArrayAdapter(getActivity(),
-				R.layout.listview_tracklist_item,
-				new ArrayList<MusicLibraryHelper.TrackItem>());
+		mTrackListAdapter = new TrackListArrayAdapter(getActivity(), R.layout.listview_tracklist_item, new ArrayList<MusicLibraryHelper.TrackItem>());
 
 		// create listview for tracklist
-		ListView trackListView = (ListView) rootView
-				.findViewById(R.id.listViewAlbumTrackList);
+		ListView trackListView = (ListView) rootView.findViewById(R.id.listViewAlbumTrackList);
 
 		trackListView.addHeaderView(headerView);
 
@@ -88,19 +78,16 @@ public class AlbumsTracksFragment extends Fragment {
 
 			// FIXME temporary just play clicked song
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View viewItem,
-					int position, long id) {
+			public void onItemClick(AdapterView<?> arg0, View viewItem, int position, long id) {
 				// Respect header listitem here
 				if (position > 0) {
 					Log.v(TAG, "Position: " + position + " pressed");
-					TrackItem tmpTrackItem = mTrackListAdapter
-							.getItem(position - 1);
+					TrackItem tmpTrackItem = mTrackListAdapter.getItem(position - 1);
 					String dataPath = tmpTrackItem.trackURL;
 					Log.v(TAG, "try playback of: " + dataPath);
 
 					// Get main application object for serice connection
-					OdysseyApplication app = (OdysseyApplication) getActivity()
-							.getApplication();
+					OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
 					try {
 						app.getPlaybackService().play(dataPath);
@@ -110,6 +97,27 @@ public class AlbumsTracksFragment extends Fragment {
 					}
 
 					// Get service handler and signal playback request
+				} else {
+					// Play complete album
+					OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+
+					for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
+						String dataPath = mTrackListAdapter.getItem(i).trackURL;
+						try {
+							Log.v(TAG, "enqueing: " + dataPath);
+							app.getPlaybackService().enqueueTrack(dataPath);
+						} catch (RemoteException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					}
+					try {
+						app.getPlaybackService().jumpTo(1);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 
 			}
@@ -138,8 +146,7 @@ public class AlbumsTracksFragment extends Fragment {
 	private void setAlbumInformation() {
 
 		if (mAlbumCoverPath != null) {
-			mCoverView.setImageDrawable(Drawable
-					.createFromPath(mAlbumCoverPath));
+			mCoverView.setImageDrawable(Drawable.createFromPath(mAlbumCoverPath));
 		} else {
 			mCoverView.setImageResource(R.drawable.coverplaceholder);
 		}
@@ -153,9 +160,7 @@ public class AlbumsTracksFragment extends Fragment {
 
 		String whereVal[] = { mAlbumKey };
 
-		Cursor cursor = getActivity().getContentResolver().query(
-				MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-				MusicLibraryHelper.projectionTracks, where, whereVal, orderBy);
+		Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionTracks, where, whereVal, orderBy);
 
 		boolean isSampler = false;
 
@@ -165,16 +170,11 @@ public class AlbumsTracksFragment extends Fragment {
 		if (cursor.moveToFirst()) {
 			do {
 				MusicLibraryHelper.TrackItem item = new MusicLibraryHelper.TrackItem();
-				item.trackTitle = cursor.getString(cursor
-						.getColumnIndex(MediaStore.Audio.Media.TITLE));
-				item.trackDuration = cursor.getLong(cursor
-						.getColumnIndex(MediaStore.Audio.Media.DURATION));
-				item.trackNumber = cursor.getInt(cursor
-						.getColumnIndex(MediaStore.Audio.Media.TRACK));
-				item.trackArtist = cursor.getString(cursor
-						.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-				item.trackURL = cursor.getString(cursor
-						.getColumnIndex(MediaStore.Audio.Media.DATA));
+				item.trackTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+				item.trackDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+				item.trackNumber = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+				item.trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+				item.trackURL = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
 				if (!item.trackArtist.equals(mAlbumArtist)) {
 
@@ -206,8 +206,7 @@ public class AlbumsTracksFragment extends Fragment {
 		private int mLayoutResourceId;
 		private boolean mIsSampler;
 
-		public TrackListArrayAdapter(Context context, int layoutResourceId,
-				ArrayList<TrackItem> data) {
+		public TrackListArrayAdapter(Context context, int layoutResourceId, ArrayList<TrackItem> data) {
 			super(context, layoutResourceId, data);
 
 			mContext = context;
@@ -229,14 +228,10 @@ public class AlbumsTracksFragment extends Fragment {
 				convertView = mInflater.inflate(mLayoutResourceId, null);
 			}
 
-			trackTitleView = (TextView) convertView
-					.findViewById(R.id.textViewTrackTitleItem);
-			trackDurationView = (TextView) convertView
-					.findViewById(R.id.textViewTrackDurationItem);
-			trackNumberView = (TextView) convertView
-					.findViewById(R.id.textViewTrackNumberItem);
-			trackArtistView = (TextView) convertView
-					.findViewById(R.id.textViewTrackArtistItem);
+			trackTitleView = (TextView) convertView.findViewById(R.id.textViewTrackTitleItem);
+			trackDurationView = (TextView) convertView.findViewById(R.id.textViewTrackDurationItem);
+			trackNumberView = (TextView) convertView.findViewById(R.id.textViewTrackNumberItem);
+			trackArtistView = (TextView) convertView.findViewById(R.id.textViewTrackArtistItem);
 
 			// set tracktitle
 			TrackItem trackItem = getItem(position);
@@ -244,8 +239,7 @@ public class AlbumsTracksFragment extends Fragment {
 			trackTitleView.setText(trackItem.trackTitle);
 
 			// calculate duration in minutes and seconds
-			String seconds = String
-					.valueOf((trackItem.trackDuration % 60000) / 1000);
+			String seconds = String.valueOf((trackItem.trackDuration % 60000) / 1000);
 
 			String minutes = String.valueOf(trackItem.trackDuration / 60000);
 
@@ -261,17 +255,14 @@ public class AlbumsTracksFragment extends Fragment {
 			} else {
 
 				// TODO shall we use discnumber?
-				String discNumber = ("" + trackItem.trackNumber)
-						.substring(0, 2);
+				String discNumber = ("" + trackItem.trackNumber).substring(0, 2);
 				String trackNumber = ("" + trackItem.trackNumber).substring(2);
 
 				trackNumberView.setText(trackNumber);
 			}
 
 			// set artist if sampler or multiple artists
-			if (mIsSampler
-					|| (trackItem.trackArtist.contains(mAlbumArtist) && !trackItem.trackArtist
-							.equals(mAlbumArtist))) {
+			if (mIsSampler || (trackItem.trackArtist.contains(mAlbumArtist) && !trackItem.trackArtist.equals(mAlbumArtist))) {
 				trackArtistView.setText(trackItem.trackArtist);
 			}
 
