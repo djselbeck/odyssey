@@ -16,8 +16,8 @@ public class GaplessPlayer {
 	private boolean mCurrentPrepared = false;
 	private MediaPlayer mNextMediaPlayer = null;
 
-	private String mPrimarySource;
-	private String mSecondarySource;
+	private String mPrimarySource = null;
+	private String mSecondarySource = null;
 
 	private PlaybackService mPlaybackService;
 
@@ -50,6 +50,7 @@ public class GaplessPlayer {
 		mCurrentMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mCurrentMediaPlayer.setDataSource(uri);
 		mPrimarySource = uri;
+		mCurrentMediaPlayer.setOnCompletionListener(new TrackCompletionListener());
 		mCurrentMediaPlayer.setOnPreparedListener(mPrimaryPreparedListener);
 		mCurrentMediaPlayer.prepareAsync();
 	}
@@ -68,6 +69,25 @@ public class GaplessPlayer {
 		}
 
 	}
+	
+	/**
+	 * Just pauses currently running player
+	 */
+	public void pause() {
+		if ( mCurrentMediaPlayer != null && mCurrentMediaPlayer.isPlaying() ) {
+			mCurrentMediaPlayer.pause();
+		}
+	}
+	
+	/** 
+	 * Resumes playback
+	 */
+	public void resume() {
+		// FIXME Catch illegal state exception
+		if ( mCurrentMediaPlayer != null ) {
+			mCurrentMediaPlayer.start();
+		}
+	}
 
 	/**
 	 * Stops mediaplayback
@@ -75,6 +95,8 @@ public class GaplessPlayer {
 	public void stop() {
 		if (mCurrentMediaPlayer != null && mCurrentPrepared) {
 			mCurrentMediaPlayer.stop();
+			mCurrentMediaPlayer.release();
+			mCurrentMediaPlayer = null;
 			// mCurrentMediaPlayer.setWakeMode(mPlaybackService, 0);
 		}
 	}
@@ -112,7 +134,6 @@ public class GaplessPlayer {
 			// If mp equals currentMediaPlayback it should start playing
 			mCurrentPrepared = true;
 			mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-			mp.setOnCompletionListener(mCompletionListener);
 			mp.start();
 			// Notify connected listeners
 			for (OnTrackStartedListener listener : mTrackStartListeners) {
@@ -127,32 +148,11 @@ public class GaplessPlayer {
 		@Override
 		public void onPrepared(MediaPlayer mp) {
 			Log.v(TAG, "Second MP prepared: " + mp);
+			
 			// If it is nextMediaPlayer it should be set for currentMP
-			Log.v(TAG, "Next MP ready");
+			mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 			mCurrentMediaPlayer.setNextMediaPlayer(mp);
-		}
-	};
-
-	private OnCompletionListener mCompletionListener = new OnCompletionListener() {
-
-		@Override
-		public void onCompletion(MediaPlayer mp) {
-			Log.v(TAG, "Track playback completed");
-			// Cleanup old MP
-			mCurrentMediaPlayer.release();
-			mCurrentMediaPlayer = null;
-			// Set current MP to next MP
-			if (mNextMediaPlayer != null) {
-				mCurrentMediaPlayer = mNextMediaPlayer;
-				mNextMediaPlayer = null;
-			} else {
-				Log.v(TAG, "Stopping service");
-				mPlaybackService.stopService();
-			}
-			// notify connected services
-			for (OnTrackFinishedListener listener : mTrackFinishedListeners) {
-				listener.onTrackFinished();
-			}
+			Log.v(TAG, "Set Next MP");			
 		}
 	};
 
@@ -192,6 +192,38 @@ public class GaplessPlayer {
 			return mCurrentMediaPlayer.isPlaying();
 		}
 		return false;
+	}
+	
+	public void setVolume(float leftChannel, float rightChannel) {
+		if ( mCurrentMediaPlayer != null ) {
+			mCurrentMediaPlayer.setVolume(leftChannel, rightChannel);
+		}
+	}
+	
+	private class TrackCompletionListener implements MediaPlayer.OnCompletionListener
+	{
+
+		@Override
+		public void onCompletion(MediaPlayer mp) {
+			Log.v(TAG, "Track playback completed");
+			// Cleanup old MP
+			mp.release();
+			mCurrentMediaPlayer = null;
+			// Set current MP to next MP
+			if (mNextMediaPlayer != null) {
+				Log.v(TAG,"set next as current MP");
+				mCurrentMediaPlayer = mNextMediaPlayer;
+				mCurrentMediaPlayer.setOnCompletionListener(new TrackCompletionListener());
+				mNextMediaPlayer = null;
+			} else {
+				Log.v(TAG, "Stopping service");
+				mPlaybackService.stopService();
+			}
+			// notify connected services
+			for (OnTrackFinishedListener listener : mTrackFinishedListeners) {
+				listener.onTrackFinished();
+			}
+		}
 	}
 
 }

@@ -15,6 +15,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
@@ -26,7 +27,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
-public class PlaybackService extends Service implements MediaPlayer.OnPreparedListener {
+public class PlaybackService extends Service implements MediaPlayer.OnPreparedListener, AudioManager.OnAudioFocusChangeListener {
 
 	public static final String TAG = "PlaybackService";
 	public static final int NOTIFICATION_ID = 42;
@@ -53,6 +54,7 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 	private GaplessPlayer mPlayer;
 	private ArrayList<String> mCurrentList;
 	private int mCurrentPlayingIndex;
+	private boolean mIsDucked = false;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -103,12 +105,10 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 
 	// Directly plays uri
 	public void playURI(String uri) {
-		try {
-			mPlayer.play(uri);
-		} catch (IOException e) {
-			Log.e(TAG, "URI: " + uri + "can't be played");
-		}
-		// Create notification
+		// Clear playlist, enqueue uri, jumpto 0
+		clearPlaylist();
+		enqueueTrack(uri);
+		jumpToIndex(0);
 	}
 
 	// Stops all playback
@@ -192,6 +192,13 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 			mCurrentPlayingIndex = index;
 			try {
 				Log.v(TAG, "Start playback of: " + mCurrentList.get(mCurrentPlayingIndex));
+				// Request audio focus before doing anything
+				AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+				int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+				if ( result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED ) {
+					// Abort command
+					return;
+				}
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
 
 				// Check if another song follows current one for gapless
@@ -251,6 +258,7 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 	}
 
 	public void stopService() {
+		mPlayer.stop();
 		stopForeground(true);
 		mNotificationBuilder.setOngoing(false);
 		mNotificationManager.cancel(NOTIFICATION_ID);
@@ -420,7 +428,7 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 
 		@Override
 		public void onTrackStarted(String URI) {
-			Log.v(TAG, "track starded: " + URI);
+			Log.v(TAG, "track started: " + URI);
 			mNotificationBuilder = new NotificationCompat.Builder(mPlaybackService).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText(URI);
 
 			Intent resultIntent = new Intent(mPlaybackService, MainActivity.class);
@@ -467,6 +475,42 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 					e.printStackTrace();
 				}
 			}
+		}
+
+	}
+
+	@Override
+	public void onAudioFocusChange(int focusChange) {
+		// TODO Auto-generated method stub
+		switch (focusChange) {
+		case AudioManager.AUDIOFOCUS_GAIN:
+			Log.v(TAG,"Gained audiofocus");
+			if ( mIsDucked ) {
+				mPlayer.setVolume(1.0f, 1.0f);
+				mIsDucked = false;
+			} else {
+				mPlayer.resume();
+			}
+			break;
+		case AudioManager.AUDIOFOCUS_LOSS:
+			Log.v(TAG,"Lost audiofocus");
+			// Stop playback completely and release resources
+			stopService();
+			break;
+		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+			Log.v(TAG,"Lost audiofocus temporarily");
+			// Pause audio for the moment of focus loss
+			mPlayer.pause();
+			break;
+		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+			Log.v(TAG,"Lost audiofocus temporarily duckable");
+			if ( mPlayer.isRunning() ) {
+				mPlayer.setVolume(0.1f, 0.1f);
+				mIsDucked = true;
+			}
+			break;
+		default:
+			return;
 		}
 
 	}

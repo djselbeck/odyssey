@@ -113,7 +113,7 @@ public class AlbumsTracksFragment extends Fragment {
 
 					}
 					try {
-						app.getPlaybackService().jumpTo(1);
+						app.getPlaybackService().jumpTo(0);
 					} catch (RemoteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
