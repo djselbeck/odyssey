@@ -94,6 +94,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     	if ( mLastPosition >= 0 ) {
     		mRootGrid.setSelection(mLastPosition);
     		mLastPosition = -1;
+    		mRootGrid.setFastScrollEnabled(true);
     	}
     }
     

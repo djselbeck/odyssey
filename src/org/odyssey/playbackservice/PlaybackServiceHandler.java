@@ -35,10 +35,12 @@ public class PlaybackServiceHandler extends Handler {
 				mService.get().stop();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PAUSE) {
 
+			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_RESUME) { 
+				mService.get().resume();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_NEXT) {
-
+				mService.get().setNextTrack();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PREVIOUS) {
-
+				mService.get().setPreviousTrack();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_RANDOM) {
 
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_REPEAT) {

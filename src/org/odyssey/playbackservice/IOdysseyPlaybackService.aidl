@@ -1,11 +1,17 @@
 package org.odyssey.playbackservice;
 
+import org.odyssey.IOdysseyNowPlayingCallback;
+
 interface IOdysseyPlaybackService {
 	
 	// Controls the player with predefined actions
 	void play(String uri);
 	void pause();
+	void resume();
 	void stop();
+	void next();
+	void previous();
+	
 	/**
 	 * position = position in current track ( in seconds)
 	 */
@@ -36,4 +42,8 @@ interface IOdysseyPlaybackService {
 	int getTrackNo();
 	int getBitrate();
 	int getSamplerate();
+	
+	
+	void registerNowPlayingReceiver(IOdysseyNowPlayingCallback receiver);
+	void unregisterNowPlayingReceiver(IOdysseyNowPlayingCallback receiver);
 }

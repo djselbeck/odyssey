@@ -40,6 +40,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,27 +49,9 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	private static final String TAG = "OdysseyMainActivity"; 
     
     private IOdysseyPlaybackService mPlaybackService;
-    private ServiceConnection mConnection = null;
+ 
     
     
-    private class PlaybackServiceConnection implements ServiceConnection {
-    	@Override
-    	public void onServiceConnected(ComponentName name, IBinder service) {
-    		Log.v(TAG,"Service connection created");
-    		Toast.makeText(MainActivity.this, "OdysseyPlaybackservice connected", Toast.LENGTH_LONG).show();
-    		OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
-    		if ( mainApplication.getPlaybackService() == null ) { 
-    			mainApplication.setPlaybackService(IOdysseyPlaybackService.Stub.asInterface(service));
-    		}
-    		mPlaybackService = mainApplication.getPlaybackService();
-    	}
-    	
-    	@Override
-    	public void onServiceDisconnected(ComponentName name) {
-    		// TODO Auto-generated method stub
-    		
-    	}    	
-    }
     
 
     @Override
@@ -84,20 +67,48 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         
         // Add the fragment to the 'fragmentContainer' FrameLayout
         getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragmentContainer, mArtistsAlbumsTabsFragment).commit();
+                .add(R.id.fragmentFrame, mArtistsAlbumsTabsFragment).commit();
         
-        // create service connection
-        Intent serviceStartIntent = new Intent(this,PlaybackService.class);
-        startService(serviceStartIntent);
-        mConnection = new PlaybackServiceConnection();
-        bindService(new Intent(IOdysseyPlaybackService.class.getName()), 
-        		mConnection, Context.BIND_AUTO_CREATE);
+        FrameLayout controlLayout = (FrameLayout)findViewById(R.id.controlLayout);
         
+        
+        View controlView = getLayoutInflater().inflate(R.layout.quickcontrol_view, controlLayout); 
+        
+        // Set button listeners
+        // FIXME CLEAN THE MESS UP
+        controlView.findViewById(R.id.nextButton).setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View arg0) {
+				OdysseyApplication app = (OdysseyApplication) getApplication();
+				try {
+					app.getPlaybackService().next();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+        
+        controlView.findViewById(R.id.previousButton).setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View arg0) {
+				OdysseyApplication app = (OdysseyApplication) getApplication();
+				try {
+					app.getPlaybackService().previous();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+                
         OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
         if ( mainApplication.getLibraryHelper() == null ) {
         	mainApplication.setLibraryHelper(new MusicLibraryHelper());
         }
-        
+        mPlaybackService = mainApplication.getPlaybackService();
     }
     
     @Override
@@ -133,7 +144,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragmentContainer, newFragment);
+        transaction.replace(R.id.fragmentFrame, newFragment);
         transaction.addToBackStack(null);
 
         // Commit the transaction
@@ -161,11 +172,10 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         newFragment.setArguments(args);
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragmentContainer, newFragment);
+        transaction.replace(R.id.fragmentFrame, newFragment);
         transaction.addToBackStack("ArtistFragment");
 
         // Commit the transaction

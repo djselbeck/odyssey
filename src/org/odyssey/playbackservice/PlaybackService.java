@@ -5,7 +5,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.odyssey.IOdysseyNowPlayingCallback;
 import org.odyssey.MainActivity;
+import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
 
 import android.app.Notification;
@@ -55,6 +57,10 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 	private ArrayList<String> mCurrentList;
 	private int mCurrentPlayingIndex;
 	private boolean mIsDucked = false;
+	
+	// NowPlaying callbacks
+	// List holding registered callback clients
+	private ArrayList<IOdysseyNowPlayingCallback> mNowPlayingCallbacks;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -90,6 +96,9 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		// Create playlist
 		mCurrentList = new ArrayList<String>();
 		mCurrentPlayingIndex = -1;
+		
+		// NowPlaying
+		mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
 	}
 
 	@Override
@@ -116,14 +125,58 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		mPlayer.stop();
 		stopService();
 	}
+	
+	public void pause() {
+		if ( mPlayer.isRunning() ) {
+			mPlayer.pause();
+		}
+	}
+	
+	public void resume() {
+		// TODO check prepared?
+		mPlayer.resume();
+	}
 
 	/**
-	 * Sets nextplayback track to uri
+	 * Sets nextplayback track to following on in playlist
 	 */
 	public void setNextTrack() {
 		// Needs to set gaplessplayer next object and reorganize playlist
 		mPlayer.stop();
 		mCurrentPlayingIndex++;
+
+		// Next track is availible
+		if (mCurrentPlayingIndex < mCurrentList.size()) {
+			// Start playback of new song
+			try {
+				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
+				// Check if next song is availible (gapless)
+				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1));
+				}
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * Sets nextplayback track to preceding on in playlist
+	 */
+	public void setPreviousTrack() {
+		// Needs to set gaplessplayer next object and reorganize playlist
+		mPlayer.stop();
+		mCurrentPlayingIndex--;
 
 		// Next track is availible
 		if (mCurrentPlayingIndex < mCurrentList.size()) {
@@ -200,6 +253,11 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 					return;
 				}
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
+				
+				for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
+					Log.v(TAG,"Sending now playing information to receiver");
+					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex)));
+				}
 
 				// Check if another song follows current one for gapless
 				// playback
@@ -217,6 +275,9 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (RemoteException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -262,6 +323,16 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		stopForeground(true);
 		mNotificationBuilder.setOngoing(false);
 		mNotificationManager.cancel(NOTIFICATION_ID);
+	}
+	
+	public void registerNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
+		Log.v(TAG,"Added NowPlaying callback");
+		mNowPlayingCallbacks.add(callback);
+	}
+	
+	public void unregisterNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
+		Log.v(TAG, "Unregistering callback");
+		mNowPlayingCallbacks.remove(callback);
 	}
 
 	private final static class PlaybackServiceStub extends IOdysseyPlaybackService.Stub {
@@ -424,6 +495,40 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
+		}
+
+		@Override
+		public void resume() throws RemoteException {
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_RESUME);
+			Message msg = mService.get().getHandler().obtainMessage();
+			msg.obj = obj;
+			mService.get().getHandler().sendMessage(msg);			
+		}
+
+		@Override
+		public void next() throws RemoteException {
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_NEXT);
+			Message msg = mService.get().getHandler().obtainMessage();
+			msg.obj = obj;
+			mService.get().getHandler().sendMessage(msg);	
+		}
+
+		@Override
+		public void previous() throws RemoteException {
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PREVIOUS);
+			Message msg = mService.get().getHandler().obtainMessage();
+			msg.obj = obj;
+			mService.get().getHandler().sendMessage(msg);	
+		}
+
+		@Override
+		public void registerNowPlayingReceiver(IOdysseyNowPlayingCallback receiver) throws RemoteException {
+			mService.get().registerNowPlayingCallback(receiver);
+		}
+
+		@Override
+		public void unregisterNowPlayingReceiver(IOdysseyNowPlayingCallback receiver) throws RemoteException {
+			mService.get().unregisterNowPlayingCallback(receiver);
 		}
 	}
 
