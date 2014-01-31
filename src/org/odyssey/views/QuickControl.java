@@ -73,6 +73,20 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
 				}
 			}
 		});
+		
+		findViewById(R.id.stopButton).setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				OdysseyApplication app = (OdysseyApplication) ((Activity) getContext()).getApplication();
+				try {
+					app.getPlaybackService().stop();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	@Override

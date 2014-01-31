@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.PowerManager;
 import android.util.Log;
@@ -250,6 +251,21 @@ public class GaplessPlayer {
 				listener.onTrackFinished();
 			}
 		}
+	}
+	
+	private class MediaPlayerErrorListner implements MediaPlayer.OnErrorListener {
+
+		@Override
+		public boolean onError(MediaPlayer mp, int what, int extra) {
+			if ( mp.equals(mCurrentMediaPlayer)) {
+				// Signal PlaybackService to continue with next song
+				mPlaybackService.setNextTrack();
+			} else {
+				// Probably second media player so ignore for now
+			}
+			return false;
+		}
+		
 	}
 
 }

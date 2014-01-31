@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.odyssey.IOdysseyNowPlayingCallback;
 import org.odyssey.MainActivity;
+import org.odyssey.MusicLibraryHelper;
+import org.odyssey.MusicLibraryHelper.TrackItem;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
 
@@ -16,6 +18,9 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.AudioManager;
 import android.os.HandlerThread;
@@ -100,6 +105,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		
 		// NowPlaying
 		mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
+		
+		mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
 	}
 
 	@Override
@@ -123,6 +130,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	// Stops all playback
 	public void stop() {
 		mPlayer.stop();
+		// Send empty NowPlaying
+		broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
 		stopService();
 	}
 	
@@ -130,16 +139,25 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		if ( mPlayer.isRunning() ) {
 			mPlayer.pause();
 		}
+		broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex), mCurrentPlayingIndex));
 	}
 	
 	public void resume() {
 		// TODO check prepared?
 		mPlayer.resume();
+		broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex), mCurrentPlayingIndex));
 	}
 	
 	public void togglePause() {
 		// Toggles playback state
-		mPlayer.togglePause();
+		if(mPlayer.isRunning() ) {
+			mPlayer.pause();
+			broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex), mCurrentPlayingIndex));
+		} else {
+			mPlayer.resume();
+			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex), mCurrentPlayingIndex));
+
+		}
 	}
 
 	/**
@@ -247,14 +265,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				}
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
 				
-				/* Sends a new NowPlaying object on its way to connected callbacks
-				   PlaybackService --> OdysseyApplication
-				                   |-> Homescreen-widget
-				*/
-				for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
-					Log.v(TAG,"Sending now playing information to receiver");
-					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex),mCurrentPlayingIndex));
-				}
+				broadcastNowPlaying(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex),mCurrentPlayingIndex));
 
 				// Check if another song follows current one for gapless
 				// playback
@@ -272,9 +283,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (RemoteException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -324,6 +332,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		stopForeground(true);
 		mNotificationBuilder.setOngoing(false);
 		mNotificationManager.cancel(NOTIFICATION_ID);
+		stopSelf();
 	}
 	
 	/**
@@ -354,6 +363,50 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void unregisterNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
 		Log.v(TAG, "Unregistering callback");
 		mNowPlayingCallbacks.remove(callback);
+	}
+	
+	private void broadcastNowPlaying(NowPlayingInformation info) {
+		/* Sends a new NowPlaying object on its way to connected callbacks
+		   PlaybackService --> OdysseyApplication
+		                   |-> Homescreen-widget
+		*/
+		for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
+			Log.v(TAG,"Sending now playing information to receiver");
+			try {
+				callback.receiveNewNowPlayingInformation(info);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void updateNotification() {
+		Intent resultIntent = new Intent(this, MainActivity.class);
+
+		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+
+		stackBuilder.addParentStack(MainActivity.class);
+		stackBuilder.addNextIntent(resultIntent);
+
+		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+		String url = mCurrentList.get(mCurrentPlayingIndex);
+		TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(url, getContentResolver());
+		mNotificationBuilder.setContentTitle(trackItem.trackTitle);
+		mNotificationBuilder.setContentText(trackItem.trackArtist);		
+		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+		
+		NotificationCompat.BigTextStyle notificationStyle = new NotificationCompat.BigTextStyle();
+		notificationStyle.bigText(trackItem.trackArtist);
+		mNotificationBuilder.setStyle(notificationStyle);
+//		mNotificationBuilder.addAction(android.R.drawable.ic_media_pause, "Pause", null);
+		mNotificationBuilder.setContentIntent(resultPendingIntent);
+		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		// Make notification persistent
+		mNotificationBuilder.setOngoing(true);
+		mNotification = mNotificationBuilder.build();
+		mNotificationManager.notify(NOTIFICATION_ID, mNotification);
+		startForeground(NOTIFICATION_ID, mNotification);
 	}
 
 	private final static class PlaybackServiceStub extends IOdysseyPlaybackService.Stub {
@@ -575,34 +628,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		@Override
 		public void onTrackStarted(String URI) {
 			Log.v(TAG, "track started: " + URI);
-			mNotificationBuilder = new NotificationCompat.Builder(mPlaybackService).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText(URI);
-
-			Intent resultIntent = new Intent(mPlaybackService, MainActivity.class);
-
-			TaskStackBuilder stackBuilder = TaskStackBuilder.create(mPlaybackService);
-
-			stackBuilder.addParentStack(MainActivity.class);
-			stackBuilder.addNextIntent(resultIntent);
-
-			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-			mNotificationBuilder.setContentIntent(resultPendingIntent);
-			mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-			// Make notification persistent
-			mNotificationBuilder.setOngoing(true);
-			mNotification = mNotificationBuilder.build();
-			mNotificationManager.notify(NOTIFICATION_ID, mNotification);
-			startForeground(NOTIFICATION_ID, mNotification);
-			
-			for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
-				Log.v(TAG,"Sending now playing information to receiver");
-				try {
-					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,URI,mCurrentPlayingIndex));
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+			broadcastNowPlaying(new NowPlayingInformation(1,URI,mCurrentPlayingIndex));
+			updateNotification();
 		}
 	}
 
