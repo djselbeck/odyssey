@@ -11,14 +11,14 @@
     	android:orientation="horizontal">
         
 		<TextView
-	        android:id="@+id/textViewTracklistNumberItem"
+	        android:id="@+id/textViewPlaylistNumberItem"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:maxLines="1"
 	    />        
 	    
 		<TextView
-	        android:id="@+id/textViewTracklistDummyItem"
+	        android:id="@+id/textViewPlaylistDummyItem"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:maxLines="1"
@@ -26,7 +26,7 @@
 	    /> 
 	        
 		<TextView
-	        android:id="@+id/textViewTracklistTitleItem"
+	        android:id="@+id/textViewPlaylistTitleItem"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:maxLines="3"
@@ -39,16 +39,16 @@
     	android:layout_height="wrap_content">    
     
 		<TextView
-	        android:id="@+id/textViewTracklistArtistItem"
+	        android:id="@+id/textViewPlaylistArtistItem"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_alignParentLeft="true"
-	        android:layout_toLeftOf="@+id/textViewTracklistDurationItem"
+	        android:layout_toLeftOf="@+id/textViewPlaylistDurationItem"
 	        android:maxLines="1"
 	    />    
 		
 		<TextView
-	        android:id="@+id/textViewTracklistDurationItem"
+	        android:id="@+id/textViewPlaylistDurationItem"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_alignParentRight="true"

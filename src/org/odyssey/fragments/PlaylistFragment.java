@@ -3,9 +3,9 @@ package org.odyssey.fragments;
 import java.util.ArrayList;
 
 import org.odyssey.MusicLibraryHelper;
-import org.odyssey.MusicLibraryHelper.TrackItem;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
+import org.odyssey.MusicLibraryHelper.TrackItem;
 
 import android.app.ActionBar;
 import android.content.Context;
@@ -20,15 +20,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
 
-public class AlbumsTracksFragment extends Fragment {
+public class PlaylistFragment extends Fragment {
 
-	private static final String TAG = "AlbumsTracksFragment";
+	private static final String TAG = "PlaylistFragment";
 
 	public final static String ARG_ALBUMKEY = "albumkey";
 	public final static String ARG_ALBUMTITLE = "albumtitle";
@@ -51,31 +51,14 @@ public class AlbumsTracksFragment extends Fragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View rootView = inflater.inflate(R.layout.fragment_albumtracks, container, false);
-
-        // update actionbar
-        final ActionBar actionBar = getActivity().getActionBar();
-
-        actionBar.setHomeButtonEnabled(true);
-        // allow backnavigation by homebutton 
-        actionBar.setDisplayHomeAsUpEnabled(true);		
-		
-		// create listview header
-		View headerView = inflater.inflate(R.layout.listview_header_item, null);
-
-		mCoverView = (ImageView) headerView.findViewById(R.id.imageViewTracklistAlbumCover);
-
-		mAlbumTitleView = (TextView) headerView.findViewById(R.id.textViewTracklistAlbumTitle);
-
-		mAlbumArtistView = (TextView) headerView.findViewById(R.id.textViewTracklistArtistName);
+		View rootView = inflater.inflate(R.layout.fragment_playlist, container, false);		
 
 		// create adapter for tracklist
-		mTrackListAdapter = new TrackListArrayAdapter(getActivity(), R.layout.listview_tracklist_item, new ArrayList<MusicLibraryHelper.TrackItem>());
+		mTrackListAdapter = new TrackListArrayAdapter(getActivity(), 
+				R.layout.listview_playlist_item, new ArrayList<MusicLibraryHelper.TrackItem>());
 
 		// create listview for tracklist
-		ListView trackListView = (ListView) rootView.findViewById(R.id.listViewAlbumTrackList);
-
-		trackListView.addHeaderView(headerView);
+		ListView trackListView = (ListView) rootView.findViewById(R.id.listViewPlaylist);
 
 		trackListView.setAdapter(mTrackListAdapter);
 
@@ -134,14 +117,12 @@ public class AlbumsTracksFragment extends Fragment {
 			}
 		});
 
-		Bundle args = getArguments();
-
-		mAlbumKey = args.getString(ARG_ALBUMKEY);
-		mAlbumTitle = args.getString(ARG_ALBUMTITLE);
-		mAlbumCoverPath = args.getString(ARG_ALBUMART);
-		mAlbumArtist = args.getString(ARG_ALBUMARTIST);
-
-		setAlbumInformation();
+//		Bundle args = getArguments();
+//
+//		mAlbumKey = args.getString(ARG_ALBUMKEY);
+//		mAlbumTitle = args.getString(ARG_ALBUMTITLE);
+//		mAlbumCoverPath = args.getString(ARG_ALBUMART);
+//		mAlbumArtist = args.getString(ARG_ALBUMARTIST);
 
 		setAlbumTracks();
 
@@ -154,58 +135,53 @@ public class AlbumsTracksFragment extends Fragment {
 
 	}
 
-	private void setAlbumInformation() {
-
-		if (mAlbumCoverPath != null) {
-			mCoverView.setImageDrawable(Drawable.createFromPath(mAlbumCoverPath));
-		} else {
-			mCoverView.setImageResource(R.drawable.coverplaceholder);
-		}
-
-		mAlbumTitleView.setText(mAlbumTitle);
-
-		mAlbumArtistView.setText(mAlbumArtist);
-	}
-
 	private void setAlbumTracks() {
 
-		String whereVal[] = { mAlbumKey };
-
-		Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionTracks, where, whereVal, orderBy);
-
-		boolean isSampler = false;
-
+//		String whereVal[] = { mAlbumKey };
+//
+//		Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionTracks, where, whereVal, orderBy);
+//
+//		boolean isSampler = false;
+//
+//		ArrayList<MusicLibraryHelper.TrackItem> trackList = new ArrayList<MusicLibraryHelper.TrackItem>();
+//
+//		// get all tracks on the current album
+//		if (cursor.moveToFirst()) {
+//			do {
+//				MusicLibraryHelper.TrackItem item = new MusicLibraryHelper.TrackItem();
+//				item.trackTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+//				item.trackDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+//				item.trackNumber = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+//				item.trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+//				item.trackURL = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+//
+//				if (!item.trackArtist.equals(mAlbumArtist)) {
+//
+//					if (!item.trackArtist.contains(mAlbumArtist)) {
+//
+//						// trackartist not albumartist and not contains
+//						// albumartist -> sampler
+//						isSampler = true;
+//					}
+//
+//				}
+//				trackList.add(item);
+//			} while (cursor.moveToNext());
+//		}
+		
 		ArrayList<MusicLibraryHelper.TrackItem> trackList = new ArrayList<MusicLibraryHelper.TrackItem>();
-
-		// get all tracks on the current album
-		if (cursor.moveToFirst()) {
-			do {
-				MusicLibraryHelper.TrackItem item = new MusicLibraryHelper.TrackItem();
-				item.trackTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-				item.trackDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-				item.trackNumber = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
-				item.trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-				item.trackURL = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-
-				if (!item.trackArtist.equals(mAlbumArtist)) {
-
-					if (!item.trackArtist.contains(mAlbumArtist)) {
-
-						// trackartist not albumartist and not contains
-						// albumartist -> sampler
-						isSampler = true;
-					}
-
-				}
-				trackList.add(item);
-			} while (cursor.moveToNext());
+		
+		for(int i = 0; i < 5; i++) {
+			MusicLibraryHelper.TrackItem item = new MusicLibraryHelper.TrackItem();
+			item.trackTitle = "dummy";
+			item.trackDuration = 0;
+			item.trackNumber = 0;
+			item.trackArtist = "dummy";
+			item.trackURL = "dummy";	
+			trackList.add(item);
 		}
 
-		if (isSampler) {
-			mAlbumArtistView.setText("");
-		}
-
-		mTrackListAdapter.setIsSampler(isSampler);
+		mTrackListAdapter.setIsSampler(true);
 
 		mTrackListAdapter.addAll(trackList);
 	}
@@ -239,10 +215,10 @@ public class AlbumsTracksFragment extends Fragment {
 				convertView = mInflater.inflate(mLayoutResourceId, null);
 			}
 
-			trackTitleView = (TextView) convertView.findViewById(R.id.textViewTracklistTitleItem);
-			trackDurationView = (TextView) convertView.findViewById(R.id.textViewTracklistDurationItem);
-			trackNumberView = (TextView) convertView.findViewById(R.id.textViewTracklistNumberItem);
-			trackArtistView = (TextView) convertView.findViewById(R.id.textViewTracklistArtistItem);
+			trackTitleView = (TextView) convertView.findViewById(R.id.textViewPlaylistTitleItem);
+			trackDurationView = (TextView) convertView.findViewById(R.id.textViewPlaylistDurationItem);
+			trackNumberView = (TextView) convertView.findViewById(R.id.textViewPlaylistNumberItem);
+			trackArtistView = (TextView) convertView.findViewById(R.id.textViewPlaylistArtistItem);
 
 			// set tracktitle
 			TrackItem trackItem = getItem(position);

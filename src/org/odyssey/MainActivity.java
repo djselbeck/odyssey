@@ -9,6 +9,7 @@ import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment;
 import org.odyssey.fragments.ArtistsSectionFragment;
+import org.odyssey.fragments.PlaylistFragment;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.views.QuickControl;
@@ -46,6 +47,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -80,7 +82,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         // set up the drawer's list view with items and click listener
         mNaviBarList.setAdapter(new ArrayAdapter<String>(this,
                 R.layout.navibar_list_item, mNaviBarTitles));
-        //mDrawerList.setOnItemClickListener(new DrawerItemClickListener());        
+        mNaviBarList.setOnItemClickListener(new NaviBarItemClickListener());        
         		
 		// Set up the action bar.
 		final ActionBar actionBar = getActionBar();
@@ -249,4 +251,39 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	    }
 	    return super.onOptionsItemSelected(item);
 	}
+	
+    /* The click listner for ListView in the navigation drawer */
+    private class NaviBarItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        	
+        	android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        	
+        	if(position == 0) {
+        		
+        		//FIXME check this
+        		ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
+                // Replace whatever is in the fragment_container view with this fragment,
+                // and add the transaction to the back stack so the user can navigate back
+                transaction.replace(R.id.fragmentFrame, mArtistsAlbumsTabsFragment);
+//                transaction.addToBackStack(null);
+
+                // Commit the transaction
+                transaction.commit();         		
+        	} else if (position == 1) {
+        		PlaylistFragment mPlaylistFragment = new PlaylistFragment();
+                // Replace whatever is in the fragment_container view with this fragment,
+                // and add the transaction to the back stack so the user can navigate back
+                transaction.replace(R.id.fragmentFrame, mPlaylistFragment);
+//                transaction.addToBackStack(null);
+
+                // Commit the transaction
+                transaction.commit(); 
+        	}
+
+            // update selected item and title, then close the drawer
+            mNaviBarList.setItemChecked(position, true);
+            mDrawerLayout.closeDrawer(mNaviBarList);
+        }
+    }
 }
