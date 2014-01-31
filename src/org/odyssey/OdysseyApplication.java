@@ -48,11 +48,11 @@ public class OdysseyApplication extends Application {
 		if ( mPlaybackService == null ) {
 			// Create initial service connection here
 	        // create service connection
+			Intent serviceStartIntent = new Intent(this,PlaybackService.class);
+			startService(serviceStartIntent);
 			mPBServiceConnection = new PlaybackServiceConnection(this);
-	        Intent serviceStartIntent = new Intent(this,PlaybackService.class);
-	        startService(serviceStartIntent);
-	        bindService(new Intent(IOdysseyPlaybackService.class.getName()), 
-	        		mPBServiceConnection, Context.BIND_AUTO_CREATE);
+			bindService(serviceStartIntent, 
+					mPBServiceConnection, Context.BIND_AUTO_CREATE);
 		}
 		return mPlaybackService;
 	}	

@@ -73,7 +73,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		Log.v(TAG, "Unbind");
 		return true;
 	}
-
+	
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -333,6 +333,18 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void registerNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
 		Log.v(TAG,"Added NowPlaying callback");
 		mNowPlayingCallbacks.add(callback);
+		
+		// Notify about current status right away
+		if ( mCurrentList.size() > 0 ) {
+			String playingURL = mCurrentList.get(mCurrentPlayingIndex);
+			int playing = mPlayer.isRunning() ? 1 : 0;
+			try {
+				callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL));
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	/** 
