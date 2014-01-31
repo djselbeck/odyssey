@@ -23,16 +23,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.LabeledIntent;
+import android.content.res.Configuration;
 import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.NavUtils;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -41,9 +45,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,22 +58,64 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	private static final String TAG = "OdysseyMainActivity"; 
     
     private IOdysseyPlaybackService mPlaybackService;
+    
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private ListView mNaviBarList;    
+    private String[] mNaviBarTitles;
  
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
+        setContentView(R.layout.main_activity);  
         
-        if(savedInstanceState != null) {
-        	return;
-        }   
+        // get Titles
+        mNaviBarTitles = getResources().getStringArray(R.array.navibar_array);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mNaviBarList = (ListView) findViewById(R.id.left_drawer);
         
-        ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
+        // set a custom shadow that overlays the main content when the drawer opens
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        // set up the drawer's list view with items and click listener
+        mNaviBarList.setAdapter(new ArrayAdapter<String>(this,
+                R.layout.navibar_list_item, mNaviBarTitles));
+        //mDrawerList.setOnItemClickListener(new DrawerItemClickListener());        
+        		
+		// Set up the action bar.
+		final ActionBar actionBar = getActionBar();
+
+		actionBar.setHomeButtonEnabled(true);  
+		// disable up home function
+		actionBar.setDisplayHomeAsUpEnabled(true);		
+		
+        // ActionBarDrawerToggle ties together the the proper interactions
+        // between the sliding drawer and the action bar app icon
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this,                  /* host Activity */
+                mDrawerLayout,         /* DrawerLayout object */
+                R.drawable.ic_drawer,  /* nav drawer image to replace 'Up' caret */
+                R.string.drawer_open,  /* "open drawer" description for accessibility */
+                R.string.drawer_close  /* "close drawer" description for accessibility */
+                ) {
+            public void onDrawerClosed(View view) {
+            	invalidateOptionsMenu();
+
+            }
+
+            public void onDrawerOpened(View view) {
+            	invalidateOptionsMenu();
+
+            }
+        };
+        mDrawerLayout.setDrawerListener(mDrawerToggle);		
         
-        // Add the fragment to the 'fragmentContainer' FrameLayout
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragmentFrame, mArtistsAlbumsTabsFragment).commit();
-        
+        if(savedInstanceState == null) {
+	        ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
+	        
+	        // Add the fragment to the 'fragmentContainer' FrameLayout
+	        getSupportFragmentManager().beginTransaction()
+	                .add(R.id.fragmentFrame, mArtistsAlbumsTabsFragment).commit();
+        }
         // Get placeholder frame for quickcontrols
         FrameLayout controlLayout = (FrameLayout)findViewById(R.id.controlLayout);
         
@@ -145,6 +193,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	@Override
 	public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist) {	
 
+		mDrawerToggle.setDrawerIndicatorEnabled(false);
         // Create fragment and give it an argument for the selected article
     	AlbumsTracksFragment newFragment = new AlbumsTracksFragment();
         Bundle args = new Bundle();
@@ -169,6 +218,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	@Override
 	public void onArtistSelected(String artist, long artistID) {
         
+		mDrawerToggle.setDrawerIndicatorEnabled(false);
         // Create fragment and give it an argument for the selected article
         AlbumsSectionFragment newFragment = new AlbumsSectionFragment(); 
         Bundle args = new Bundle();
@@ -190,22 +240,71 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	
 	@Override
 	public void onBackPressed() {
-		android.support.v4.app.FragmentManager manager = getSupportFragmentManager();	
 		
-		super.onBackPressed();
-			
+		android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
+		
+		super.onBackPressed();	
+		
+		// enable navigation bar when backstack empty
+		if(manager.getBackStackEntryCount() == 0) {
+			mDrawerToggle.setDrawerIndicatorEnabled(true);
+		}
+		
 	}
+	
+    /* Called whenever we call invalidateOptionsMenu() */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        // If the nav drawer is open, hide action items related to the content view
+        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mNaviBarList);
+        menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
+        
+        // disable actionbar tabs
+        if(drawerOpen) {
+        	getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        } else {
+        	getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        }
+        
+        return super.onPrepareOptionsMenu(menu);
+    }	
+	
+    /**
+     * When using the ActionBarDrawerToggle, you must call it during
+     * onPostCreate() and onConfigurationChanged()...
+     */
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Pass any configuration change to the drawer toggls
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }	
 	
 	@Override
 	public boolean onOptionsItemSelected (MenuItem item) {
-		
+				
 		android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
 		
 	    switch (item.getItemId()) {
 	    // Respond to the action bar's Up/Home button
 	    case android.R.id.home:
 	    	if(manager.getBackStackEntryCount() > 0) {
-	    		manager.popBackStack();
+	    		onBackPressed();
+	    	} else {
+	    		mDrawerToggle.setDrawerIndicatorEnabled(true);
+	    		// The action bar home/up action should open or close the drawer.
+	    		// ActionBarDrawerToggle will take care of this.
+	    		if (mDrawerToggle.onOptionsItemSelected(item)) {
+	    		       return true;
+	    		}
 	    	}
 	        return true;
 	    }

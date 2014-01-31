@@ -77,17 +77,6 @@ public class AlbumsSectionFragment extends Fragment implements
 		
 		View rootView = inflater.inflate(R.layout.fragment_albums, container,
 				false);
-		
-		if(getArguments() != null) {
-	        // update actionbar
-	        final ActionBar actionBar = getActivity().getActionBar();
-	
-	        actionBar.setHomeButtonEnabled(true);
-	        // allow backnavigation by homebutton 
-	        actionBar.setDisplayHomeAsUpEnabled(true);
-	
-	        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);	
-		}
 
 		mCursorAdapter = new AlbumCursorAdapter(getActivity(), null, 0);
 
@@ -98,6 +87,20 @@ public class AlbumsSectionFragment extends Fragment implements
 		mRootGrid.setAdapter(mCursorAdapter);
 		
 		mRootGrid.setOnItemClickListener((OnItemClickListener) this);	
+		
+		if(getArguments() != null) {
+	        // update actionbar
+	        final ActionBar actionBar = getActivity().getActionBar();
+	
+	        actionBar.setHomeButtonEnabled(true);
+	        // allow backnavigation by homebutton 
+	        actionBar.setDisplayHomeAsUpEnabled(true);
+	
+	        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);	
+	        
+			mRootGrid.setFastScrollEnabled(false);
+			mRootGrid.setFastScrollAlwaysVisible(false);	        
+		}		
 
 		return rootView;
 	}
@@ -347,7 +350,7 @@ public class AlbumsSectionFragment extends Fragment implements
 		} else {
 			
 			// only albums of artist mArtist			
-			
+	
 			mArtist = bundle.getString(ARG_ARTISTNAME);
 			mArtistID = bundle.getLong(ARG_ARTISTID);
 			Log.v(TAG,"Getting albums for: " + mArtist + " with ID: " + mArtistID );

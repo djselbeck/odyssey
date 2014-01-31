@@ -6,5 +6,6 @@
     android:verticalSpacing="10dp"
     android:horizontalSpacing="10dp"
     android:padding="10dp"    
-    android:fastScrollEnabled="true">
+    android:fastScrollEnabled="true"
+    android:fastScrollAlwaysVisible="true">
 </GridView>

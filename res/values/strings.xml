@@ -7,5 +7,13 @@
 	
 	<string name="section_title_albums">Albums</string>
 	<string name="section_title_artists">Artists</string>
+	
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>	
+	
+    <string-array name="navibar_array">
+        <item>My Music</item>
+        <item>Playlist</item>
+    </string-array>
     
 </resources>
