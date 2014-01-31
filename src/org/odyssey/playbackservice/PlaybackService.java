@@ -253,7 +253,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				*/
 				for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
 					Log.v(TAG,"Sending now playing information to receiver");
-					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex)));
+					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex),mCurrentPlayingIndex));
 				}
 
 				// Check if another song follows current one for gapless
@@ -339,7 +339,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			String playingURL = mCurrentList.get(mCurrentPlayingIndex);
 			int playing = mPlayer.isRunning() ? 1 : 0;
 			try {
-				callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL));
+				callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL,mCurrentPlayingIndex));
 			} catch (RemoteException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -441,7 +441,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		@Override
 		public List<String> getCurrentList() throws RemoteException {
-			return mService.get().getCurrentList();
+			return new ArrayList<String>(mService.get().getCurrentList());
 		}
 
 		@Override
@@ -597,7 +597,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
 				Log.v(TAG,"Sending now playing information to receiver");
 				try {
-					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,URI));
+					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,URI,mCurrentPlayingIndex));
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

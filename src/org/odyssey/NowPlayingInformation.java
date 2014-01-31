@@ -16,6 +16,7 @@ public final class NowPlayingInformation implements Parcelable{
 	// Parcel data
 	private int mPlaying;
 	private String mPlayingURL;
+	private int mPlayingIndex;
 	
 	
 	static Parcelable.Creator<NowPlayingInformation> CREATOR = new Parcelable.Creator<NowPlayingInformation>() {
@@ -24,7 +25,8 @@ public final class NowPlayingInformation implements Parcelable{
 		public NowPlayingInformation createFromParcel(Parcel source) {
 			int playing = source.readInt();
 			String playingURL = source.readString();
-			return new NowPlayingInformation(playing, playingURL);
+			int playingIndex = source.readInt();
+			return new NowPlayingInformation(playing, playingURL,playingIndex);
 		}
 
 		@Override
@@ -39,9 +41,10 @@ public final class NowPlayingInformation implements Parcelable{
 		return 0;
 	}
 	
-	public NowPlayingInformation(int playing, String playingURL) {
+	public NowPlayingInformation(int playing, String playingURL, int playingIndex) {
 		mPlaying = playing;
 		mPlayingURL = playingURL;
+		mPlayingIndex = playingIndex;
 	}
 
 	@Override
