@@ -205,13 +205,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         boolean drawerOpen = mDrawerLayout.isDrawerOpen(mNaviBarList);
         menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
         
-        // disable actionbar tabs
-        if(drawerOpen) {
-        	getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        } else {
-        	getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        }
-        
         return super.onPrepareOptionsMenu(menu);
     }	
 	
