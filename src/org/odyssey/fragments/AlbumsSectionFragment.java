@@ -95,8 +95,6 @@ public class AlbumsSectionFragment extends Fragment implements
 	        actionBar.setHomeButtonEnabled(true);
 	        // allow backnavigation by homebutton 
 	        actionBar.setDisplayHomeAsUpEnabled(true);
-	
-	        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);	
 	        
 			mRootGrid.setFastScrollEnabled(false);
 			mRootGrid.setFastScrollAlwaysVisible(false);	        

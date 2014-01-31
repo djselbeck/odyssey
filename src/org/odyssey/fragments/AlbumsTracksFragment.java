@@ -58,9 +58,7 @@ public class AlbumsTracksFragment extends Fragment {
 
         actionBar.setHomeButtonEnabled(true);
         // allow backnavigation by homebutton 
-        actionBar.setDisplayHomeAsUpEnabled(true);
-
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);			
+        actionBar.setDisplayHomeAsUpEnabled(true);		
 		
 		// create listview header
 		View headerView = inflater.inflate(R.layout.listview_header_item, null);
