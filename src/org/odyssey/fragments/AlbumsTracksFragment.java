@@ -7,6 +7,7 @@ import org.odyssey.MusicLibraryHelper.TrackItem;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -52,6 +53,15 @@ public class AlbumsTracksFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_albumtracks, container, false);
 
+        // update actionbar
+        final ActionBar actionBar = getActivity().getActionBar();
+
+        actionBar.setHomeButtonEnabled(true);
+        // allow backnavigation by homebutton 
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);			
+		
 		// create listview header
 		View headerView = inflater.inflate(R.layout.listview_header_item, null);
 

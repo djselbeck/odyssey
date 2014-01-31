@@ -39,6 +39,9 @@ public class ArtistsAlbumsTabsFragment extends Fragment implements TabListener {
 		// no hierarchical
 		// parent.
 		actionBar.setHomeButtonEnabled(false);
+		
+		// disable up home function
+		actionBar.setDisplayHomeAsUpEnabled(false);
 
 		// Specify that we will be displaying tabs in the action bar.
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
