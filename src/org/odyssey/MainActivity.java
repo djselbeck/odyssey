@@ -53,10 +53,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
     
     private IOdysseyPlaybackService mPlaybackService;
  
-    
-    
-    
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,9 +68,10 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragmentFrame, mArtistsAlbumsTabsFragment).commit();
         
+        // Get placeholder frame for quickcontrols
         FrameLayout controlLayout = (FrameLayout)findViewById(R.id.controlLayout);
         
-        
+        // Create quickcontrol view from layout, add it to empty framelayout placeholder
         View controlView = getLayoutInflater().inflate(R.layout.quickcontrol_view, controlLayout); 
         
         // Set button listeners
@@ -121,6 +118,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 			}
 		});
         
+        // For later callback reference
         TextView nowPlayingTextView = (TextView)controlView.findViewById(R.id.titleView);
         ImageButton playpauseButton = (ImageButton)controlView.findViewById(R.id.playpauseButton);
         
@@ -129,6 +127,9 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         if ( mainApplication.getLibraryHelper() == null ) {
         	mainApplication.setLibraryHelper(new MusicLibraryHelper());
         }
+        
+        // Register callbacks in mainapplication which currently manages callback from playback service process
+        
         mainApplication.registerNowPlayingListener(new NowPlayingLabelListener(nowPlayingTextView));        
         mainApplication.registerNowPlayingListener(new NowPlayingPlayButtonListener(playpauseButton));
         mPlaybackService = mainApplication.getPlaybackService();
@@ -213,6 +214,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 			
 	}
 	
+	
+	// Listeners for NowPlaying receiving
 	private class NowPlayingLabelListener implements OdysseyApplication.NowPlayingListener {
 		private TextView mLabel;
 		public NowPlayingLabelListener(TextView label ) {
@@ -223,6 +226,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 		public void onNewInformation(NowPlayingInformation info) {
 			Log.v(TAG,"Received new label text info");
 			final TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(info.getPlayingURL(), getContentResolver());
+			// Make sure listeners set GUI items only from GUI thread
 			new Thread() {
 		        public void run() {
 		                runOnUiThread(new Runnable() {
@@ -233,9 +237,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 						});
 		        }
 		    }.start();
-			
 		}
-		
 	}
 	
 	private class NowPlayingPlayButtonListener implements OdysseyApplication.NowPlayingListener {
@@ -248,6 +250,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 		public void onNewInformation(NowPlayingInformation info) {
 			Log.v(TAG,"Received new label text info");
 			final NowPlayingInformation tmpInfo = new NowPlayingInformation(info.getPlaying(),info.getPlayingURL());
+			// Make sure listeners set GUI items only from GUI thread
 			new Thread() {
 		        public void run() {
 		                runOnUiThread(new Runnable() {
@@ -261,9 +264,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 						    }
 						});
 		        }
-		    }.start();
-			
+		    }.start();	
 		}
-		
 	}
 }

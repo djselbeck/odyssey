@@ -2,6 +2,11 @@ package org.odyssey.playbackservice;
 
 import java.util.ArrayList;
 
+/**
+ * Message object which get passed between PlaybackServiceInterface -> PlaybackServiceHandler
+ * @author hendrik
+ *
+ */
 public class ControlObject {
 	public static enum PLAYBACK_ACTION {
 		ODYSSEY_PLAY, ODYSSEY_PAUSE, ODYSSEY_RESUME, ODYSSEY_TOGGLEPAUSE, ODYSSEY_STOP, ODYSSEY_NEXT, ODYSSEY_PREVIOUS, ODYSSEY_SEEKTO, ODYSSEY_JUMPTO, ODYSSEY_REPEAT, ODYSSEY_RANDOM, ODYSSEY_ENQUEUETRACK, ODYSSEY_ENQUEUETRACKS, ODYSSEY_DEQUEUETRACK, ODYSSEY_DEQUEUETRACKS, ODYSSEY_SETNEXTRACK, ODYSSEY_CLEARPLAYLIST

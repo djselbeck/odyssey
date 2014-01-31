@@ -6,6 +6,9 @@ import android.os.Parcelable;
 /*
  * This class is the parcelable which got send from the PlaybackService to notify
  * receivers like the main-GUI or possible later home screen widgets
+ * 
+ * PlaybackService --> NowPlayingInformation --> OdysseyApplication --> MainActivity
+ * 											 |-> Homescreen Widget (later) 
  */
 
 public final class NowPlayingInformation implements Parcelable{

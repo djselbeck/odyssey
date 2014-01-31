@@ -55,6 +55,13 @@ public class MusicLibraryHelper {
 		}
 	}
 	
+	/**
+	 * Resolves the url into an comfortably trackitem which contains artist and title
+	 * @param url
+	 * @param resolver
+	 * @return
+	 */
+	//FIXME ALBUM MISSING
 	public static TrackItem getTrackItemFromURL(String url, ContentResolver resolver) {
 		TrackItem tmpItem = new TrackItem();
 		String selection = MediaStore.Audio.Media.DATA + "= ?";

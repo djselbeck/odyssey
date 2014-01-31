@@ -73,6 +73,7 @@ public class OdysseyApplication extends Application {
     			setPlaybackService(IOdysseyPlaybackService.Stub.asInterface(service));
     		}
     		// Create callback connection
+    		// PlaybackService -> OdysseyApplication 
     		try {
     			if ( mPBCallback == null) {
     				mPBCallback = new OdysseyNowPlayingReceiver(mApplication);
@@ -93,6 +94,7 @@ public class OdysseyApplication extends Application {
 	
 	
 	// This class implements the callback function which got called from PlaybackService
+	// Interface implementation for IOdysseyNowPlayingCallback.aidl
 	private static final class OdysseyNowPlayingReceiver extends IOdysseyNowPlayingCallback.Stub
 	{
 		private final WeakReference<OdysseyApplication> mApplication;
@@ -124,6 +126,8 @@ public class OdysseyApplication extends Application {
 	}
 	
 	// Callback functions/attributes for rest of application
+	// Used for notifying other parts of the main gui
+	// OdysseyApplication --> MainActivity
 	private ArrayList<NowPlayingListener> mNowPlayingListeners;
 	
 	public void registerNowPlayingListener(NowPlayingListener listener) {
@@ -135,6 +139,7 @@ public class OdysseyApplication extends Application {
 		mNowPlayingListeners.remove(listener);
 	}
 	
+	// Notifies connected callback listeners, like labels
 	public void notifyNowPlaying(NowPlayingInformation info) {
 		for (NowPlayingListener listener : mNowPlayingListeners) {
 			Log.v(TAG,"Notifying application nowplaying listener");
@@ -142,6 +147,7 @@ public class OdysseyApplication extends Application {
 		}
 	}
 	
+	// Interface specification for NowPlaying listeners
 	public interface NowPlayingListener {
 		public void onNewInformation(NowPlayingInformation info);
 	}

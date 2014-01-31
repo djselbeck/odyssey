@@ -29,7 +29,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
-public class PlaybackService extends Service implements MediaPlayer.OnPreparedListener, AudioManager.OnAudioFocusChangeListener {
+public class PlaybackService extends Service implements AudioManager.OnAudioFocusChangeListener {
 
 	public static final String TAG = "PlaybackService";
 	public static final int NOTIFICATION_ID = 42;
@@ -208,22 +208,9 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		}
 	}
 
-	@Override
-	public void onPrepared(MediaPlayer arg0) {
-		// TODO Auto-generated method stub
-
-	}
 
 	private PlaybackServiceHandler getHandler() {
 		return mHandler;
-	}
-
-	public void startTestPlayback() {
-
-	}
-
-	public void startPlayback() {
-
 	}
 
 	public List<String> getCurrentList() {
@@ -259,6 +246,10 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 				}
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
 				
+				/* Sends a new NowPlaying object on its way to connected callbacks
+				   PlaybackService --> OdysseyApplication
+				                   |-> Homescreen-widget
+				*/
 				for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
 					Log.v(TAG,"Sending now playing information to receiver");
 					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex)));
@@ -323,6 +314,10 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		}
 	}
 
+	/** 
+	 * Stops the gapless mediaplayer and cancels the foreground
+	 * service. Removes any ongoing notification.
+	 */
 	public void stopService() {
 		mPlayer.stop();
 		stopForeground(true);
@@ -330,23 +325,35 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		mNotificationManager.cancel(NOTIFICATION_ID);
 	}
 	
+	/**
+	 * Registers callback interfaces from distant processes which receive the NowPlayingInformation
+	 * @param callback
+	 */
 	public void registerNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
 		Log.v(TAG,"Added NowPlaying callback");
 		mNowPlayingCallbacks.add(callback);
 	}
 	
+	/** 
+	 * Unregister callback interfaces from distant processes
+	 * @param callback
+	 */
 	public void unregisterNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
 		Log.v(TAG, "Unregistering callback");
 		mNowPlayingCallbacks.remove(callback);
 	}
 
 	private final static class PlaybackServiceStub extends IOdysseyPlaybackService.Stub {
+		// Holds the actuall playback service for handling reasons
 		private final WeakReference<PlaybackService> mService;
 
 		public PlaybackServiceStub(PlaybackService service) {
 			mService = new WeakReference<PlaybackService>(service);
 		}
 
+		/* Following are methods which call the handler thread (which runs at audio priority)
+		 * so that handling of playback is done in a seperate thread for performance reasons.
+		 */
 		@Override
 		public void play(String uri) throws RemoteException {
 			// Create play control object
