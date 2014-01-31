@@ -20,7 +20,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="org.odyssey.MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,8 +28,9 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".playbackservice.PlaybackService" 
-            android:process=":odysseyServiceProcess">
+        <service android:name="org.odyssey.playbackservice.PlaybackService"
+            android:exported="false"
+            android:process="org.odyssey.ServiceProcess">
             <intent-filter>
                 <action android:name="org.odyssey.playbackservice.IOdysseyPlaybackService" >
                 </action>

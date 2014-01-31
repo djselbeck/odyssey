@@ -24,8 +24,11 @@ public class OdysseyApplication extends Application {
 	
 	private static final String TAG = "OdysseyApplication";
 	
+	private NowPlayingInformation mLastNowPlaying = null;
+	
 	public OdysseyApplication() {
 		mNowPlayingListeners = new ArrayList<OdysseyApplication.NowPlayingListener>();
+		Log.v(TAG,"MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
 	}
 	
 	public void setLibraryHelper(MusicLibraryHelper helper) {
@@ -45,6 +48,7 @@ public class OdysseyApplication extends Application {
 	}
 	
 	public IOdysseyPlaybackService getPlaybackService() {
+		Log.v(TAG,"Playback service requested");
 		if ( mPlaybackService == null ) {
 			// Create initial service connection here
 	        // create service connection
@@ -133,6 +137,10 @@ public class OdysseyApplication extends Application {
 	public void registerNowPlayingListener(NowPlayingListener listener) {
 		Log.v(TAG,"added new nowplayinglistener in mainapplication");
 		mNowPlayingListeners.add(listener);
+		// Notify about last information
+		if ( mLastNowPlaying != null) {
+			listener.onNewInformation(mLastNowPlaying);
+		}
 	}
 	
 	public void unregisterNowPlayingListener(NowPlayingListener listener) {
@@ -141,6 +149,7 @@ public class OdysseyApplication extends Application {
 	
 	// Notifies connected callback listeners, like labels
 	public void notifyNowPlaying(NowPlayingInformation info) {
+		mLastNowPlaying = info;
 		for (NowPlayingListener listener : mNowPlayingListeners) {
 			Log.v(TAG,"Notifying application nowplaying listener");
 			listener.onNewInformation(info);

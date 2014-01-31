@@ -16,11 +16,13 @@ public class PlaybackServiceHandler extends Handler {
 		super(looper);
 		Log.v(TAG, "Handler created");
 		mService = new WeakReference<PlaybackService>(service);
+		Log.v(TAG,"MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
 	}
 
 	@Override
 	public void handleMessage(Message msg) {
 		Log.v(TAG, "handleMessage:" + msg);
+		Log.v(TAG,"MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
 		super.handleMessage(msg);
 
 		ControlObject msgObj = (ControlObject) msg.obj;
@@ -29,7 +31,6 @@ public class PlaybackServiceHandler extends Handler {
 		if (msgObj != null) {
 			// Parse message
 			if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAY) {
-				Log.v(TAG, "Playback requested");
 				mService.get().playURI(msgObj.getStringParam());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_STOP) {
 				mService.get().stop();

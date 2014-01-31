@@ -26,6 +26,7 @@ public class GaplessPlayer {
 		this.mTrackFinishedListeners = new ArrayList<GaplessPlayer.OnTrackFinishedListener>();
 		this.mTrackStartListeners = new ArrayList<GaplessPlayer.OnTrackStartedListener>();
 		mPlaybackService = service;
+		Log.v(TAG,"MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
 	}
 
 	/**

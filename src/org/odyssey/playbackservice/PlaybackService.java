@@ -43,7 +43,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public static final String ACTION_STOP = "org.odyssey.stop";
 	public static final String ACTION_QUIT = "org.odyssey.quit";
 
-	private Looper mLooper;
 	private HandlerThread mHandlerThread;
 	private PlaybackServiceHandler mHandler;
 
@@ -78,8 +77,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void onCreate() {
 		super.onCreate();
 		Log.v(TAG, "Odyssey PlaybackService onCreate");
+		Log.v(TAG,"MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
+		
 		// Start Handlerthread
-		mHandlerThread = new HandlerThread(TAG + "Thread", Process.THREAD_PRIORITY_AUDIO);
+		mHandlerThread = new HandlerThread("OdysseyHandlerThread", Process.THREAD_PRIORITY_AUDIO);
 		mHandlerThread.start();
 		mHandler = new PlaybackServiceHandler(mHandlerThread.getLooper(), this);
 
@@ -109,7 +110,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	@Override
 	public void onDestroy() {
-		Toast.makeText(this, "Odyssey PlaybackService done", Toast.LENGTH_SHORT).show();
 	}
 
 	// Directly plays uri
