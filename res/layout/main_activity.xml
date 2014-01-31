@@ -14,18 +14,18 @@
 	        android:id="@+id/fragmentFrame"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content" 
-	        android:layout_above="@+id/controlLayout"
+	        android:layout_above="@+id/quickControl"
 	        android:layout_alignParentTop="true">
 	
 	    </FrameLayout>
 	
-	    <FrameLayout
-	        android:id="@+id/controlLayout"
+	    <org.odyssey.views.QuickControl
+	        android:id="@+id/quickControl"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content" 
 	        android:layout_alignParentBottom="true">
 	
-	    </FrameLayout>
+	    </org.odyssey.views.QuickControl>
 	    
 	</RelativeLayout>
 	

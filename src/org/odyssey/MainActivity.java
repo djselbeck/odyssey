@@ -11,6 +11,7 @@ import org.odyssey.fragments.ArtistsAlbumsTabsFragment;
 import org.odyssey.fragments.ArtistsSectionFragment;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.playbackservice.PlaybackService;
+import org.odyssey.views.QuickControl;
 
 
 import android.app.ActionBar;
@@ -116,70 +117,15 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	        getSupportFragmentManager().beginTransaction()
 	                .add(R.id.fragmentFrame, mArtistsAlbumsTabsFragment).commit();
         }
-        // Get placeholder frame for quickcontrols
-        FrameLayout controlLayout = (FrameLayout)findViewById(R.id.controlLayout);
-        
-        // Create quickcontrol view from layout, add it to empty framelayout placeholder
-        View controlView = getLayoutInflater().inflate(R.layout.quickcontrol_view, controlLayout); 
-        
-        // Set button listeners
-        // FIXME CLEAN THE MESS UP
-        controlView.findViewById(R.id.nextButton).setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View arg0) {
-				OdysseyApplication app = (OdysseyApplication) getApplication();
-				try {
-					app.getPlaybackService().next();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-        
-        controlView.findViewById(R.id.previousButton).setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View arg0) {
-				OdysseyApplication app = (OdysseyApplication) getApplication();
-				try {
-					app.getPlaybackService().previous();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-        
-        controlView.findViewById(R.id.playpauseButton).setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View arg0) {
-				OdysseyApplication app = (OdysseyApplication) getApplication();
-				try {
-					app.getPlaybackService().togglePause();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-        
-        // For later callback reference
-        TextView nowPlayingTextView = (TextView)controlView.findViewById(R.id.titleView);
-        ImageButton playpauseButton = (ImageButton)controlView.findViewById(R.id.playpauseButton);
-        
-                
+
         OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
         if ( mainApplication.getLibraryHelper() == null ) {
         	mainApplication.setLibraryHelper(new MusicLibraryHelper());
         }
         
         // Register callbacks in mainapplication which currently manages callback from playback service process
-        
-        mainApplication.registerNowPlayingListener(new NowPlayingLabelListener(nowPlayingTextView));        
-        mainApplication.registerNowPlayingListener(new NowPlayingPlayButtonListener(playpauseButton));
+        QuickControl quickControl = (QuickControl) findViewById(R.id.quickControl);
+        mainApplication.registerNowPlayingListener(quickControl);        
         mPlaybackService = mainApplication.getPlaybackService();
     }
     
@@ -309,59 +255,5 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	        return true;
 	    }
 	    return super.onOptionsItemSelected(item);
-	}
-	
-	
-	// Listeners for NowPlaying receiving
-	private class NowPlayingLabelListener implements OdysseyApplication.NowPlayingListener {
-		private TextView mLabel;
-		public NowPlayingLabelListener(TextView label ) {
-			mLabel = label;
-		}
-		
-		@Override
-		public void onNewInformation(NowPlayingInformation info) {
-			Log.v(TAG,"Received new label text info");
-			final TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(info.getPlayingURL(), getContentResolver());
-			// Make sure listeners set GUI items only from GUI thread
-			new Thread() {
-		        public void run() {
-		                runOnUiThread(new Runnable() {
-						    @Override
-						    public void run() {
-						    	mLabel.setText( trackItem.trackTitle + " - " + trackItem.trackArtist );
-						    }
-						});
-		        }
-		    }.start();
-		}
-	}
-	
-	private class NowPlayingPlayButtonListener implements OdysseyApplication.NowPlayingListener {
-		private ImageButton mButton;
-		public NowPlayingPlayButtonListener(ImageButton button ) {
-			mButton = button;
-		}
-		
-		@Override
-		public void onNewInformation(NowPlayingInformation info) {
-			Log.v(TAG,"Received new label text info");
-			final NowPlayingInformation tmpInfo = new NowPlayingInformation(info.getPlaying(),info.getPlayingURL());
-			// Make sure listeners set GUI items only from GUI thread
-			new Thread() {
-		        public void run() {
-		                runOnUiThread(new Runnable() {
-						    @Override
-						    public void run() {
-						    	if(tmpInfo.getPlaying() == 0 ) {
-						    		mButton.setImageResource(android.R.drawable.ic_media_play);
-						    	} else if (tmpInfo.getPlaying() == 1 ) { 
-						    		mButton.setImageResource(android.R.drawable.ic_media_pause);
-						    	}
-						    }
-						});
-		        }
-		    }.start();	
-		}
 	}
 }
