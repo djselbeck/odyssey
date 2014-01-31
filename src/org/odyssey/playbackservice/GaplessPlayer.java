@@ -152,7 +152,7 @@ public class GaplessPlayer {
 			for (OnTrackStartedListener listener : mTrackStartListeners) {
 				listener.onTrackStarted(mPrimarySource);
 			}
-			if ( mSecondPrepared == false) {
+			if ( mSecondPrepared == false && mNextMediaPlayer != null ) {
 				// Delayed initialization second mediaplayer
 				mNextMediaPlayer.prepareAsync();
 			}
