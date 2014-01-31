@@ -8,6 +8,7 @@ import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
@@ -72,9 +73,21 @@ public class AlbumsSectionFragment extends Fragment implements
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		super.onCreateView(inflater, container, savedInstanceState);
+		super.onCreateView(inflater, container, savedInstanceState);	
+		
 		View rootView = inflater.inflate(R.layout.fragment_albums, container,
 				false);
+		
+		if(getArguments() != null) {
+	        // update actionbar
+	        final ActionBar actionBar = getActivity().getActionBar();
+	
+	        actionBar.setHomeButtonEnabled(true);
+	        // allow backnavigation by homebutton 
+	        actionBar.setDisplayHomeAsUpEnabled(true);
+	
+	        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);	
+		}
 
 		mCursorAdapter = new AlbumCursorAdapter(getActivity(), null, 0);
 
@@ -333,7 +346,7 @@ public class AlbumsSectionFragment extends Fragment implements
 			
 		} else {
 			
-			// only albums of artist mArtist
+			// only albums of artist mArtist			
 			
 			mArtist = bundle.getString(ARG_ARTISTNAME);
 			mArtistID = bundle.getLong(ARG_ARTISTID);

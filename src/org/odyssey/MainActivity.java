@@ -143,16 +143,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
     }
 
 	@Override
-	public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist) {
-		
-        // update actionbar
-        final ActionBar actionBar = getActionBar();
-
-        actionBar.setHomeButtonEnabled(true);
-        // allow backnavigation by homebutton 
-        actionBar.setDisplayHomeAsUpEnabled(true);
-
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);		
+	public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist) {	
 
         // Create fragment and give it an argument for the selected article
     	AlbumsTracksFragment newFragment = new AlbumsTracksFragment();
@@ -177,15 +168,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	
 	@Override
 	public void onArtistSelected(String artist, long artistID) {
-		
-        // update actionbar
-        final ActionBar actionBar = getActionBar();
-
-        actionBar.setHomeButtonEnabled(true);
-        // allow backnavigation by homebutton 
-        actionBar.setDisplayHomeAsUpEnabled(true);
-
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);	
         
         // Create fragment and give it an argument for the selected article
         AlbumsSectionFragment newFragment = new AlbumsSectionFragment(); 
@@ -212,6 +194,22 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 		
 		super.onBackPressed();
 			
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected (MenuItem item) {
+		
+		android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
+		
+	    switch (item.getItemId()) {
+	    // Respond to the action bar's Up/Home button
+	    case android.R.id.home:
+	    	if(manager.getBackStackEntryCount() > 0) {
+	    		manager.popBackStack();
+	    	}
+	        return true;
+	    }
+	    return super.onOptionsItemSelected(item);
 	}
 	
 	
