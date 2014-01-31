@@ -2,6 +2,7 @@ package org.odyssey;
 
 import java.util.Locale;
 
+import org.odyssey.MusicLibraryHelper.TrackItem;
 import org.odyssey.fragments.AlbumsSectionFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
@@ -21,6 +22,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.LabeledIntent;
 import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -41,6 +43,7 @@ import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -103,11 +106,31 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 				}
 			}
 		});
+        
+        controlView.findViewById(R.id.playpauseButton).setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View arg0) {
+				OdysseyApplication app = (OdysseyApplication) getApplication();
+				try {
+					app.getPlaybackService().togglePause();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+        
+        TextView nowPlayingTextView = (TextView)controlView.findViewById(R.id.titleView);
+        ImageButton playpauseButton = (ImageButton)controlView.findViewById(R.id.playpauseButton);
+        
                 
         OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
         if ( mainApplication.getLibraryHelper() == null ) {
         	mainApplication.setLibraryHelper(new MusicLibraryHelper());
         }
+        mainApplication.registerNowPlayingListener(new NowPlayingLabelListener(nowPlayingTextView));        
+        mainApplication.registerNowPlayingListener(new NowPlayingPlayButtonListener(playpauseButton));
         mPlaybackService = mainApplication.getPlaybackService();
     }
     
@@ -188,5 +211,59 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 		
 		super.onBackPressed();
 			
+	}
+	
+	private class NowPlayingLabelListener implements OdysseyApplication.NowPlayingListener {
+		private TextView mLabel;
+		public NowPlayingLabelListener(TextView label ) {
+			mLabel = label;
+		}
+		
+		@Override
+		public void onNewInformation(NowPlayingInformation info) {
+			Log.v(TAG,"Received new label text info");
+			final TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(info.getPlayingURL(), getContentResolver());
+			new Thread() {
+		        public void run() {
+		                runOnUiThread(new Runnable() {
+						    @Override
+						    public void run() {
+						    	mLabel.setText( trackItem.trackTitle + " - " + trackItem.trackArtist );
+						    }
+						});
+		        }
+		    }.start();
+			
+		}
+		
+	}
+	
+	private class NowPlayingPlayButtonListener implements OdysseyApplication.NowPlayingListener {
+		private ImageButton mButton;
+		public NowPlayingPlayButtonListener(ImageButton button ) {
+			mButton = button;
+		}
+		
+		@Override
+		public void onNewInformation(NowPlayingInformation info) {
+			Log.v(TAG,"Received new label text info");
+			final NowPlayingInformation tmpInfo = new NowPlayingInformation(info.getPlaying(),info.getPlayingURL());
+			new Thread() {
+		        public void run() {
+		                runOnUiThread(new Runnable() {
+						    @Override
+						    public void run() {
+						    	if(tmpInfo.getPlaying() == 0 ) {
+						    		mButton.setImageResource(android.R.drawable.ic_media_play);
+						    	} else if (tmpInfo.getPlaying() == 1 ) { 
+						    		mButton.setImageResource(android.R.drawable.ic_media_pause);
+						    	}
+						    }
+						});
+		        }
+		    }.start();
+			
+		}
+		
 	}
 }

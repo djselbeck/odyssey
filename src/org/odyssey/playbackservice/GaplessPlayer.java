@@ -216,6 +216,14 @@ public class GaplessPlayer {
 				Log.v(TAG,"set next as current MP");
 				mCurrentMediaPlayer = mNextMediaPlayer;
 				mCurrentMediaPlayer.setOnCompletionListener(new TrackCompletionListener());
+				mPrimarySource = mSecondarySource;
+				mSecondarySource = "";
+				
+				// Notify connected listeners
+				for (OnTrackStartedListener listener : mTrackStartListeners) {
+					listener.onTrackStarted(mPrimarySource);
+				}
+				
 				mNextMediaPlayer = null;
 			} else {
 				Log.v(TAG, "Stopping service");

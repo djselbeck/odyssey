@@ -35,6 +35,8 @@ public class PlaybackServiceHandler extends Handler {
 				mService.get().stop();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PAUSE) {
 
+			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_TOGGLEPAUSE) {
+				mService.get().togglePause();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_RESUME) { 
 				mService.get().resume();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_NEXT) {

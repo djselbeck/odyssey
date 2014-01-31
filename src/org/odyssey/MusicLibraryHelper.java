@@ -1,5 +1,7 @@
 package org.odyssey;
 
+import android.content.ContentResolver;
+import android.database.Cursor;
 import android.provider.MediaStore;
 
 public class MusicLibraryHelper {
@@ -35,7 +37,7 @@ public class MusicLibraryHelper {
 			this.trackArtist = "";
 			this.trackDuration = 0;
 			this.trackNumber = 0;
-			this.trackURL = null;
+			this.trackURL = "";
 		}
 
 		public TrackItem(String title, long duration, int number,
@@ -47,6 +49,30 @@ public class MusicLibraryHelper {
 			this.trackArtist = artist;
 			this.trackURL = url;
 		}
-
+		
+		public String toString() {
+			return "Title: " + trackTitle + " Artist: " + trackArtist + " URL: " + trackURL + " No.: " + trackNumber + " Duration(s): " + trackDuration;
+		}
+	}
+	
+	public static TrackItem getTrackItemFromURL(String url, ContentResolver resolver) {
+		TrackItem tmpItem = new TrackItem();
+		String selection = MediaStore.Audio.Media.DATA + "= ?";
+		String[] selectionArgs = {url};
+		Cursor trackCursor = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projectionTracks, selection, selectionArgs, MediaStore.Audio.Media.TITLE);
+		
+		if ( trackCursor != null && trackCursor.getCount() > 0) {
+			trackCursor.moveToFirst();
+			String title = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+			String artist = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+			int number = trackCursor.getInt(trackCursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+			long duration = trackCursor.getLong(trackCursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+			tmpItem.trackTitle = title;
+			tmpItem.trackArtist = artist;
+			tmpItem.trackNumber = number;
+			tmpItem.trackDuration = duration;
+		}
+		tmpItem.trackURL = url;
+		return tmpItem;
 	}
 }

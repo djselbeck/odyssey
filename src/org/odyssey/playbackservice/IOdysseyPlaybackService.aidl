@@ -11,6 +11,7 @@ interface IOdysseyPlaybackService {
 	void stop();
 	void next();
 	void previous();
+	void togglePause();
 	
 	/**
 	 * position = position in current track ( in seconds)

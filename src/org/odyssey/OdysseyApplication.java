@@ -1,6 +1,7 @@
 package org.odyssey;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.playbackservice.PlaybackService;
@@ -22,6 +23,10 @@ public class OdysseyApplication extends Application {
 	private IOdysseyNowPlayingCallback mPBCallback = null;
 	
 	private static final String TAG = "OdysseyApplication";
+	
+	public OdysseyApplication() {
+		mNowPlayingListeners = new ArrayList<OdysseyApplication.NowPlayingListener>();
+	}
 	
 	public void setLibraryHelper(MusicLibraryHelper helper) {
 		if (helper != null) {
@@ -98,11 +103,14 @@ public class OdysseyApplication extends Application {
 		
 		@Override
 		public void receiveNewNowPlayingInformation(NowPlayingInformation nowPlaying) throws RemoteException {
-			Log.v(TAG,"Received new playing information: " + nowPlaying );
+			Log.v(TAG,"Received new playing information: " + MusicLibraryHelper.getTrackItemFromURL(nowPlaying.getPlayingURL(), mApplication.get().getContentResolver()));
+			mApplication.get().notifyNowPlaying(nowPlaying);
 		}
 		
 	}
 	
+	
+	// Clear up connections to service otherwise IT WILL crash
 	public void finalize() {
 		// Remove callback object or it will get really nasty for the PlaybackService
 		try {
@@ -113,5 +121,28 @@ public class OdysseyApplication extends Application {
 		}
 		// Close service connection
 		mPBServiceConnection = null;
+	}
+	
+	// Callback functions/attributes for rest of application
+	private ArrayList<NowPlayingListener> mNowPlayingListeners;
+	
+	public void registerNowPlayingListener(NowPlayingListener listener) {
+		Log.v(TAG,"added new nowplayinglistener in mainapplication");
+		mNowPlayingListeners.add(listener);
+	}
+	
+	public void unregisterNowPlayingListener(NowPlayingListener listener) {
+		mNowPlayingListeners.remove(listener);
+	}
+	
+	public void notifyNowPlaying(NowPlayingInformation info) {
+		for (NowPlayingListener listener : mNowPlayingListeners) {
+			Log.v(TAG,"Notifying application nowplaying listener");
+			listener.onNewInformation(info);
+		}
+	}
+	
+	public interface NowPlayingListener {
+		public void onNewInformation(NowPlayingInformation info);
 	}
 }

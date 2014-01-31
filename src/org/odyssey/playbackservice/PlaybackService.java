@@ -136,6 +136,11 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		// TODO check prepared?
 		mPlayer.resume();
 	}
+	
+	public void togglePause() {
+		// Toggles playback state
+		mPlayer.togglePause();
+	}
 
 	/**
 	 * Sets nextplayback track to following on in playlist
@@ -530,6 +535,14 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 		public void unregisterNowPlayingReceiver(IOdysseyNowPlayingCallback receiver) throws RemoteException {
 			mService.get().unregisterNowPlayingCallback(receiver);
 		}
+
+		@Override
+		public void togglePause() throws RemoteException {
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_TOGGLEPAUSE);
+			Message msg = mService.get().getHandler().obtainMessage();
+			msg.obj = obj;
+			mService.get().getHandler().sendMessage(msg);	
+		}
 	}
 
 	private class PlaybackStartListener implements GaplessPlayer.OnTrackStartedListener {
@@ -560,6 +573,16 @@ public class PlaybackService extends Service implements MediaPlayer.OnPreparedLi
 			mNotification = mNotificationBuilder.build();
 			mNotificationManager.notify(NOTIFICATION_ID, mNotification);
 			startForeground(NOTIFICATION_ID, mNotification);
+			
+			for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
+				Log.v(TAG,"Sending now playing information to receiver");
+				try {
+					callback.receiveNewNowPlayingInformation(new NowPlayingInformation(1,URI));
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
