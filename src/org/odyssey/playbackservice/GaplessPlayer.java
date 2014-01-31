@@ -14,6 +14,7 @@ public class GaplessPlayer {
 	private final static String TAG = "GaplessPlayer";
 	private MediaPlayer mCurrentMediaPlayer = null;
 	private boolean mCurrentPrepared = false;
+	private boolean mSecondPrepared = false;
 	private MediaPlayer mNextMediaPlayer = null;
 
 	private String mPrimarySource = null;
@@ -41,11 +42,10 @@ public class GaplessPlayer {
 	public void play(String uri) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
 		// Another player currently exists try reusing
 		if (mCurrentMediaPlayer != null) {
-			mCurrentMediaPlayer.stop();
 			mCurrentMediaPlayer.reset();
-		} else {
-			mCurrentMediaPlayer = new MediaPlayer();
+			mCurrentMediaPlayer.release();
 		}
+		mCurrentMediaPlayer = new MediaPlayer();
 		mCurrentPrepared = false;
 		mCurrentMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mCurrentMediaPlayer.setDataSource(uri);
@@ -94,12 +94,18 @@ public class GaplessPlayer {
 	 */
 	public void stop() {
 		if (mCurrentMediaPlayer != null && mCurrentPrepared) {
-			mCurrentMediaPlayer.stop();
+			if(mNextMediaPlayer != null ) {
+				mCurrentMediaPlayer.setNextMediaPlayer(null);
+				mNextMediaPlayer.reset();
+				mNextMediaPlayer.release();
+				mNextMediaPlayer = null;
+			}
 			mCurrentMediaPlayer.reset();
 			mCurrentMediaPlayer.release();
 			mCurrentMediaPlayer = null;
-			// mCurrentMediaPlayer.setWakeMode(mPlaybackService, 0);
 		}
+		mCurrentPrepared = true;
+		mSecondPrepared = true;
 	}
 
 	/**
@@ -113,18 +119,23 @@ public class GaplessPlayer {
 	 * @throws IOException
 	 */
 	public void setNextTrack(String uri) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+		mSecondPrepared = false;
 		// Next mediaplayer already set, reset
 		if (mNextMediaPlayer != null) {
+			mCurrentMediaPlayer.setNextMediaPlayer(null);
 			mNextMediaPlayer.reset();
-		} else {
-			mNextMediaPlayer = new MediaPlayer();
-			mNextMediaPlayer.setOnPreparedListener(mSecondaryPreparedListener);
+			mNextMediaPlayer.release();
 		}
+		mNextMediaPlayer = new MediaPlayer();
+		mNextMediaPlayer.setOnPreparedListener(mSecondaryPreparedListener);
 		Log.v(TAG, "Set next track to: " + uri);
 		mNextMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mNextMediaPlayer.setDataSource(uri);
 		mSecondarySource = uri;
-		mNextMediaPlayer.prepareAsync();
+		// Check if primary is prepared before preparing the second one
+		if ( mCurrentPrepared ) {
+			mNextMediaPlayer.prepareAsync();
+		} 
 	}
 
 	private OnPreparedListener mPrimaryPreparedListener = new MediaPlayer.OnPreparedListener() {
@@ -141,7 +152,10 @@ public class GaplessPlayer {
 			for (OnTrackStartedListener listener : mTrackStartListeners) {
 				listener.onTrackStarted(mPrimarySource);
 			}
-
+			if ( mSecondPrepared == false) {
+				// Delayed initialization second mediaplayer
+				mNextMediaPlayer.prepareAsync();
+			}
 		}
 	};
 
@@ -153,6 +167,7 @@ public class GaplessPlayer {
 			
 			// If it is nextMediaPlayer it should be set for currentMP
 			mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+			mSecondPrepared = true;
 			mCurrentMediaPlayer.setNextMediaPlayer(mp);
 			Log.v(TAG, "Set Next MP");			
 		}
