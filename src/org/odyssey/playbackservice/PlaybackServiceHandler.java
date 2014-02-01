@@ -31,7 +31,7 @@ public class PlaybackServiceHandler extends Handler {
 		if (msgObj != null) {
 			// Parse message
 			if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAY) {
-				mService.get().playURI(msgObj.getStringParam());
+				mService.get().playURI(msgObj.getTrack());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_STOP) {
 				mService.get().stop();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PAUSE) {
@@ -57,9 +57,9 @@ public class PlaybackServiceHandler extends Handler {
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACKS) {
 
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACK) {
-				mService.get().enqueueTrack(msgObj.getStringParam());
+				mService.get().enqueueTrack(msgObj.getTrack());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACKS) {
-				mService.get().enqueueTracks(msgObj.getStringList());
+				mService.get().enqueueTracks(msgObj.getTrackList());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_SETNEXTRACK) {
 
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_CLEARPLAYLIST) {

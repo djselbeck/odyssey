@@ -2,20 +2,17 @@ package org.odyssey.playbackservice;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 public class TrackItem implements Parcelable {
-	private String mTrackTitle;
-	private String mTrackAlbum;
-	private long mTrackDuration;
-	private int mTrackNumber;
-	private String mTrackArtist;
-	private String mTrackURL;
+	private final static String TAG = "OdysseyTrackItem";
+	private String mTrackTitle = null;
+	private String mTrackAlbum = null;
+	private long mTrackDuration = 0;
+	private int mTrackNumber = 0;
+	private String mTrackArtist = null;
+	private String mTrackURL = null;
 	
-	public static void setCREATOR(Parcelable.Creator<TrackItem> cREATOR) {
-		CREATOR = cREATOR;
-	}
-
-
 	public String getTrackTitle() {
 		return mTrackTitle;
 	}
@@ -54,10 +51,19 @@ public class TrackItem implements Parcelable {
 		mTrackDuration = trackDuration;
 	}
 	
+	public TrackItem() {
+		mTrackTitle = "";
+		mTrackArtist = "";
+		mTrackAlbum = "";
+		mTrackURL = "";
+		mTrackNumber = 0;
+		mTrackDuration = 0;
+	}
+	
 	
 	@Override
 	public int describeContents() {
-		return 0;
+		return 1;
 	}
 	
 	public String toString() {
@@ -89,7 +95,8 @@ public class TrackItem implements Parcelable {
 			String url = source.readString();
 			int trackno = source.readInt();
 			long duration = source.readInt();
-			return new TrackItem(title, artist, album, url, trackno, duration);
+			TrackItem item = new TrackItem(title, artist, album, url, trackno, duration); 
+			return item;
 		}
 	};
 

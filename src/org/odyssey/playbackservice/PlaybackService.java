@@ -57,7 +57,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	// Mediaplayback stuff
 	private GaplessPlayer mPlayer;
-	private ArrayList<String> mCurrentList;
+	private ArrayList<TrackItem> mCurrentList;
 	private int mCurrentPlayingIndex;
 	private boolean mIsDucked = false;
 	
@@ -99,7 +99,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		
 
 		// Create playlist
-		mCurrentList = new ArrayList<String>();
+		mCurrentList = new ArrayList<TrackItem>();
 		mCurrentPlayingIndex = -1;
 		
 		// NowPlaying
@@ -119,10 +119,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	}
 
 	// Directly plays uri
-	public void playURI(String uri) {
+	public void playURI(TrackItem track) {
 		// Clear playlist, enqueue uri, jumpto 0
 		clearPlaylist();
-		enqueueTrack(uri);
+		enqueueTrack(track);
 		jumpToIndex(0);
 	}
 
@@ -138,23 +138,23 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		if ( mPlayer.isRunning() ) {
 			mPlayer.pause();
 		}
-		broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex), mCurrentPlayingIndex));
+		broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 	}
 	
 	public void resume() {
 		// TODO check prepared?
 		mPlayer.resume();
-		broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex), mCurrentPlayingIndex));
+		broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 	}
 	
 	public void togglePause() {
 		// Toggles playback state
 		if(mPlayer.isRunning() ) {
 			mPlayer.pause();
-			broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex), mCurrentPlayingIndex));
+			broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 		} else {
 			mPlayer.resume();
-			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex), mCurrentPlayingIndex));
+			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 
 		}
 	}
@@ -171,10 +171,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		if (mCurrentPlayingIndex < mCurrentList.size()) {
 			// Start playback of new song
 			try {
-				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
+				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 				// Check if next song is availible (gapless)
 				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
-					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1));
+					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 				}
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
@@ -205,10 +205,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		if (mCurrentPlayingIndex < mCurrentList.size()) {
 			// Start playback of new song
 			try {
-				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
+				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 				// Check if next song is availible (gapless)
 				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
-					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1));
+					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 				}
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
@@ -231,7 +231,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		return mHandler;
 	}
 
-	public List<String> getCurrentList() {
+	public List<TrackItem> getCurrentList() {
 		return mCurrentList;
 	}
 
@@ -262,15 +262,15 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 					// Abort command
 					return;
 				}
-				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex));
+				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 				
-				broadcastNowPlaying(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex),mCurrentPlayingIndex));
+				broadcastNowPlaying(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),mCurrentPlayingIndex));
 
 				// Check if another song follows current one for gapless
 				// playback
 				if ((mCurrentPlayingIndex + 1) < mCurrentList.size()) {
 					Log.v(TAG, "Set next track to: " + mCurrentList.get(mCurrentPlayingIndex + 1));
-					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1));
+					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 				}
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
@@ -289,13 +289,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	}
 
-	public void enqueueTracks(ArrayList<String> tracklist) {
+	public void enqueueTracks(ArrayList<TrackItem> tracklist) {
 		// Check if current song is old last one, if so set next song to MP for
 		// gapless playback
 		mCurrentList.addAll(tracklist);
 	}
 
-	public void enqueueTrack(String track) {
+	public void enqueueTrack(TrackItem track) {
 		// Check if current song is old last one, if so set next song to MP for
 		// gapless playback
 		mCurrentList.add(track);
@@ -344,7 +344,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		
 		// Notify about current status right away
 		if ( mCurrentList.size() > 0 ) {
-			String playingURL = mCurrentList.get(mCurrentPlayingIndex);
+			String playingURL = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
 			int playing = mPlayer.isRunning() ? 1 : 0;
 			try {
 				callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL,mCurrentPlayingIndex));
@@ -389,7 +389,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
-		String url = mCurrentList.get(mCurrentPlayingIndex);
+		String url = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
 		TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(url, getContentResolver());
 		mNotificationBuilder.setContentTitle(trackItem.getTrackTitle());
 		mNotificationBuilder.setContentText(trackItem.getTrackArtist());		
@@ -420,9 +420,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		 * so that handling of playback is done in a seperate thread for performance reasons.
 		 */
 		@Override
-		public void play(String uri) throws RemoteException {
+		public void play(TrackItem track) throws RemoteException {
 			// Create play control object
-			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAY, uri);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAY, track);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
@@ -456,16 +456,16 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 
 		@Override
-		public void enqueueTracks(List<String> tracks) throws RemoteException {
+		public void enqueueTracks(List<TrackItem> tracks) throws RemoteException {
 			// Create enqueuetracks control object
-			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACKS, (ArrayList<String>) tracks);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACKS, (ArrayList<TrackItem>) tracks);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
 		}
 
 		@Override
-		public void enqueueTrack(String track) throws RemoteException {
+		public void enqueueTrack(TrackItem track) throws RemoteException {
 			// Create enqueuetrack control object
 			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACK, track);
 			Message msg = mService.get().getHandler().obtainMessage();
@@ -474,7 +474,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 
 		@Override
-		public void dequeueTrack(String track) throws RemoteException {
+		public void dequeueTrack(TrackItem track) throws RemoteException {
 			// Create dequeuetrack control object
 			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACK, track);
 			Message msg = mService.get().getHandler().obtainMessage();
@@ -483,17 +483,21 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 
 		@Override
-		public void dequeueTracks(List<String> tracks) throws RemoteException {
+		public void dequeueTracks(List<TrackItem> tracks) throws RemoteException {
 			// Create dequeuetracks control object
-			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACKS, (ArrayList<String>) tracks);
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACKS, (ArrayList<TrackItem>) tracks);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
 		}
+		
 
 		@Override
-		public List<String> getCurrentList() throws RemoteException {
-			return new ArrayList<String>(mService.get().getCurrentList());
+		public void getCurrentList(List<TrackItem> list) throws RemoteException {
+			for (TrackItem trackItem : mService.get().getCurrentList()) {
+				Log.v(TAG,"Returning: " + trackItem);
+				list.add(trackItem);
+			}
 		}
 
 		@Override
@@ -642,7 +646,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			mCurrentPlayingIndex++;
 			if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
 				try {
-					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1));
+					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 				} catch (IllegalArgumentException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

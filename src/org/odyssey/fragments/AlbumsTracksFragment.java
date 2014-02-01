@@ -95,7 +95,7 @@ public class AlbumsTracksFragment extends Fragment {
 					OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
 					try {
-						app.getPlaybackService().play(dataPath);
+						app.getPlaybackService().play(tmpTrackItem);
 					} catch (RemoteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -113,10 +113,8 @@ public class AlbumsTracksFragment extends Fragment {
 						e1.printStackTrace();
 					}
 					for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
-						String dataPath = mTrackListAdapter.getItem(i).getTrackURL();
 						try {
-							Log.v(TAG, "enqueing: " + dataPath);
-							app.getPlaybackService().enqueueTrack(dataPath);
+							app.getPlaybackService().enqueueTrack(mTrackListAdapter.getItem(i));
 						} catch (RemoteException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();

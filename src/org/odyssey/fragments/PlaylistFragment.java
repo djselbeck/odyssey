@@ -28,7 +28,7 @@ import android.widget.AdapterView.OnItemClickListener;
 
 public class PlaylistFragment extends Fragment {
 
-	private static final String TAG = "PlaylistFragment";
+	private static final String TAG = "OdysseyPlaylistFragment";
 
 	private PlaylistTracksAdapter mPlayListAdapter;
 
@@ -80,24 +80,19 @@ public class PlaylistFragment extends Fragment {
 		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
 		
 		// get playlist
-		ArrayList<String> playListURL = new ArrayList<String>();
+		ArrayList<TrackItem> playListTracks = new ArrayList<TrackItem>();
 		
 		try {
-			playListURL = (ArrayList<String>) mainApplication.getPlaybackService().getCurrentList();
+			mainApplication.getPlaybackService().getCurrentList(playListTracks);
+			for (TrackItem trackItem : playListTracks) {
+				Log.v(TAG,"received track:" + trackItem);
+			}
 		} catch (RemoteException e) {
+			Log.e(TAG,"Remote errror: " + e);
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		// create trackitems
-		ArrayList<TrackItem> playListTracks = new ArrayList<TrackItem>();
-		
-		for(int i = 0; i < playListURL.size(); i++) {
-			TrackItem item = 
-					MusicLibraryHelper.getTrackItemFromURL(playListURL.get(i), getActivity().getContentResolver());
-			
-			playListTracks.add(item);
-		}
+
 		
 		mPlayListAdapter.clear();
 

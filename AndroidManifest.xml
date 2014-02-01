@@ -29,8 +29,7 @@
         </activity>
 
         <service android:name="org.odyssey.playbackservice.PlaybackService"
-            android:exported="false"
-            android:process="org.odyssey.ServiceProcess">
+            android:exported="false">
             <intent-filter>
                 <action android:name="org.odyssey.playbackservice.IOdysseyPlaybackService" >
                 </action>

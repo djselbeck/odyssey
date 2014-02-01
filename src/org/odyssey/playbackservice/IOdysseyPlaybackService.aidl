@@ -1,11 +1,12 @@
 package org.odyssey.playbackservice;
 
 import org.odyssey.IOdysseyNowPlayingCallback;
+import org.odyssey.playbackservice.TrackItem;
 
 interface IOdysseyPlaybackService {
 	
 	// Controls the player with predefined actions
-	void play(String uri);
+	void play(in TrackItem track);
 	void pause();
 	void resume();
 	void stop();
@@ -28,13 +29,13 @@ interface IOdysseyPlaybackService {
 	// track is the full uri with "file://" !
 	void setNextTrack(String track);
 	
-	void enqueueTrack(String track);
-	void enqueueTracks(in List<String> tracks);
-	void dequeueTrack(String track);
-	void dequeueTracks(in List<String> tracks);
+	void enqueueTrack(in TrackItem track);
+	void enqueueTracks(in List<TrackItem> tracks);
+	void dequeueTrack(in TrackItem track);
+	void dequeueTracks(in List<TrackItem> tracks);
 	void clearPlaylist();
 	
-	List<String> getCurrentList();
+	void getCurrentList(out List<TrackItem> tracks);
 	
 	// Information getters
 	String getArtist();

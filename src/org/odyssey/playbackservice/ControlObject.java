@@ -16,7 +16,8 @@ public class ControlObject {
 	private boolean mBoolparam;
 	private int mIntparam;
 	private String mStringparam;
-	private ArrayList<String> mStringlist = null;
+	private TrackItem mTrack;
+	private ArrayList<TrackItem> mTrackList = null;
 
 	public ControlObject(PLAYBACK_ACTION action) {
 		mAction = action;
@@ -37,9 +38,15 @@ public class ControlObject {
 		mAction = action;
 	}
 
-	public ControlObject(PLAYBACK_ACTION action, ArrayList<String> list) {
-		mStringlist = list;
+	
+	public ControlObject(PLAYBACK_ACTION action, ArrayList<TrackItem> list) {
+		mTrackList = list;
 		mAction = action;
+	}
+	
+	public ControlObject(PLAYBACK_ACTION action, TrackItem track) {
+		mAction = action;
+		mTrack = track; 
 	}
 
 	public PLAYBACK_ACTION getAction() {
@@ -50,11 +57,15 @@ public class ControlObject {
 		return mStringparam;
 	}
 
-	public ArrayList<String> getStringList() {
-		return mStringlist;
+	public ArrayList<TrackItem> getTrackList() {
+		return mTrackList;
 	}
 
 	public int getIntParam() {
 		return mIntparam;
+	}
+	
+	public TrackItem getTrack() {
+		return mTrack;
 	}
 }
