@@ -241,6 +241,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Clear the list and reset index
 		mCurrentList.clear();
 		mCurrentPlayingIndex = -1;
+		broadcastNowPlaying(new NowPlayingInformation(0, "", mCurrentPlayingIndex));
 
 		// TODO notify connected listeners
 	}
@@ -631,7 +632,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		@Override
 		public void onTrackStarted(String URI) {
 			Log.v(TAG, "track started: " + URI);
-			broadcastNowPlaying(new NowPlayingInformation(1,URI,mCurrentPlayingIndex));
+			broadcastNowPlaying(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),mCurrentPlayingIndex));
 			updateNotification();
 		}
 	}
@@ -644,6 +645,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			// Forward current index and set new song for gapless playback
 			// if new song is availible
 			mCurrentPlayingIndex++;
+			if ( mCurrentPlayingIndex < mCurrentList.size()) {
+				broadcastNowPlaying(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),mCurrentPlayingIndex));
+				updateNotification();
+			}
 			if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
 				try {
 					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());

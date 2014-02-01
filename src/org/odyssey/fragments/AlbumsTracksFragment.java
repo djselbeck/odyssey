@@ -108,7 +108,7 @@ public class AlbumsTracksFragment extends Fragment {
 				// jump to selected track
 				if (position > 0) {
 					try {
-						app.getPlaybackService().jumpTo(position);
+						app.getPlaybackService().jumpTo(position-1);
 					} catch (RemoteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
