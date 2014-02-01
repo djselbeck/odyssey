@@ -151,7 +151,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         newFragment.setArguments(args);    	
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right,
+        									android.R.anim.slide_in_left, android.R.anim.slide_out_right);
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack so the user can navigate back
@@ -175,7 +176,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         newFragment.setArguments(args);
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
+        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right,
+				android.R.anim.slide_in_left, android.R.anim.slide_out_right);
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack so the user can navigate back
         transaction.replace(R.id.fragmentFrame, newFragment);
@@ -260,7 +262,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 			getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         	
         	android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        	
+            transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right,
+    				android.R.anim.slide_in_left, android.R.anim.slide_out_right);
         	if(position == 0) {
         		
         		//FIXME always create a new fragment
