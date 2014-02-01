@@ -257,25 +257,24 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         	
+        	//TODO check clear backstack
+			getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        	
         	android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         	
         	if(position == 0) {
         		
-        		//FIXME check this
+        		//FIXME always create a new fragment
         		ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
                 // Replace whatever is in the fragment_container view with this fragment,
-                // and add the transaction to the back stack so the user can navigate back
                 transaction.replace(R.id.fragmentFrame, mArtistsAlbumsTabsFragment);
-//                transaction.addToBackStack(null);
 
                 // Commit the transaction
                 transaction.commit();         		
         	} else if (position == 1) {
         		PlaylistFragment mPlaylistFragment = new PlaylistFragment();
                 // Replace whatever is in the fragment_container view with this fragment,
-                // and add the transaction to the back stack so the user can navigate back
                 transaction.replace(R.id.fragmentFrame, mPlaylistFragment);
-//                transaction.addToBackStack(null);
 
                 // Commit the transaction
                 transaction.commit(); 
