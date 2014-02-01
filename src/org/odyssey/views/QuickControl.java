@@ -4,7 +4,7 @@ import org.odyssey.MusicLibraryHelper;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
 import org.odyssey.OdysseyApplication;
-import org.odyssey.MusicLibraryHelper.TrackItem;
+import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
 import android.content.Context;
@@ -103,7 +103,7 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
 					@Override
 					public void run() {
 						Resources resources = getResources();
-						mTitleView.setText(trackItem.trackTitle + " - " + trackItem.trackArtist);
+						mTitleView.setText(trackItem.getTrackTitle() + " - " + trackItem.getTrackArtist());
 						if (songPlaying) {
 							mPlayPauseButton.setImageDrawable(resources.getDrawable(android.R.drawable.ic_media_pause));
 						} else {

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
-import org.odyssey.MusicLibraryHelper.TrackItem;
+import org.odyssey.playbackservice.TrackItem;
 
 import android.app.ActionBar;
 import android.content.Context;
@@ -38,7 +38,7 @@ public class PlaylistFragment extends Fragment {
 
 		// create adapter for tracklist
 		mPlayListAdapter = new PlaylistTracksAdapter(getActivity(), 
-				R.layout.listview_playlist_item, new ArrayList<MusicLibraryHelper.TrackItem>());
+				R.layout.listview_playlist_item, new ArrayList<TrackItem>());
 
 		// create listview for tracklist
 		ListView trackListView = (ListView) rootView.findViewById(R.id.listViewPlaylist);
@@ -90,10 +90,10 @@ public class PlaylistFragment extends Fragment {
 		}
 		
 		// create trackitems
-		ArrayList<MusicLibraryHelper.TrackItem> playListTracks = new ArrayList<MusicLibraryHelper.TrackItem>();
+		ArrayList<TrackItem> playListTracks = new ArrayList<TrackItem>();
 		
 		for(int i = 0; i < playListURL.size(); i++) {
-			MusicLibraryHelper.TrackItem item = 
+			TrackItem item = 
 					MusicLibraryHelper.getTrackItemFromURL(playListURL.get(i), getActivity().getContentResolver());
 			
 			playListTracks.add(item);
@@ -139,12 +139,12 @@ public class PlaylistFragment extends Fragment {
 			// set tracktitle
 			TrackItem trackItem = getItem(position);
 
-			trackTitleView.setText(trackItem.trackTitle);
+			trackTitleView.setText(trackItem.getTrackTitle());
 
 			// calculate duration in minutes and seconds
-			String seconds = String.valueOf((trackItem.trackDuration % 60000) / 1000);
+			String seconds = String.valueOf((trackItem.getTrackDuration() % 60000) / 1000);
 
-			String minutes = String.valueOf(trackItem.trackDuration / 60000);
+			String minutes = String.valueOf(trackItem.getTrackDuration() / 60000);
 
 			if (seconds.length() == 1) {
 				trackDurationView.setText(minutes + ":0" + seconds);
@@ -153,19 +153,19 @@ public class PlaylistFragment extends Fragment {
 			}
 
 			// calculate track and discnumber
-			if (("" + trackItem.trackNumber).length() < 4) {
-				trackNumberView.setText("" + trackItem.trackNumber);
+			if (("" + trackItem.getTrackNumber()).length() < 4) {
+				trackNumberView.setText("" + trackItem.getTrackNumber());
 			} else {
 
 				// TODO shall we use discnumber?
-				String discNumber = ("" + trackItem.trackNumber).substring(0, 2);
-				String trackNumber = ("" + trackItem.trackNumber).substring(2);
+				String discNumber = ("" + trackItem.getTrackNumber()).substring(0, 2);
+				String trackNumber = ("" + trackItem.getTrackNumber()).substring(2);
 
 				trackNumberView.setText(trackNumber);
 			}
 
 			// set artist
-			trackArtistView.setText(trackItem.trackArtist);
+			trackArtistView.setText(trackItem.getTrackArtist());
 
 			return convertView;
 

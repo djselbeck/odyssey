@@ -8,7 +8,6 @@ import java.util.List;
 import org.odyssey.IOdysseyNowPlayingCallback;
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
-import org.odyssey.MusicLibraryHelper.TrackItem;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
 
@@ -392,12 +391,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		String url = mCurrentList.get(mCurrentPlayingIndex);
 		TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(url, getContentResolver());
-		mNotificationBuilder.setContentTitle(trackItem.trackTitle);
-		mNotificationBuilder.setContentText(trackItem.trackArtist);		
+		mNotificationBuilder.setContentTitle(trackItem.getTrackTitle());
+		mNotificationBuilder.setContentText(trackItem.getTrackArtist());		
 		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
 		
 		NotificationCompat.BigTextStyle notificationStyle = new NotificationCompat.BigTextStyle();
-		notificationStyle.bigText(trackItem.trackArtist);
+		notificationStyle.bigText(trackItem.getTrackTitle());
 		mNotificationBuilder.setStyle(notificationStyle);
 //		mNotificationBuilder.addAction(android.R.drawable.ic_media_pause, "Pause", null);
 		mNotificationBuilder.setContentIntent(resultPendingIntent);

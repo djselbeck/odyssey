@@ -2,7 +2,6 @@ package org.odyssey;
 
 import java.util.Locale;
 
-import org.odyssey.MusicLibraryHelper.TrackItem;
 import org.odyssey.fragments.AlbumsSectionFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;

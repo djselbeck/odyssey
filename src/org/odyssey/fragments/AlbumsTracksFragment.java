@@ -3,9 +3,9 @@ package org.odyssey.fragments;
 import java.util.ArrayList;
 
 import org.odyssey.MusicLibraryHelper;
-import org.odyssey.MusicLibraryHelper.TrackItem;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
+import org.odyssey.playbackservice.TrackItem;
 
 import android.app.ActionBar;
 import android.content.Context;
@@ -70,7 +70,7 @@ public class AlbumsTracksFragment extends Fragment {
 		mAlbumArtistView = (TextView) headerView.findViewById(R.id.textViewTracklistArtistName);
 
 		// create adapter for tracklist
-		mTrackListAdapter = new TrackListArrayAdapter(getActivity(), R.layout.listview_tracklist_item, new ArrayList<MusicLibraryHelper.TrackItem>());
+		mTrackListAdapter = new TrackListArrayAdapter(getActivity(), R.layout.listview_tracklist_item, new ArrayList<TrackItem>());
 
 		// create listview for tracklist
 		ListView trackListView = (ListView) rootView.findViewById(R.id.listViewAlbumTrackList);
@@ -88,7 +88,7 @@ public class AlbumsTracksFragment extends Fragment {
 				if (position > 0) {
 					Log.v(TAG, "Position: " + position + " pressed");
 					TrackItem tmpTrackItem = mTrackListAdapter.getItem(position - 1);
-					String dataPath = tmpTrackItem.trackURL;
+					String dataPath = tmpTrackItem.getTrackURL();
 					Log.v(TAG, "try playback of: " + dataPath);
 
 					// Get main application object for serice connection
@@ -113,7 +113,7 @@ public class AlbumsTracksFragment extends Fragment {
 						e1.printStackTrace();
 					}
 					for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
-						String dataPath = mTrackListAdapter.getItem(i).trackURL;
+						String dataPath = mTrackListAdapter.getItem(i).getTrackURL();
 						try {
 							Log.v(TAG, "enqueing: " + dataPath);
 							app.getPlaybackService().enqueueTrack(dataPath);
@@ -175,21 +175,21 @@ public class AlbumsTracksFragment extends Fragment {
 
 		boolean isSampler = false;
 
-		ArrayList<MusicLibraryHelper.TrackItem> trackList = new ArrayList<MusicLibraryHelper.TrackItem>();
+		ArrayList<TrackItem> trackList = new ArrayList<TrackItem>();
 
 		// get all tracks on the current album
 		if (cursor.moveToFirst()) {
 			do {
-				MusicLibraryHelper.TrackItem item = new MusicLibraryHelper.TrackItem();
-				item.trackTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-				item.trackDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-				item.trackNumber = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
-				item.trackArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-				item.trackURL = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+				String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+				long duration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+				int no = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+				String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+				String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
-				if (!item.trackArtist.equals(mAlbumArtist)) {
+				TrackItem item = new TrackItem(title,artist,"",url,no,duration);
+				if (!item.getTrackArtist().equals(mAlbumArtist)) {
 
-					if (!item.trackArtist.contains(mAlbumArtist)) {
+					if (!item.getTrackArtist().contains(mAlbumArtist)) {
 
 						// trackartist not albumartist and not contains
 						// albumartist -> sampler
@@ -247,12 +247,12 @@ public class AlbumsTracksFragment extends Fragment {
 			// set tracktitle
 			TrackItem trackItem = getItem(position);
 
-			trackTitleView.setText(trackItem.trackTitle);
+			trackTitleView.setText(trackItem.getTrackTitle());
 
 			// calculate duration in minutes and seconds
-			String seconds = String.valueOf((trackItem.trackDuration % 60000) / 1000);
+			String seconds = String.valueOf((trackItem.getTrackDuration() % 60000) / 1000);
 
-			String minutes = String.valueOf(trackItem.trackDuration / 60000);
+			String minutes = String.valueOf(trackItem.getTrackDuration() / 60000);
 
 			if (seconds.length() == 1) {
 				trackDurationView.setText(minutes + ":0" + seconds);
@@ -261,20 +261,20 @@ public class AlbumsTracksFragment extends Fragment {
 			}
 
 			// calculate track and discnumber
-			if (("" + trackItem.trackNumber).length() < 4) {
-				trackNumberView.setText("" + trackItem.trackNumber);
+			if (("" + trackItem.getTrackNumber()).length() < 4) {
+				trackNumberView.setText("" + trackItem.getTrackNumber());
 			} else {
 
 				// TODO shall we use discnumber?
-				String discNumber = ("" + trackItem.trackNumber).substring(0, 2);
-				String trackNumber = ("" + trackItem.trackNumber).substring(2);
+				String discNumber = ("" + trackItem.getTrackNumber()).substring(0, 2);
+				String trackNumber = ("" + trackItem.getTrackNumber()).substring(2);
 
 				trackNumberView.setText(trackNumber);
 			}
 
 			// set artist if sampler or multiple artists
-			if (mIsSampler || (trackItem.trackArtist.contains(mAlbumArtist) && !trackItem.trackArtist.equals(mAlbumArtist))) {
-				trackArtistView.setText(trackItem.trackArtist);
+			if (mIsSampler || (trackItem.getTrackArtist().contains(mAlbumArtist) && !trackItem.getTrackArtist().equals(mAlbumArtist))) {
+				trackArtistView.setText(trackItem.getTrackArtist());
 			}
 
 			return convertView;
