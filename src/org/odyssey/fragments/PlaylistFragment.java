@@ -3,12 +3,15 @@ package org.odyssey.fragments;
 import java.util.ArrayList;
 
 import org.odyssey.MusicLibraryHelper;
+import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -25,8 +28,9 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Toast;
 
-public class PlaylistFragment extends Fragment {
+public class PlaylistFragment extends Fragment implements OdysseyApplication.NowPlayingListener {
 
 	private static final String TAG = "OdysseyPlaylistFragment";
 
@@ -65,6 +69,10 @@ public class PlaylistFragment extends Fragment {
 		});
 
 		setPlaylistTracks();
+		
+		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
+		
+		mainApplication.registerNowPlayingListener(this);
 
 		return rootView;
 	}
@@ -96,7 +104,9 @@ public class PlaylistFragment extends Fragment {
 		
 		mPlayListAdapter.clear();
 
-		mPlayListAdapter.addAll(playListTracks);		
+		mPlayListAdapter.addAll(playListTracks);	
+		
+		mPlayListAdapter.notifyDataSetChanged();
 	}
 
 	private class PlaylistTracksAdapter extends ArrayAdapter<TrackItem> {
@@ -104,6 +114,7 @@ public class PlaylistFragment extends Fragment {
 		private Context mContext;
 		private LayoutInflater mInflater;
 		private int mLayoutResourceId;
+		private int mPlayingIndex;
 
 		public PlaylistTracksAdapter(Context context, int layoutResourceId, ArrayList<TrackItem> data) {
 			super(context, layoutResourceId, data);
@@ -111,7 +122,7 @@ public class PlaylistFragment extends Fragment {
 			mContext = context;
 			mLayoutResourceId = layoutResourceId;
 			mInflater = LayoutInflater.from(context);
-			
+			mPlayingIndex = 0;
 		}
 
 		@Override
@@ -161,11 +172,47 @@ public class PlaylistFragment extends Fragment {
 
 			// set artist
 			trackArtistView.setText(trackItem.getTrackArtist());
+			
+			if(position == mPlayingIndex) {
+				ImageView playImage = (ImageView) convertView.findViewById(R.id.imageViewPlaylistPlay);
+				
+				playImage.setVisibility(ImageView.VISIBLE);
+			} else {
+				ImageView playImage = (ImageView) convertView.findViewById(R.id.imageViewPlaylistPlay);
+				
+				playImage.setVisibility(ImageView.GONE);				
+			}
 
 			return convertView;
 
 		}
+		
+		public void setPlayingIndex(int index) {
+			mPlayingIndex = index;
+		}
 
+	}
+
+	@Override
+	public void onNewInformation(NowPlayingInformation info) {
+		
+		final int index = info.getPlayingIndex();
+		
+		new Thread() {
+			public void run() {
+				Activity activity = (Activity) getActivity();
+				if(activity != null) {
+					activity.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							mPlayListAdapter.setPlayingIndex(index);
+							mPlayListAdapter.notifyDataSetChanged();
+						}
+					});
+				}
+			}
+		}.start();
+		
 	}
 
 }

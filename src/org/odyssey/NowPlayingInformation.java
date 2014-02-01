@@ -64,5 +64,9 @@ public final class NowPlayingInformation implements Parcelable{
 	public String toString() {
 		return "Playing: " + mPlaying + " URL: " +  mPlayingURL;
 	}
+	
+	public int getPlayingIndex() {
+		return mPlayingIndex;
+	}
 
 }
