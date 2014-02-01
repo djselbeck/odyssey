@@ -81,54 +81,46 @@ public class AlbumsTracksFragment extends Fragment {
 
 		trackListView.setOnItemClickListener(new OnItemClickListener() {
 
-			// FIXME temporary just play clicked song
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View viewItem, int position, long id) {
-				// Respect header listitem here
-				if (position > 0) {
-					Log.v(TAG, "Position: " + position + " pressed");
-					TrackItem tmpTrackItem = mTrackListAdapter.getItem(position - 1);
-					String dataPath = tmpTrackItem.getTrackURL();
-					Log.v(TAG, "try playback of: " + dataPath);
-
-					// Get main application object for serice connection
-					OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-
+				
+				// Play complete album
+				OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+				
+				// Remove old tracks
+				try {
+					app.getPlaybackService().clearPlaylist();
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+				// enqueue albumtracks
+				for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
 					try {
-						app.getPlaybackService().play(tmpTrackItem);
-					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-					// Get service handler and signal playback request
-				} else {
-					// Play complete album
-					OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-					// Remove old tracks
-					try {
-						app.getPlaybackService().clearPlaylist();
-					} catch (RemoteException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
-						try {
-							app.getPlaybackService().enqueueTrack(mTrackListAdapter.getItem(i));
-						} catch (RemoteException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-
-					}
-					try {
-						app.getPlaybackService().jumpTo(0);
+						app.getPlaybackService().enqueueTrack(mTrackListAdapter.getItem(i));
 					} catch (RemoteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-
+				
+				// jump to selected track
+				if (position > 0) {
+					try {
+						app.getPlaybackService().jumpTo(position);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}					
+				} else {
+					try {
+						app.getPlaybackService().jumpTo(0);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}					
+				}
 			}
 		});
 
