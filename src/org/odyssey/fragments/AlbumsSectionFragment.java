@@ -10,7 +10,6 @@ import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 import org.odyssey.playbackservice.TrackItem;
-import org.odyssey.views.AlbumItem;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -183,9 +182,8 @@ public class AlbumsSectionFragment extends Fragment implements
 
 			if (convertView == null) {
 
-				convertView = new AlbumItem(getActivity().getBaseContext(), position, (GridView)parent);
+				convertView = mInflater.inflate(R.layout.item_albums, null);
 				
-
 				// create new coverholder for imageview(cover) and
 				// textview(albumlabel)
 				coverHolder = new AsyncLoader.CoverViewHolder();
@@ -211,7 +209,7 @@ public class AlbumsSectionFragment extends Fragment implements
 			}
 
 			// Set position of item for onclickListener
-			((AlbumItem)convertView).setPosition(position);
+//			((AlbumItem)convertView).setPosition(position);
 			
 			this.mCursor.moveToPosition(position);
 
@@ -258,10 +256,6 @@ public class AlbumsSectionFragment extends Fragment implements
 						.setImageResource(R.drawable.coverplaceholder);
 				coverHolder.imagePath = null;
 			}
-			
-			//FIXME without this context menu dont show up
-			// with this context menu is doubled
-			registerForContextMenu(convertView);
 			
 			return convertView;
 		}

@@ -23,14 +23,14 @@
             android:layout_weight="1.0"
             android:maxLines="3" />
 
-        <ImageButton
+<!--         <ImageButton
             android:id="@+id/albumMenuButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
             android:background="?android:selectableItemBackground"
             android:src="@drawable/ic_action_overflow" />
-
+ -->
     </LinearLayout>
 
 </LinearLayout>
