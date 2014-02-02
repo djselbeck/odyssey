@@ -56,7 +56,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
         	mArtistSelectedCallback = (OnArtistSelectedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnHeadlineSelectedListener");
+                    + " must implement OnArtistSelectedListener");
         }
 		
 	}   

@@ -4,9 +4,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import org.odyssey.MusicLibraryHelper;
+import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
+import org.odyssey.playbackservice.TrackItem;
 import org.odyssey.views.AlbumItem;
 
 import android.app.ActionBar;
@@ -15,6 +17,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -73,7 +76,7 @@ public class AlbumsSectionFragment extends Fragment implements
         	mAlbumSelectedCallback = (OnAlbumSelectedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnHeadlineSelectedListener");
+                    + " must implement OnAlbumSelectedListener");
         }
 		
 	}
@@ -107,6 +110,9 @@ public class AlbumsSectionFragment extends Fragment implements
 			mRootGrid.setFastScrollEnabled(false);
 			mRootGrid.setFastScrollAlwaysVisible(false);	        
 		}		
+		
+		// register context menu
+		registerForContextMenu(mRootGrid);
 
 		return rootView;
 	}
@@ -179,9 +185,6 @@ public class AlbumsSectionFragment extends Fragment implements
 						.findViewById(R.id.textViewAlbumItem);
 
 				convertView.setTag(coverHolder);
-				
-				// register AlbumItem for contextMenu
-				registerForContextMenu(convertView);
 
 			} else {
 				// get coverholder from convertview and cancel asynctask
@@ -245,6 +248,11 @@ public class AlbumsSectionFragment extends Fragment implements
 						.setImageResource(R.drawable.coverplaceholder);
 				coverHolder.imagePath = null;
 			}
+			
+			//FIXME without this context menu dont show up
+			// with this context menu is doubled
+			registerForContextMenu(convertView);
+			
 			return convertView;
 		}
 
@@ -417,12 +425,18 @@ public class AlbumsSectionFragment extends Fragment implements
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {	
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+
+		if(info == null) {
+			return super.onContextItemSelected(item);
+		}
+		
 	    switch (item.getItemId()) {
 	        case R.id.album_context_menu_action_enqueue:
-	            Toast.makeText(getActivity(), "Enqueue album", Toast.LENGTH_SHORT).show();
+	            enqueueAlbum(info.position);
 	            return true;
 	        case R.id.album_context_menu_action_play:
-	        	Toast.makeText(getActivity(), "Play album", Toast.LENGTH_SHORT).show();
+	        	playAlbum(info.position);
 	            return true;
 	        case R.id.album_context_menu_action_artist:
 	        	Toast.makeText(getActivity(), "Show Artist", Toast.LENGTH_SHORT).show();
@@ -431,4 +445,73 @@ public class AlbumsSectionFragment extends Fragment implements
 	            return super.onContextItemSelected(item);
 	    }
 	}	
+	
+	private void enqueueAlbum(int position) {
+		//identify current album
+		Cursor albumCursor = mCursorAdapter.getCursor();
+		
+		albumCursor.moveToPosition(position);
+		
+		String albumKey = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));		
+		
+		// Play complete album
+		OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();	
+		
+		// get and enqueue albumtracks
+		
+		String whereVal[] = { albumKey };
+
+		String where = android.provider.MediaStore.Audio.Media.ALBUM_KEY + "=?";
+
+		String orderBy = android.provider.MediaStore.Audio.Media.TRACK;		
+		
+		Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, 
+													MusicLibraryHelper.projectionTracks, where, whereVal, orderBy);
+
+		// get all tracks on the current album
+		if (cursor.moveToFirst()) {
+			do {
+				String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+				long duration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+				int no = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+				String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+				String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+
+				TrackItem item = new TrackItem(title,artist,"",url,no,duration);
+				
+				// enqueue current track
+				try {
+					app.getPlaybackService().enqueueTrack(item);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			} while (cursor.moveToNext());
+		}		
+	}
+	
+	private void playAlbum(int position) {	
+
+		OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+		
+		// Remove old tracks
+		try {
+			app.getPlaybackService().clearPlaylist();
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}		
+		
+		// get and enqueue albumtracks
+		enqueueAlbum(position);		
+		
+		// play album
+		try {
+			app.getPlaybackService().jumpTo(0);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}							
+	}
 }

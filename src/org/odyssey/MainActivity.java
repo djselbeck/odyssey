@@ -265,7 +265,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
             transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right,
     				android.R.anim.slide_in_left, android.R.anim.slide_out_right);
         	if(position == 0) {
-        		
+        		mDrawerToggle.setDrawerIndicatorEnabled(true);
         		//FIXME always create a new fragment
         		ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
                 // Replace whatever is in the fragment_container view with this fragment,
@@ -274,6 +274,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                 // Commit the transaction
                 transaction.commit();         		
         	} else if (position == 1) {
+        		mDrawerToggle.setDrawerIndicatorEnabled(true);
+        		
         		PlaylistFragment mPlaylistFragment = new PlaylistFragment();
                 // Replace whatever is in the fragment_container view with this fragment,
                 transaction.replace(R.id.fragmentFrame, mPlaylistFragment);
