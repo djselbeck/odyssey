@@ -23,11 +23,16 @@ import android.support.v4.content.Loader;
 import android.support.v4.util.LruCache;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -174,6 +179,9 @@ public class AlbumsSectionFragment extends Fragment implements
 						.findViewById(R.id.textViewAlbumItem);
 
 				convertView.setTag(coverHolder);
+				
+				// register AlbumItem for contextMenu
+				registerForContextMenu(convertView);
 
 			} else {
 				// get coverholder from convertview and cancel asynctask
@@ -399,5 +407,28 @@ public class AlbumsSectionFragment extends Fragment implements
 		
 	}
 	
-
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+	                                ContextMenuInfo menuInfo) {
+	    super.onCreateContextMenu(menu, v, menuInfo);
+	    MenuInflater inflater = getActivity().getMenuInflater();
+	    inflater.inflate(R.menu.album_context_menu, menu);
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {	
+	    switch (item.getItemId()) {
+	        case R.id.album_context_menu_action_enqueue:
+	            Toast.makeText(getActivity(), "Enqueue album", Toast.LENGTH_SHORT).show();
+	            return true;
+	        case R.id.album_context_menu_action_play:
+	        	Toast.makeText(getActivity(), "Play album", Toast.LENGTH_SHORT).show();
+	            return true;
+	        case R.id.album_context_menu_action_artist:
+	        	Toast.makeText(getActivity(), "Show Artist", Toast.LENGTH_SHORT).show();
+	            return true;    
+	        default:
+	            return super.onContextItemSelected(item);
+	    }
+	}	
 }
