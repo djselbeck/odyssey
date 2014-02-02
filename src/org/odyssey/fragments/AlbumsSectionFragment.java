@@ -32,13 +32,11 @@ import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
@@ -207,9 +205,6 @@ public class AlbumsSectionFragment extends Fragment implements
 			if (this.mCursor == null) {
 				return convertView;
 			}
-
-			// Set position of item for onclickListener
-//			((AlbumItem)convertView).setPosition(position);
 			
 			this.mCursor.moveToPosition(position);
 
