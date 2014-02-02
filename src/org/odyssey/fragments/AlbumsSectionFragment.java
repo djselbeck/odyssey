@@ -7,6 +7,7 @@ import org.odyssey.MusicLibraryHelper;
 import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
+import org.odyssey.views.AlbumItem;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -24,10 +25,12 @@ import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
@@ -159,7 +162,8 @@ public class AlbumsSectionFragment extends Fragment implements
 
 			if (convertView == null) {
 
-				convertView = mInflater.inflate(R.layout.item_albums, null);
+				convertView = new AlbumItem(getActivity().getBaseContext(), position, (GridView)parent);
+				
 
 				// create new coverholder for imageview(cover) and
 				// textview(albumlabel)
@@ -185,6 +189,9 @@ public class AlbumsSectionFragment extends Fragment implements
 				return convertView;
 			}
 
+			// Set position of item for onclickListener
+			((AlbumItem)convertView).setPosition(position);
+			
 			this.mCursor.moveToPosition(position);
 
 			coverIndex = mCursor

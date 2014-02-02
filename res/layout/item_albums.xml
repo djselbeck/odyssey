@@ -11,12 +11,25 @@
         android:layout_weight="1.0"
     />
 
-    <TextView
-        android:id="@+id/textViewAlbumItem"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/album_text_height"
-        android:layout_weight="1.0"
-        android:maxLines="3"
-    />
+        android:layout_height="wrap_content"
+        android:layout_weight="1.0" >
+
+        <TextView
+            android:id="@+id/textViewAlbumItem"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/album_text_height"
+            android:layout_weight="1.0"
+            android:maxLines="3" />
+
+        <ImageButton
+            android:id="@+id/albumMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.0"
+            android:src="@drawable/ic_drawer" />
+
+    </LinearLayout>
 
 </LinearLayout>
