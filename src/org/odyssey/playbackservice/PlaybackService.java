@@ -17,21 +17,16 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
-import android.widget.Toast;
 
 public class PlaybackService extends Service implements AudioManager.OnAudioFocusChangeListener {
 
@@ -60,7 +55,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	private ArrayList<TrackItem> mCurrentList;
 	private int mCurrentPlayingIndex;
 	private boolean mIsDucked = false;
-	
+
 	// NowPlaying callbacks
 	// List holding registered callback clients
 	private ArrayList<IOdysseyNowPlayingCallback> mNowPlayingCallbacks;
@@ -76,13 +71,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		Log.v(TAG, "Unbind");
 		return true;
 	}
-	
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		Log.v(TAG, "Odyssey PlaybackService onCreate");
-		Log.v(TAG,"MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
-		
+		Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
+
 		// Start Handlerthread
 		mHandlerThread = new HandlerThread("OdysseyHandlerThread", Process.THREAD_PRIORITY_AUDIO);
 		mHandlerThread.start();
@@ -96,15 +91,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
 		mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
 		Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
-		
 
 		// Create playlist
 		mCurrentList = new ArrayList<TrackItem>();
 		mCurrentPlayingIndex = -1;
-		
+
 		// NowPlaying
 		mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
-		
+
 		mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
 	}
 
@@ -129,33 +123,35 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	// Stops all playback
 	public void stop() {
 		mPlayer.stop();
+		mCurrentPlayingIndex = -1;
 		// Send empty NowPlaying
 		broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
 		stopService();
 	}
-	
+
 	public void pause() {
-		if ( mPlayer.isRunning() ) {
+		if (mPlayer.isRunning()) {
 			mPlayer.pause();
 		}
 		broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 	}
-	
+
 	public void resume() {
-		// TODO check prepared?
-		mPlayer.resume();
-		broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
-	}
-	
-	public void togglePause() {
-		// Toggles playback state
-		if(mPlayer.isRunning() ) {
-			mPlayer.pause();
-			broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+		if (mCurrentPlayingIndex < 0 && mCurrentList.size() > 0) {
+			// Songs existing so start playback of playlist begin
+			jumpToIndex(0);
 		} else {
 			mPlayer.resume();
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+		}
+	}
 
+	public void togglePause() {
+		// Toggles playback state
+		if (mPlayer.isRunning()) {
+			pause();
+		} else {
+			resume();
 		}
 	}
 
@@ -191,14 +187,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			}
 		}
 	}
-	
+
 	/**
 	 * Sets nextplayback track to preceding on in playlist
 	 */
 	public void setPreviousTrack() {
 		// Needs to set gaplessplayer next object and reorganize playlist
 		mPlayer.stop();
-		if ( mCurrentPlayingIndex-1 >= 0  )
+		if (mCurrentPlayingIndex - 1 >= 0)
 			mCurrentPlayingIndex--;
 
 		// Next track is availible
@@ -225,7 +221,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			}
 		}
 	}
-
 
 	private PlaybackServiceHandler getHandler() {
 		return mHandler;
@@ -259,13 +254,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				// Request audio focus before doing anything
 				AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 				int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-				if ( result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED ) {
+				if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
 					// Abort command
 					return;
 				}
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
-				
-				broadcastNowPlaying(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),mCurrentPlayingIndex));
+
+				broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 
 				// Check if another song follows current one for gapless
 				// playback
@@ -323,9 +318,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 	}
 
-	/** 
-	 * Stops the gapless mediaplayer and cancels the foreground
-	 * service. Removes any ongoing notification.
+	/**
+	 * Stops the gapless mediaplayer and cancels the foreground service. Removes
+	 * any ongoing notification.
 	 */
 	public void stopService() {
 		mPlayer.stop();
@@ -334,44 +329,47 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNotificationManager.cancel(NOTIFICATION_ID);
 		stopSelf();
 	}
-	
+
 	/**
-	 * Registers callback interfaces from distant processes which receive the NowPlayingInformation
+	 * Registers callback interfaces from distant processes which receive the
+	 * NowPlayingInformation
+	 * 
 	 * @param callback
 	 */
 	public void registerNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
-		Log.v(TAG,"Added NowPlaying callback");
+		Log.v(TAG, "Added NowPlaying callback");
 		mNowPlayingCallbacks.add(callback);
-		
+
 		// Notify about current status right away
-		if ( mCurrentList.size() > 0 ) {
+		if (mCurrentList.size() > 0) {
 			String playingURL = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
 			int playing = mPlayer.isRunning() ? 1 : 0;
 			try {
-				callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL,mCurrentPlayingIndex));
+				callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL, mCurrentPlayingIndex));
 			} catch (RemoteException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
-	
-	/** 
+
+	/**
 	 * Unregister callback interfaces from distant processes
+	 * 
 	 * @param callback
 	 */
 	public void unregisterNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
 		Log.v(TAG, "Unregistering callback");
 		mNowPlayingCallbacks.remove(callback);
 	}
-	
+
 	private void broadcastNowPlaying(NowPlayingInformation info) {
-		/* Sends a new NowPlaying object on its way to connected callbacks
-		   PlaybackService --> OdysseyApplication
-		                   |-> Homescreen-widget
-		*/
+		/*
+		 * Sends a new NowPlaying object on its way to connected callbacks
+		 * PlaybackService --> OdysseyApplication |-> Homescreen-widget
+		 */
 		for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
-			Log.v(TAG,"Sending now playing information to receiver");
+			Log.v(TAG, "Sending now playing information to receiver");
 			try {
 				callback.receiveNewNowPlayingInformation(info);
 			} catch (RemoteException e) {
@@ -379,7 +377,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			}
 		}
 	}
-	
+
 	private void updateNotification() {
 		Intent resultIntent = new Intent(this, MainActivity.class);
 
@@ -393,13 +391,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		String url = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
 		TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(url, getContentResolver());
 		mNotificationBuilder.setContentTitle(trackItem.getTrackTitle());
-		mNotificationBuilder.setContentText(trackItem.getTrackArtist());		
+		mNotificationBuilder.setContentText(trackItem.getTrackArtist());
 		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-		
+
 		NotificationCompat.BigTextStyle notificationStyle = new NotificationCompat.BigTextStyle();
 		notificationStyle.bigText(trackItem.getTrackTitle());
 		mNotificationBuilder.setStyle(notificationStyle);
-//		mNotificationBuilder.addAction(android.R.drawable.ic_media_pause, "Pause", null);
+		// mNotificationBuilder.addAction(android.R.drawable.ic_media_pause,
+		// "Pause", null);
 		mNotificationBuilder.setContentIntent(resultPendingIntent);
 		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		// Make notification persistent
@@ -417,8 +416,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			mService = new WeakReference<PlaybackService>(service);
 		}
 
-		/* Following are methods which call the handler thread (which runs at audio priority)
-		 * so that handling of playback is done in a seperate thread for performance reasons.
+		/*
+		 * Following are methods which call the handler thread (which runs at
+		 * audio priority) so that handling of playback is done in a seperate
+		 * thread for performance reasons.
 		 */
 		@Override
 		public void play(TrackItem track) throws RemoteException {
@@ -491,12 +492,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
 		}
-		
 
 		@Override
 		public void getCurrentList(List<TrackItem> list) throws RemoteException {
 			for (TrackItem trackItem : mService.get().getCurrentList()) {
-				Log.v(TAG,"Returning: " + trackItem);
+				Log.v(TAG, "Returning: " + trackItem);
 				list.add(trackItem);
 			}
 		}
@@ -584,7 +584,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_RESUME);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
-			mService.get().getHandler().sendMessage(msg);			
+			mService.get().getHandler().sendMessage(msg);
 		}
 
 		@Override
@@ -592,7 +592,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_NEXT);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
-			mService.get().getHandler().sendMessage(msg);	
+			mService.get().getHandler().sendMessage(msg);
 		}
 
 		@Override
@@ -600,7 +600,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PREVIOUS);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
-			mService.get().getHandler().sendMessage(msg);	
+			mService.get().getHandler().sendMessage(msg);
 		}
 
 		@Override
@@ -618,7 +618,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_TOGGLEPAUSE);
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
-			mService.get().getHandler().sendMessage(msg);	
+			mService.get().getHandler().sendMessage(msg);
 		}
 	}
 
@@ -632,7 +632,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		@Override
 		public void onTrackStarted(String URI) {
 			Log.v(TAG, "track started: " + URI);
-			broadcastNowPlaying(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),mCurrentPlayingIndex));
+			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 			updateNotification();
 		}
 	}
@@ -645,8 +645,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			// Forward current index and set new song for gapless playback
 			// if new song is availible
 			mCurrentPlayingIndex++;
-			if ( mCurrentPlayingIndex < mCurrentList.size()) {
-				broadcastNowPlaying(new NowPlayingInformation(1,mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),mCurrentPlayingIndex));
+			if (mCurrentPlayingIndex < mCurrentList.size()) {
+				broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 				updateNotification();
 			}
 			if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
@@ -675,8 +675,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// TODO Auto-generated method stub
 		switch (focusChange) {
 		case AudioManager.AUDIOFOCUS_GAIN:
-			Log.v(TAG,"Gained audiofocus");
-			if ( mIsDucked ) {
+			Log.v(TAG, "Gained audiofocus");
+			if (mIsDucked) {
 				mPlayer.setVolume(1.0f, 1.0f);
 				mIsDucked = false;
 			} else {
@@ -684,18 +684,18 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			}
 			break;
 		case AudioManager.AUDIOFOCUS_LOSS:
-			Log.v(TAG,"Lost audiofocus");
+			Log.v(TAG, "Lost audiofocus");
 			// Stop playback completely and release resources
 			stopService();
 			break;
 		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-			Log.v(TAG,"Lost audiofocus temporarily");
+			Log.v(TAG, "Lost audiofocus temporarily");
 			// Pause audio for the moment of focus loss
 			mPlayer.pause();
 			break;
 		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-			Log.v(TAG,"Lost audiofocus temporarily duckable");
-			if ( mPlayer.isRunning() ) {
+			Log.v(TAG, "Lost audiofocus temporarily duckable");
+			if (mPlayer.isRunning()) {
 				mPlayer.setVolume(0.1f, 0.1f);
 				mIsDucked = true;
 			}
