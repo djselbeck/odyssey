@@ -2,33 +2,26 @@ package org.odyssey.fragments;
 
 import java.util.ArrayList;
 
-import org.odyssey.MusicLibraryHelper;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.playbackservice.TrackItem;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
-import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Toast;
 
 public class PlaylistFragment extends Fragment implements OdysseyApplication.NowPlayingListener {
 
@@ -38,11 +31,10 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View rootView = inflater.inflate(R.layout.fragment_playlist, container, false);		
+		View rootView = inflater.inflate(R.layout.fragment_playlist, container, false);
 
 		// create adapter for tracklist
-		mPlayListAdapter = new PlaylistTracksAdapter(getActivity(), 
-				R.layout.listview_playlist_item, new ArrayList<TrackItem>());
+		mPlayListAdapter = new PlaylistTracksAdapter(getActivity(), R.layout.listview_playlist_item, new ArrayList<TrackItem>());
 
 		// create listview for tracklist
 		ListView trackListView = (ListView) rootView.findViewById(R.id.listViewPlaylist);
@@ -63,15 +55,15 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} 
+				}
 
 			}
 		});
 
 		setPlaylistTracks();
-		
+
 		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
-		
+
 		mainApplication.registerNowPlayingListener(this);
 
 		return rootView;
@@ -86,26 +78,25 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 	private void setPlaylistTracks() {
 
 		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
-		
+
 		// get playlist
 		ArrayList<TrackItem> playListTracks = new ArrayList<TrackItem>();
-		
+
 		try {
 			mainApplication.getPlaybackService().getCurrentList(playListTracks);
 			for (TrackItem trackItem : playListTracks) {
-				Log.v(TAG,"received track:" + trackItem);
+				Log.v(TAG, "received track:" + trackItem);
 			}
 		} catch (RemoteException e) {
-			Log.e(TAG,"Remote errror: " + e);
+			Log.e(TAG, "Remote errror: " + e);
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		
 		mPlayListAdapter.clear();
 
-		mPlayListAdapter.addAll(playListTracks);	
-		
+		mPlayListAdapter.addAll(playListTracks);
+
 		mPlayListAdapter.notifyDataSetChanged();
 	}
 
@@ -172,21 +163,21 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
 			// set artist
 			trackArtistView.setText(trackItem.getTrackArtist());
-			
-			if(position == mPlayingIndex) {
+
+			if (position == mPlayingIndex) {
 				ImageView playImage = (ImageView) convertView.findViewById(R.id.imageViewPlaylistPlay);
-				
+
 				playImage.setVisibility(ImageView.VISIBLE);
 			} else {
 				ImageView playImage = (ImageView) convertView.findViewById(R.id.imageViewPlaylistPlay);
-				
-				playImage.setVisibility(ImageView.GONE);				
+
+				playImage.setVisibility(ImageView.GONE);
 			}
 
 			return convertView;
 
 		}
-		
+
 		public void setPlayingIndex(int index) {
 			mPlayingIndex = index;
 		}
@@ -195,13 +186,13 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
 	@Override
 	public void onNewInformation(NowPlayingInformation info) {
-		
+
 		final int index = info.getPlayingIndex();
-		
+
 		new Thread() {
 			public void run() {
 				Activity activity = (Activity) getActivity();
-				if(activity != null) {
+				if (activity != null) {
 					activity.runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
@@ -212,7 +203,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 				}
 			}
 		}.start();
-		
+
 	}
 
 }
