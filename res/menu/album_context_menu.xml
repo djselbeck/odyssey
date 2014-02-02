@@ -7,13 +7,13 @@
         android:showAsAction="never"
         android:title="@string/album_context_menu_action_enqueue"/>
     
-<item
+	<item
         android:id="@+id/album_context_menu_action_play"
         android:orderInCategory="100"
         android:showAsAction="never"
         android:title="@string/album_context_menu_action_play"/>
 
-<item
+	<item
         android:id="@+id/album_context_menu_action_artist"
         android:orderInCategory="100"
         android:showAsAction="never"
