@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
+import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 import org.odyssey.playbackservice.TrackItem;
@@ -49,7 +50,9 @@ public class AlbumsSectionFragment extends Fragment implements
 
 	AlbumCursorAdapter mCursorAdapter;
 	ArrayList<String> mSectionList;
+	//FIXME listener in new file?
 	OnAlbumSelectedListener mAlbumSelectedCallback;
+	OnArtistSelectedListener mArtistSelectedCallback;
 	  	
 	private String mArtist = "";    
 	private long mArtistID = -1; 
@@ -78,6 +81,13 @@ public class AlbumsSectionFragment extends Fragment implements
             throw new ClassCastException(activity.toString()
                     + " must implement OnAlbumSelectedListener");
         }
+        
+        try {
+        	mArtistSelectedCallback = (OnArtistSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnArtistSelectedListener");
+        }        
 		
 	}
 
@@ -273,7 +283,7 @@ public class AlbumsSectionFragment extends Fragment implements
 
 			int index = this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
 			char lastSection = 0;
-			//TODO check this, some Artists seem to have no album
+
 			if( index > 0) {
 				lastSection = this.mCursor.getString(
 						this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM))
@@ -439,7 +449,7 @@ public class AlbumsSectionFragment extends Fragment implements
 	        	playAlbum(info.position);
 	            return true;
 	        case R.id.album_context_menu_action_artist:
-	        	Toast.makeText(getActivity(), "Show Artist", Toast.LENGTH_SHORT).show();
+	        	showArtist(info.position);
 	            return true;    
 	        default:
 	            return super.onContextItemSelected(item);
@@ -454,7 +464,6 @@ public class AlbumsSectionFragment extends Fragment implements
 		
 		String albumKey = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));		
 		
-		// Play complete album
 		OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();	
 		
 		// get and enqueue albumtracks
@@ -513,5 +522,31 @@ public class AlbumsSectionFragment extends Fragment implements
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}							
+	}
+	
+	private void showArtist(int position) {
+		//identify current artist
+		Cursor cursor = mCursorAdapter.getCursor();
+		
+		cursor.moveToPosition(position);
+
+		String artistTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST));	
+		
+		//get artist id
+		String whereVal[] = { artistTitle };
+
+		String where = android.provider.MediaStore.Audio.Artists.ARTIST + "=?";
+
+		String orderBy = android.provider.MediaStore.Audio.Artists.ARTIST+ " COLLATE NOCASE";			
+		
+		Cursor artistCursor = getActivity().getContentResolver().query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, 
+				MusicLibraryHelper.projectionArtists, where, whereVal, orderBy);
+		
+		artistCursor.moveToFirst();
+		
+		long artistID = artistCursor.getLong(artistCursor.getColumnIndex(MediaStore.Audio.Artists._ID));
+		
+		// Send the event to the host activity
+		mArtistSelectedCallback.onArtistSelected(artistTitle,artistID);		
 	}
 }
