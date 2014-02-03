@@ -111,14 +111,16 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 	public void onProgressChanged(SeekBar seekBar, int progress,
 			boolean fromUser) {
 
-		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
-//		try {
-//			mainApplication.getPlaybackService().seekTo(progress);
-//		} catch (RemoteException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-				
+		if (fromUser) {
+			OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
+			try {
+				mainApplication.getPlaybackService().seekTo(progress);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	
 	}
 
 	@Override

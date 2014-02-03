@@ -299,7 +299,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	
 	public void seekTo(int position) {
 		if ( mPlayer.isRunning() ) {
-			seekTo(position);
+			mPlayer.seekTo(position);
 		}
 	}
 	
