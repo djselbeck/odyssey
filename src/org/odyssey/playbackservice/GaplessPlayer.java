@@ -107,6 +107,12 @@ public class GaplessPlayer {
 		mCurrentPrepared = true;
 		mSecondPrepared = true;
 	}
+	
+	public void seekTo(int position) {
+		if ( mCurrentMediaPlayer!=null && mCurrentMediaPlayer.isPlaying() && position < mCurrentMediaPlayer.getDuration() ) {
+			mCurrentMediaPlayer.seekTo(position);			
+		}
+	}
 
 	/**
 	 * Sets next mediaplayer to uri and start preparing it. if next mediaplayer

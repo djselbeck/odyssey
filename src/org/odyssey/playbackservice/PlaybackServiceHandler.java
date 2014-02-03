@@ -49,7 +49,7 @@ public class PlaybackServiceHandler extends Handler {
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_REPEAT) {
 
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_SEEKTO) {
-
+				mService.get().seekTo(msgObj.getIntParam());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_JUMPTO) {
 				mService.get().jumpToIndex(msgObj.getIntParam());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACK) {

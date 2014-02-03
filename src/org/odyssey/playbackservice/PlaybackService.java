@@ -296,6 +296,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 
 	}
+	
+	public void seekTo(int position) {
+		if ( mPlayer.isRunning() ) {
+			seekTo(position);
+		}
+	}
 
 	public void enqueueTracks(ArrayList<TrackItem> tracklist) {
 		// Check if current song is old last one, if so set next song to MP for
