@@ -37,8 +37,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	private ListView mNaviBarList;
 	private String[] mNaviBarTitles;
 
-	private boolean mPlaylistVisible = false;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -103,13 +101,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	@Override
 	public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist) {
 
 		mDrawerToggle.setDrawerIndicatorEnabled(false);
@@ -163,7 +154,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
 	@Override
 	public void onBackPressed() {
-		mPlaylistVisible = false;
+
 		invalidateOptionsMenu();
 		android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
 
@@ -174,38 +165,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 			mDrawerToggle.setDrawerIndicatorEnabled(true);
 		}
 
-	}
-
-	/* Called whenever we call invalidateOptionsMenu() */
-	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		// If the nav drawer is open, hide action items related to the content
-		// view
-		boolean drawerOpen = mDrawerLayout.isDrawerOpen(mNaviBarList);
-		menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
-
-		MenuItem clearItem = menu.findItem(R.id.action_clearplaylist);
-
-		clearItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-
-			@Override
-			public boolean onMenuItemClick(MenuItem item) {
-				OdysseyApplication app = (OdysseyApplication) getApplication();
-				try {
-					app.getPlaybackService().clearPlaylist();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				return true;
-			}
-		});
-		if (mPlaylistVisible) {
-			clearItem.setVisible(true);
-		} else {
-			clearItem.setVisible(false);
-		}
-		return super.onPrepareOptionsMenu(menu);
 	}
 
 	/**
@@ -255,7 +214,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	private class NaviBarItemClickListener implements ListView.OnItemClickListener {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			mPlaylistVisible = false;
+			
 			invalidateOptionsMenu();
 			// TODO check clear backstack
 			getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
@@ -282,7 +241,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
 				// Commit the transaction
 				transaction.commit();
-				mPlaylistVisible = true;
+
 				invalidateOptionsMenu();
 			}
 

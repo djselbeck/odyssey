@@ -1,16 +1,22 @@
 package org.odyssey.fragments;
 
+import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 public class ArtistsAlbumsTabsFragment extends Fragment {
 
@@ -21,6 +27,9 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		super.onCreateView(inflater, container, savedInstanceState);
 
+		// indicate this fragment has its own menu
+		setHasOptionsMenu(true);		
+		
 		View rootView = inflater.inflate(R.layout.fragment_artists_albums_tabs, container, false);
 
 		// Create the adapter that will return a fragment for each of the three
@@ -36,6 +45,25 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 
 		return rootView;
 	}
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		inflater.inflate(R.menu.main, menu);
+		
+		super.onCreateOptionsMenu(menu, inflater);
+	}	
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+	    switch (item.getItemId()) {
+	        case R.id.action_settings:
+				Toast.makeText(getActivity(), "settings", Toast.LENGTH_SHORT).show();
+				return true;	            
+	    }
+	    return super.onOptionsItemSelected(item);
+	}	
 
 	/**
 	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to

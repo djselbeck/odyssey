@@ -1,6 +1,7 @@
 package org.odyssey.fragments;
 
 import java.util.ArrayList;
+import java.util.zip.Inflater;
 
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
@@ -14,6 +15,9 @@ import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -31,6 +35,10 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		
+		// indicate this fragment has its own menu
+		setHasOptionsMenu(true);
+		
 		View rootView = inflater.inflate(R.layout.fragment_playlist, container, false);
 
 		// create adapter for tracklist
@@ -74,6 +82,34 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 		super.onStart();
 
 	}
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		inflater.inflate(R.menu.playlist_actionbar_menu, menu);
+		
+		super.onCreateOptionsMenu(menu, inflater);
+	}	
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+	    switch (item.getItemId()) {
+	        case R.id.action_clearplaylist:
+				OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+				try {
+					app.getPlaybackService().clearPlaylist();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				mPlayListAdapter.clear();
+
+				mPlayListAdapter.notifyDataSetChanged();
+				return true;	            
+	    }
+	    return super.onOptionsItemSelected(item);
+	}	
 
 	private void setPlaylistTracks() {
 
