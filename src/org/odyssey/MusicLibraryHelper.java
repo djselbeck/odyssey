@@ -48,6 +48,7 @@ public class MusicLibraryHelper {
 			trackCursor.moveToFirst();
 			title = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
 			artist = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+			album = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
 			trackno = trackCursor.getInt(trackCursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
 			duration = trackCursor.getLong(trackCursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
 		}		

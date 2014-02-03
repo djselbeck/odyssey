@@ -174,9 +174,10 @@ public class AlbumsTracksFragment extends Fragment {
 				long duration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
 				int no = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
 				String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+				String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
 				String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
-				TrackItem item = new TrackItem(title,artist,"",url,no,duration);
+				TrackItem item = new TrackItem(title,artist,album,url,no,duration);
 				if (!item.getTrackArtist().equals(mAlbumArtist)) {
 
 					if (!item.getTrackArtist().contains(mAlbumArtist)) {

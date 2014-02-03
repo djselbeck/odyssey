@@ -203,7 +203,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 			}
 
 			// set artist
-			trackArtistView.setText(trackItem.getTrackArtist());
+			trackArtistView.setText(trackItem.getTrackArtist() + " - " + trackItem.getTrackAlbum());
 
 			if (position == mPlayingIndex) {
 				ImageView playImage = (ImageView) convertView.findViewById(R.id.imageViewPlaylistPlay);
