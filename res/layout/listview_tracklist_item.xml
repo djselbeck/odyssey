@@ -47,6 +47,7 @@
 	        android:layout_height="wrap_content"
 	        android:layout_alignParentLeft="true"
 	        android:layout_toLeftOf="@+id/textViewTracklistDurationItem"
+	        android:ellipsize="end"  
 	        android:maxLines="1"
 	        android:textSize="12sp"
 	        android:textColor="#ff777777"
