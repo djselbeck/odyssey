@@ -303,6 +303,24 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Check if current song is old last one, if so set next song to MP for
 		// gapless playback
 		mCurrentList.add(track);
+		if ( mCurrentPlayingIndex == mCurrentList.size()-1 ) {
+			// Next song for MP has to be set for gapless mediaplayback
+			try {
+				mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex+1).getTrackURL());
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void dequeueTracks(ArrayList<String> tracklist) {
@@ -627,6 +645,30 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			Message msg = mService.get().getHandler().obtainMessage();
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
+		}
+
+		@Override
+		public int getTrackPosition() throws RemoteException {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public int getTrackDuration() throws RemoteException {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		public boolean getRandom() throws RemoteException {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean getRepeat() throws RemoteException {
+			// TODO Auto-generated method stub
+			return false;
 		}
 	}
 

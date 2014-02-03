@@ -18,6 +18,9 @@ interface IOdysseyPlaybackService {
 	 * position = position in current track ( in seconds)
 	 */
 	void seekTo(int position);
+	// Returns time of current playing title
+	int getTrackPosition();
+	int getTrackDuration();
 	/** 
 	 * position = playlist position of jump target
 	 */
@@ -25,6 +28,9 @@ interface IOdysseyPlaybackService {
 	
 	void setRandom(boolean random);
 	void setRepeat(boolean repeat);
+	
+	boolean getRandom();
+	boolean getRepeat();
 	
 	// track is the full uri with "file://" !
 	void setNextTrack(String track);
