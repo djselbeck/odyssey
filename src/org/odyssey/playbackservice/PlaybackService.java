@@ -107,7 +107,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
 
 		mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
-		
+		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
 		registerReceiver(mNoisyReceiver, new IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY));
 	}
 
@@ -209,7 +210,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			mCurrentPlayingIndex--;
 
 		// Next track is availible
-		if (mCurrentPlayingIndex < mCurrentList.size()) {
+		if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
 			// Start playback of new song
 			try {
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
@@ -455,7 +456,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// mNotificationBuilder.addAction(android.R.drawable.ic_media_pause,
 		// "Pause", null);
 		mNotificationBuilder.setContentIntent(resultPendingIntent);
-		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		// Make notification persistent
 		mNotificationBuilder.setOngoing(true);
 		mNotification = mNotificationBuilder.build();
