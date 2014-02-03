@@ -3,6 +3,7 @@ package org.odyssey.fragments;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -22,6 +23,27 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 
 	ViewPager mViewPager;
 	AppSectionsPagerAdapter mAppSectionsPagerAdapter;
+	
+	OnAboutSelectedListener mAboutSelectedCallback;
+	
+	// Listener for communication via container activity
+	public interface OnAboutSelectedListener {
+		public void onAboutSelected();
+	}
+	
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+        	mAboutSelectedCallback = (OnAboutSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnAlbumSelectedListener");
+        }   
+		
+	}	
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -60,7 +82,10 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 	    switch (item.getItemId()) {
 	        case R.id.action_settings:
 				Toast.makeText(getActivity(), "settings", Toast.LENGTH_SHORT).show();
-				return true;	            
+				return true;
+	        case R.id.action_about:
+	        	mAboutSelectedCallback.onAboutSelected();
+	        	return true;
 	    }
 	    return super.onOptionsItemSelected(item);
 	}	

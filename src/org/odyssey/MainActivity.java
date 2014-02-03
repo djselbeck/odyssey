@@ -1,10 +1,13 @@
 package org.odyssey;
 
+import org.odyssey.fragments.AboutFragment;
 import org.odyssey.fragments.AlbumsSectionFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
+import org.odyssey.fragments.NowPlayingFragment;
 import org.odyssey.fragments.PlaylistFragment;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.views.QuickControl;
@@ -26,7 +29,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener {
+public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener {
 
 	private static final String TAG = "OdysseyMainActivity";
 
@@ -221,7 +224,13 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
 			android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 			transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
-			if (position == 0) {
+			
+			QuickControl quickControl = (QuickControl) findViewById(R.id.quickControl);
+			
+			switch(position) {
+			
+			case 0:
+				quickControl.setVisibility(View.VISIBLE);				
 				mDrawerToggle.setDrawerIndicatorEnabled(true);
 				// FIXME always create a new fragment
 				ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
@@ -230,8 +239,11 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 				transaction.replace(R.id.fragmentFrame, mArtistsAlbumsTabsFragment);
 
 				// Commit the transaction
-				transaction.commit();
-			} else if (position == 1) {
+				transaction.commit();	
+				
+				break;
+			case 1:
+				quickControl.setVisibility(View.VISIBLE);				
 				mDrawerToggle.setDrawerIndicatorEnabled(true);
 
 				PlaylistFragment mPlaylistFragment = new PlaylistFragment();
@@ -243,11 +255,56 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 				transaction.commit();
 
 				invalidateOptionsMenu();
+				
+				break;
+			case 2:
+				quickControl.setVisibility(View.GONE);
+				
+				mDrawerToggle.setDrawerIndicatorEnabled(true);
+
+				NowPlayingFragment mNowPlayingFragment = new NowPlayingFragment();
+				// Replace whatever is in the fragment_container view with this
+				// fragment,
+				transaction.replace(R.id.fragmentFrame, mNowPlayingFragment);
+
+				// Commit the transaction
+				transaction.commit();
+
+				invalidateOptionsMenu();	
+				
+				break;
+				
+			default:
+				break;
+			
 			}
 
 			// update selected item and title, then close the drawer
 			mNaviBarList.setItemChecked(position, true);
 			mDrawerLayout.closeDrawer(mNaviBarList);
 		}
+	}
+
+	@Override
+	public void onAboutSelected() {
+		
+		android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);		
+		
+		mDrawerToggle.setDrawerIndicatorEnabled(false);
+
+		AboutFragment mAboutFragment = new AboutFragment();
+		// Replace whatever is in the fragment_container view with this
+		// fragment,
+		transaction.replace(R.id.fragmentFrame, mAboutFragment);
+		transaction.addToBackStack(null);
+		
+		// Commit the transaction
+		transaction.commit();
+		
+		
+
+		invalidateOptionsMenu();		
+		
 	}
 }
