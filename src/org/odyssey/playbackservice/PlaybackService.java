@@ -15,8 +15,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.os.HandlerThread;
@@ -30,7 +32,7 @@ import android.util.Log;
 
 public class PlaybackService extends Service implements AudioManager.OnAudioFocusChangeListener {
 
-	public static final String TAG = "PlaybackService";
+	public static final String TAG = "OdysseyPlaybackService";
 	public static final int NOTIFICATION_ID = 42;
 
 	public static final String ACTION_TESTPLAY = "org.odyssey.testplay";
@@ -44,6 +46,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	private HandlerThread mHandlerThread;
 	private PlaybackServiceHandler mHandler;
+	
+	private boolean mLostAudioFocus = false;
 
 	// Notification objects
 	NotificationManager mNotificationManager;
@@ -100,6 +104,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
 
 		mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
+		
+		registerReceiver(mNoisyReceiver, new IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY));
 	}
 
 	@Override
@@ -140,7 +146,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		if (mCurrentPlayingIndex < 0 && mCurrentList.size() > 0) {
 			// Songs existing so start playback of playlist begin
 			jumpToIndex(0);
-		} else {
+		} else if ( mCurrentPlayingIndex < 0 && mCurrentList.size() == 0 ) {
+			broadcastNowPlaying(new NowPlayingInformation(0, "", -1 ));
+		} else  {
 			mPlayer.resume();
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 		}
@@ -679,8 +687,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			if (mIsDucked) {
 				mPlayer.setVolume(1.0f, 1.0f);
 				mIsDucked = false;
-			} else {
+			} else if ( mLostAudioFocus) {
 				mPlayer.resume();
+				mLostAudioFocus = false;
 			}
 			break;
 		case AudioManager.AUDIOFOCUS_LOSS:
@@ -691,7 +700,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
 			Log.v(TAG, "Lost audiofocus temporarily");
 			// Pause audio for the moment of focus loss
-			mPlayer.pause();
+			if ( mPlayer.isRunning() ) {
+				mPlayer.pause();
+				mLostAudioFocus = true;
+			}
 			break;
 		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
 			Log.v(TAG, "Lost audiofocus temporarily duckable");
@@ -703,7 +715,22 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		default:
 			return;
 		}
+		
+
 
 	}
+	
+	private final BroadcastReceiver mNoisyReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (intent.getAction().equals(
+	                android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
+				Log.v(TAG,"NOISY AUDIO! CANCEL MUSIC");
+				pause();
+			}
+		}
+		
+	};
 
 }

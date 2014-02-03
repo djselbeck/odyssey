@@ -53,7 +53,7 @@ public class OdysseyApplication extends Application {
 			// Create initial service connection here
 	        // create service connection
 			Intent serviceStartIntent = new Intent(this,PlaybackService.class);
-			startService(serviceStartIntent);
+			//startService(serviceStartIntent);
 			mPBServiceConnection = new PlaybackServiceConnection(this);
 			bindService(serviceStartIntent, 
 					mPBServiceConnection, Context.BIND_AUTO_CREATE);
@@ -92,7 +92,7 @@ public class OdysseyApplication extends Application {
     	@Override
     	public void onServiceDisconnected(ComponentName name) {
     		// TODO Auto-generated method stub
-    		
+    		Log.v(TAG,"Service connection lost");
     	}    	
     }
 	
