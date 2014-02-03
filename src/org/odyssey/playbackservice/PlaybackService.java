@@ -59,6 +59,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	private ArrayList<TrackItem> mCurrentList;
 	private int mCurrentPlayingIndex;
 	private boolean mIsDucked = false;
+	
+	private boolean mRandom = false;
+	private boolean mRepeat = false;
 
 	// NowPlaying callbacks
 	// List holding registered callback clients
@@ -355,6 +358,25 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNotificationManager.cancel(NOTIFICATION_ID);
 		stopSelf();
 	}
+	
+	
+	public boolean getRandom() {
+		return mRandom;
+	}
+	
+	public boolean getRepeat() {
+		return mRepeat;
+	}
+	
+	public void setRepeat(boolean repeat) {
+		// TODO SET LOOPING FOR MP
+		mRepeat = repeat;
+	}
+	
+	public void setRandom(boolean random) {
+		// TODO set next mp to random one,too
+		mRandom = random;
+	}
 
 	/**
 	 * Registers callback interfaces from distant processes which receive the
@@ -402,6 +424,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public TrackItem getCurrentTrack() {
+		if ( mCurrentPlayingIndex >= 0 && mCurrentList.size()>mCurrentPlayingIndex ) {
+			return mCurrentList.get(mCurrentPlayingIndex);
+		}
+		return null;
 	}
 
 	private void updateNotification() {
@@ -669,6 +698,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		public boolean getRepeat() throws RemoteException {
 			// TODO Auto-generated method stub
 			return false;
+		}
+
+		@Override
+		public TrackItem getCurrentSong() throws RemoteException {
+			return mService.get().getCurrentTrack();
 		}
 	}
 

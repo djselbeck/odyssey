@@ -21,6 +21,9 @@ interface IOdysseyPlaybackService {
 	// Returns time of current playing title
 	int getTrackPosition();
 	int getTrackDuration();
+	
+	// If currently playing return this song otherwise null
+	TrackItem getCurrentSong();
 	/** 
 	 * position = playlist position of jump target
 	 */
