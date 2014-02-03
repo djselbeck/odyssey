@@ -20,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView.FindListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -30,6 +31,8 @@ import android.widget.TextView;
 public class PlaylistFragment extends Fragment implements OdysseyApplication.NowPlayingListener {
 
 	private static final String TAG = "OdysseyPlaylistFragment";
+	private int mPlayingIndex = 0;
+	private ListView mListView = null;
 
 	private PlaylistTracksAdapter mPlayListAdapter;
 
@@ -45,11 +48,11 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 		mPlayListAdapter = new PlaylistTracksAdapter(getActivity(), R.layout.listview_playlist_item, new ArrayList<TrackItem>());
 
 		// create listview for tracklist
-		ListView trackListView = (ListView) rootView.findViewById(R.id.listViewPlaylist);
+		mListView = (ListView) rootView.findViewById(R.id.listViewPlaylist);
 
-		trackListView.setAdapter(mPlayListAdapter);
+		mListView.setAdapter(mPlayListAdapter);
 
-		trackListView.setOnItemClickListener(new OnItemClickListener() {
+		mListView.setOnItemClickListener(new OnItemClickListener() {
 
 			// FIXME temporary just play clicked song
 			@Override
@@ -106,7 +109,9 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 				mPlayListAdapter.clear();
 
 				mPlayListAdapter.notifyDataSetChanged();
-				return true;	            
+				return true;
+	        case R.id.action_jumpcurrent:
+	        	mListView.setSelection(mPlayingIndex);
 	    }
 	    return super.onOptionsItemSelected(item);
 	}	
@@ -224,6 +229,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 	public void onNewInformation(NowPlayingInformation info) {
 
 		final int index = info.getPlayingIndex();
+		mPlayingIndex = info.getPlayingIndex();
 
 		new Thread() {
 			public void run() {
