@@ -195,6 +195,7 @@ public class AlbumsSectionFragment extends Fragment implements
 			} else {
 				// get coverholder from convertview and cancel asynctask
 				coverHolder = (CoverViewHolder) convertView.getTag();
+				coverHolder.coverView.setImageResource(R.drawable.coverplaceholder);
 				if (coverHolder.task != null)
 					coverHolder.task.cancel(true);
 			}

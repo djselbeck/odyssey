@@ -15,6 +15,7 @@
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:maxLines="1"
+			android:textSize="16sp"
 	    />        
 	    
 		<TextView
@@ -23,13 +24,15 @@
 	        android:layout_height="wrap_content"
 	        android:maxLines="1"
 	        android:text=" - "
+	        android:textSize="16sp"
 	    /> 
 	        
 		<TextView
 	        android:id="@+id/textViewTracklistTitleItem"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:maxLines="3"
+	        android:maxLines="1"
+	        android:textSize="16sp"
 	    />        
         
     </LinearLayout>
@@ -45,6 +48,8 @@
 	        android:layout_alignParentLeft="true"
 	        android:layout_toLeftOf="@+id/textViewTracklistDurationItem"
 	        android:maxLines="1"
+	        android:textSize="12sp"
+	        android:textColor="#ff777777"
 	    />    
 		
 		<TextView
@@ -52,6 +57,7 @@
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_alignParentRight="true"
+	        android:layout_marginLeft="5dp"
 	        android:maxLines="1"
 	    />		
     
