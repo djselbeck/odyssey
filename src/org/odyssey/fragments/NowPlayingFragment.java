@@ -198,6 +198,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		mSeekBar.setMax((int) currentTrack.getTrackDuration());	
 		
 		updateSeekBar();
+		
+		updateDurationView();
 	}
 	
 	private void updateSeekBar() {
@@ -208,7 +210,27 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 			e.printStackTrace();
 		}
 		//FIXME add termination condition
-		//seekHandler.postDelayed(seekBarRunnable, 100);
+		//FIXME leads to crash when track changes
+		//seekHandler.postDelayed(seekBarRunnable, 1000);
+	}
+	
+	private void updateDurationView() {
+		// calculate duration in minutes and seconds
+		String seconds = "";
+		String minutes = "";
+		try {
+			seconds = String.valueOf((mPlayer.getTrackPosition() % 60000) / 1000);
+			minutes = String.valueOf(mPlayer.getTrackPosition() / 60000);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (seconds.length() == 1) {
+			mMinDuration.setText(minutes + ":0" + seconds);
+		} else {
+			mMinDuration.setText(minutes + ":" + seconds);
+		}		
 	}
 	
 	//TODO improve this
@@ -216,6 +238,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		   
 		@Override
 		public void run() {
+			updateDurationView();
 			updateSeekBar();
 		}
 	};
