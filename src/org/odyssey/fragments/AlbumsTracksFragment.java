@@ -17,6 +17,9 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -52,6 +55,10 @@ public class AlbumsTracksFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_albumtracks, container, false);
+		
+		// indicate this fragment has its own menu
+		setHasOptionsMenu(true);
+		
 
         // update actionbar
         final ActionBar actionBar = getActivity().getActionBar();
@@ -83,10 +90,7 @@ public class AlbumsTracksFragment extends Fragment {
 
 			@Override
 			public void onItemClick(AdapterView<?> arg0, View viewItem, int position, long id) {
-				
-				// Play complete album
 				OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-				
 				// Remove old tracks
 				try {
 					app.getPlaybackService().clearPlaylist();
@@ -94,16 +98,7 @@ public class AlbumsTracksFragment extends Fragment {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				
-				// enqueue albumtracks
-				for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
-					try {
-						app.getPlaybackService().enqueueTrack(mTrackListAdapter.getItem(i));
-					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
+				enqueueAlbum();
 				
 				// jump to selected track
 				if (position > 0) {
@@ -200,6 +195,37 @@ public class AlbumsTracksFragment extends Fragment {
 
 		mTrackListAdapter.addAll(trackList);
 	}
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		inflater.inflate(R.menu.albumtracks_actionbar_menu, menu);
+		
+		super.onCreateOptionsMenu(menu, inflater);
+	}	
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+	    switch (item.getItemId()) {
+	        case R.id.action_playalbum:
+	        	OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+	    		// Remove old tracks
+	    		try {
+	    			app.getPlaybackService().clearPlaylist();
+	    			enqueueAlbum();
+	    			app.getPlaybackService().jumpTo(0);
+	    		} catch (RemoteException e1) {
+	    			// TODO Auto-generated catch block
+	    			e1.printStackTrace();
+	    		}
+				return true;
+	        case R.id.action_addalbum:
+	        	enqueueAlbum();
+	        	return true;
+	    }
+	    return super.onOptionsItemSelected(item);
+	}	
 
 	private class TrackListArrayAdapter extends ArrayAdapter<TrackItem> {
 
@@ -276,6 +302,22 @@ public class AlbumsTracksFragment extends Fragment {
 			mIsSampler = sampler;
 		}
 
+	}
+	
+	private void enqueueAlbum() {
+		// Enqueue complete album
+		OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+		
+	
+		// enqueue albumtracks
+		for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
+			try {
+				app.getPlaybackService().enqueueTrack(mTrackListAdapter.getItem(i));
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 }
