@@ -162,7 +162,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		}		
 		
 		// set tracktitle and albumcover
-		mTitleTextView.setText(currentTrack.getTrackTitle());
+		mTitleTextView.setText(currentTrack.getTrackTitle() + " - " + currentTrack.getTrackArtist());
 		
 		String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";	
 		
@@ -208,7 +208,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 			e.printStackTrace();
 		}
 		//FIXME add termination condition
-		//seekHandler.postDelayed(seekBarRunnable, 1000);
+		//seekHandler.postDelayed(seekBarRunnable, 100);
 	}
 	
 	//TODO improve this

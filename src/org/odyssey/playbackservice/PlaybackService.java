@@ -173,7 +173,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void setNextTrack() {
 		// Needs to set gaplessplayer next object and reorganize playlist
 		mPlayer.stop();
-		mCurrentPlayingIndex++;
+		if(mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+			mCurrentPlayingIndex++;
+		}
 
 		// Next track is availible
 		if (mCurrentPlayingIndex < mCurrentList.size()) {
