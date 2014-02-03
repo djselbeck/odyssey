@@ -302,6 +302,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			seekTo(position);
 		}
 	}
+	
+	public int getTrackPosition() {
+		return mPlayer.getPosition();
+	}
 
 	public void enqueueTracks(ArrayList<TrackItem> tracklist) {
 		// Check if current song is old last one, if so set next song to MP for
@@ -684,8 +688,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		@Override
 		public int getTrackPosition() throws RemoteException {
-			// TODO Auto-generated method stub
-			return 0;
+			return mService.get().getTrackPosition();
 		}
 
 		@Override

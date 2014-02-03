@@ -113,6 +113,13 @@ public class GaplessPlayer {
 			mCurrentMediaPlayer.seekTo(position);			
 		}
 	}
+	
+	public int getPosition() {
+		if ( mCurrentMediaPlayer != null && mCurrentMediaPlayer.isPlaying() ) {
+			return mCurrentMediaPlayer.getCurrentPosition();
+		}
+		return 0;
+	}
 
 	/**
 	 * Sets next mediaplayer to uri and start preparing it. if next mediaplayer
