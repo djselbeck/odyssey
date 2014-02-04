@@ -107,16 +107,25 @@ public class GaplessPlayer {
 		mCurrentPrepared = true;
 		mSecondPrepared = true;
 	}
-	
+
 	public void seekTo(int position) {
-		if ( mCurrentMediaPlayer!=null && mCurrentMediaPlayer.isPlaying() && position < mCurrentMediaPlayer.getDuration() ) {
-			mCurrentMediaPlayer.seekTo(position);			
+		try {
+			if (mCurrentMediaPlayer != null && mCurrentMediaPlayer.isPlaying() && position < mCurrentMediaPlayer.getDuration()) {
+				mCurrentMediaPlayer.seekTo(position);
+			}
+		} catch (IllegalStateException exception) {
+			Log.v(TAG, "Illegal state during seekTo");
 		}
 	}
-	
+
 	public int getPosition() {
-		if ( mCurrentMediaPlayer != null && mCurrentMediaPlayer.isPlaying() ) {
-			return mCurrentMediaPlayer.getCurrentPosition();
+		try {
+			if (mCurrentMediaPlayer != null && mCurrentMediaPlayer.isPlaying()) {
+				return mCurrentMediaPlayer.getCurrentPosition();
+			}
+		} catch (IllegalStateException exception) {
+			Log.v(TAG, "Illegal state during CurrentPositon");
+			return 0;
 		}
 		return 0;
 	}
