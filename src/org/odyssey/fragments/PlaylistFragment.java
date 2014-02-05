@@ -275,12 +275,13 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 	        case R.id.playlist_context_menu_action_remove:
 	        	OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 	        	//TODO fix dequeue in playback first
-//				try {
-//					app.getPlaybackService().dequeueTrackIndex(info.position);
-//				} catch (RemoteException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
+				try {
+					app.getPlaybackService().dequeueTrackIndex(info.position);
+					mPlayListAdapter.remove(mPlayListAdapter.getItem(info.position));
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 	        	
 	            return true;  
 	        default:

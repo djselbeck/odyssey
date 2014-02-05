@@ -373,7 +373,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			}
 		}
 		// Send new NowPlaying because playlist changed
-		sendUpdateBroadcast();
+		//sendUpdateBroadcast();
 	}
 
 	public void dequeueTracks(ArrayList<String> tracklist) {
