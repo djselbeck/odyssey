@@ -29,6 +29,7 @@ import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
+import android.widget.Toast;
 
 public class PlaybackService extends Service implements AudioManager.OnAudioFocusChangeListener {
 
@@ -46,7 +47,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	private HandlerThread mHandlerThread;
 	private PlaybackServiceHandler mHandler;
-	
+
 	private boolean mLostAudioFocus = false;
 
 	// Notification objects
@@ -59,7 +60,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	private ArrayList<TrackItem> mCurrentList;
 	private int mCurrentPlayingIndex;
 	private boolean mIsDucked = false;
-	
+
 	private boolean mRandom = false;
 	private boolean mRepeat = false;
 
@@ -150,9 +151,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		if (mCurrentPlayingIndex < 0 && mCurrentList.size() > 0) {
 			// Songs existing so start playback of playlist begin
 			jumpToIndex(0);
-		} else if ( mCurrentPlayingIndex < 0 && mCurrentList.size() == 0 ) {
-			broadcastNowPlaying(new NowPlayingInformation(0, "", -1 ));
-		} else  {
+		} else if (mCurrentPlayingIndex < 0 && mCurrentList.size() == 0) {
+			broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
+		} else {
 			mPlayer.resume();
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 		}
@@ -173,7 +174,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void setNextTrack() {
 		// Needs to set gaplessplayer next object and reorganize playlist
 		mPlayer.stop();
-		if(mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+		if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
 			mCurrentPlayingIndex++;
 		}
 
@@ -187,17 +188,25 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 				}
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalArgument for playback");
+				Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
 			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "SecurityException for playback");
+				Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
 			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalState for playback");
+				Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IOException for playback");
+				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -221,17 +230,25 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 				}
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalArgument for playback");
+				Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
 			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "SecurityException for playback");
+				Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
 			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalState for playback");
+				Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IOException for playback");
+				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -283,28 +300,36 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 				}
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalArgument for playback");
+				Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
 			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "SecurityException for playback");
+				Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
 			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalState for playback");
+				Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IOException for playback");
+				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
 		}
 
 	}
-	
+
 	public void seekTo(int position) {
-		if ( mPlayer.isRunning() ) {
+		if (mPlayer.isRunning()) {
 			mPlayer.seekTo(position);
 		}
 	}
-	
+
 	public int getTrackPosition() {
 		return mPlayer.getPosition();
 	}
@@ -319,22 +344,30 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Check if current song is old last one, if so set next song to MP for
 		// gapless playback
 		mCurrentList.add(track);
-		if ( mCurrentPlayingIndex == mCurrentList.size()-1 ) {
+		if (mCurrentPlayingIndex == mCurrentList.size() - 1) {
 			// Next song for MP has to be set for gapless mediaplayback
 			try {
-				mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex+1).getTrackURL());
+				mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalArgument for playback");
+				Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
 			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "SecurityException for playback");
+				Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
 			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalState for playback");
+				Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IOException for playback");
+				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -371,21 +404,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNotificationManager.cancel(NOTIFICATION_ID);
 		stopSelf();
 	}
-	
-	
+
 	public boolean getRandom() {
 		return mRandom;
 	}
-	
+
 	public boolean getRepeat() {
 		return mRepeat;
 	}
-	
+
 	public void setRepeat(boolean repeat) {
 		// TODO SET LOOPING FOR MP
 		mRepeat = repeat;
 	}
-	
+
 	public void setRandom(boolean random) {
 		// TODO set next mp to random one,too
 		mRandom = random;
@@ -438,9 +470,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			}
 		}
 	}
-	
+
 	public TrackItem getCurrentTrack() {
-		if ( mCurrentPlayingIndex >= 0 && mCurrentList.size()>mCurrentPlayingIndex ) {
+		if (mCurrentPlayingIndex >= 0 && mCurrentList.size() > mCurrentPlayingIndex) {
 			return mCurrentList.get(mCurrentPlayingIndex);
 		}
 		return null;
@@ -701,14 +733,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		@Override
 		public boolean getRandom() throws RemoteException {
-			// TODO Auto-generated method stub
-			return false;
+			return mService.get().getRandom();
 		}
 
 		@Override
 		public boolean getRepeat() throws RemoteException {
-			// TODO Auto-generated method stub
-			return false;
+			return mService.get().getRepeat();
 		}
 
 		@Override
@@ -748,17 +778,25 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				try {
 					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
 				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalArgument for playback");
+					Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
 				} catch (SecurityException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "SecurityException for playback");
+					Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
 				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalState for playback");
+					Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IOException for playback");
+					Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 				}
 			}
 		}
@@ -774,7 +812,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			if (mIsDucked) {
 				mPlayer.setVolume(1.0f, 1.0f);
 				mIsDucked = false;
-			} else if ( mLostAudioFocus) {
+			} else if (mLostAudioFocus) {
 				mPlayer.resume();
 				mLostAudioFocus = false;
 			}
@@ -787,7 +825,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
 			Log.v(TAG, "Lost audiofocus temporarily");
 			// Pause audio for the moment of focus loss
-			if ( mPlayer.isRunning() ) {
+			if (mPlayer.isRunning()) {
 				mPlayer.pause();
 				mLostAudioFocus = true;
 			}
@@ -802,22 +840,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		default:
 			return;
 		}
-		
-
 
 	}
-	
+
 	private final BroadcastReceiver mNoisyReceiver = new BroadcastReceiver() {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (intent.getAction().equals(
-	                android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
-				Log.v(TAG,"NOISY AUDIO! CANCEL MUSIC");
+			if (intent.getAction().equals(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
+				Log.v(TAG, "NOISY AUDIO! CANCEL MUSIC");
 				pause();
 			}
 		}
-		
+
 	};
 
 }
