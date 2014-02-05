@@ -372,8 +372,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
 		}
-		// Send new NowPlaying because playlist changed
-		//sendUpdateBroadcast();
 	}
 
 	public void dequeueTracks(ArrayList<String> tracklist) {
@@ -391,7 +389,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Check if track is currently playing, if so stop it
 		if (mCurrentPlayingIndex == index) {
 			// Stop playback of currentsong
-			mPlayer.stop();
+			stop();
 			// Delete song at index
 			mCurrentList.remove(index);
 			// Jump to next song which should be at index now
