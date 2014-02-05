@@ -424,7 +424,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				Log.e(TAG, "IOException for playback");
 				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
-		} else if (index >= 0 && index <= mCurrentList.size()) {
+		} else if (index >= 0 && index < mCurrentList.size()) {
 			mCurrentList.remove(index);
 			// mCurrentIndex is now moved one position up so set variable
 			if ( index < mCurrentPlayingIndex ) {
