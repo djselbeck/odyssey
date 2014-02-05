@@ -1,11 +1,14 @@
 package org.odyssey.fragments;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.zip.Inflater;
 
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
+import org.odyssey.playbackservice.IOdysseyPlaybackService;
+import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
@@ -27,6 +30,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -49,7 +53,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 		View rootView = inflater.inflate(R.layout.fragment_playlist, container, false);
 
 		// create adapter for tracklist
-		mPlayListAdapter = new PlaylistTracksAdapter(getActivity(), R.layout.listview_playlist_item, new ArrayList<TrackItem>());
+		mPlayListAdapter = new PlaylistTracksAdapter(((OdysseyApplication)getActivity().getApplication()).getPlaybackService());
 
 		// create listview for tracklist
 		mListView = (ListView) rootView.findViewById(R.id.listViewPlaylist);
@@ -74,8 +78,6 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
 			}
 		});
-
-		setPlaylistTracks();
 
 		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
 
@@ -107,12 +109,6 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 	    switch (item.getItemId()) {
 	        case R.id.action_clearplaylist:
 				OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-				try {
-					app.getPlaybackService().clearPlaylist();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				mPlayListAdapter.clear();
 
 				mPlayListAdapter.notifyDataSetChanged();
@@ -123,45 +119,19 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 	    return super.onOptionsItemSelected(item);
 	}	
 
-	private void setPlaylistTracks() {
 
-		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
 
-		// get playlist
-		ArrayList<TrackItem> playListTracks = new ArrayList<TrackItem>();
+	private class PlaylistTracksAdapter extends BaseAdapter {
 
-		try {
-			mainApplication.getPlaybackService().getCurrentList(playListTracks);
-			for (TrackItem trackItem : playListTracks) {
-				Log.v(TAG, "received track:" + trackItem);
-			}
-		} catch (RemoteException e) {
-			Log.e(TAG, "Remote errror: " + e);
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		mPlayListAdapter.clear();
-
-		mPlayListAdapter.addAll(playListTracks);
-
-		mPlayListAdapter.notifyDataSetChanged();
-	}
-
-	private class PlaylistTracksAdapter extends ArrayAdapter<TrackItem> {
-
-		private Context mContext;
 		private LayoutInflater mInflater;
-		private int mLayoutResourceId;
-		private int mPlayingIndex;
+		private int mAdapterPlayingIndex = 0;
+		private WeakReference<IOdysseyPlaybackService> mPlaybackService;
 
-		public PlaylistTracksAdapter(Context context, int layoutResourceId, ArrayList<TrackItem> data) {
-			super(context, layoutResourceId, data);
+		public PlaylistTracksAdapter(IOdysseyPlaybackService iOdysseyPlaybackService) {
+			super();
 
-			mContext = context;
-			mLayoutResourceId = layoutResourceId;
-			mInflater = LayoutInflater.from(context);
-			mPlayingIndex = 0;
+			mInflater = getLayoutInflater(getArguments());
+			mPlaybackService = new WeakReference<IOdysseyPlaybackService>(iOdysseyPlaybackService);
 		}
 
 		@Override
@@ -173,7 +143,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 			TextView trackArtistView;
 
 			if (convertView == null) {
-				convertView = mInflater.inflate(mLayoutResourceId, null);
+				convertView = mInflater.inflate(R.layout.listview_playlist_item, null);
 			}
 
 			trackTitleView = (TextView) convertView.findViewById(R.id.textViewPlaylistTitleItem);
@@ -182,7 +152,12 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 			trackArtistView = (TextView) convertView.findViewById(R.id.textViewPlaylistArtistItem);
 
 			// set tracktitle
-			TrackItem trackItem = getItem(position);
+			TrackItem trackItem;
+			try {
+				trackItem = mPlaybackService.get().getPlaylistSong(position);
+			} catch (RemoteException e) {
+				trackItem = new TrackItem();
+			}
 
 			trackTitleView.setText(trackItem.getTrackTitle());
 
@@ -212,7 +187,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 			// set artist
 			trackArtistView.setText(trackItem.getTrackArtist() + " - " + trackItem.getTrackAlbum());
 
-			if (position == mPlayingIndex) {
+			if (position == mAdapterPlayingIndex) {
 				ImageView playImage = (ImageView) convertView.findViewById(R.id.imageViewPlaylistPlay);
 
 				playImage.setVisibility(ImageView.VISIBLE);
@@ -227,17 +202,60 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 		}
 
 		public void setPlayingIndex(int index) {
-			mPlayingIndex = index;
+			Log.v(TAG,"Set adapter index to: " + index);
+			mAdapterPlayingIndex = index;
+			notifyDataSetChanged();
+		}
+
+		@Override
+		public int getCount() {
+			try {
+				return mPlaybackService.get().getPlaylistSize();
+			} catch (RemoteException e) {
+				return 0;
+			}
+		}
+
+		@Override
+		public Object getItem(int position) {
+			try {
+				return mPlaybackService.get().getPlaylistSong(position);
+			} catch (RemoteException e) {
+				return null;
+			}
+		}
+
+		@Override
+		public long getItemId(int position) {
+			//FIXME for now just return positon as id
+			return position;
+		}
+		
+		public void remove(int position) {
+			try {
+				mPlaybackService.get().dequeueTrackIndex(position);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			notifyDataSetChanged();
+		}
+
+		public void clear() {
+			try {
+				mPlaybackService.get().clearPlaylist();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			notifyDataSetChanged();
 		}
 
 	}
 
 	@Override
 	public void onNewInformation(NowPlayingInformation info) {
-
-		final int index = info.getPlayingIndex();
-		mPlayingIndex = info.getPlayingIndex();
-
+		mPlayingIndex = info.getPlayingIndex();		
 		new Thread() {
 			public void run() {
 				Activity activity = (Activity) getActivity();
@@ -245,8 +263,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 					activity.runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							mPlayListAdapter.setPlayingIndex(index);
-							mPlayListAdapter.notifyDataSetChanged();
+							mPlayListAdapter.setPlayingIndex(mPlayingIndex);
 						}
 					});
 				}
@@ -271,22 +288,15 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 			return super.onContextItemSelected(item);
 		}
 		
-	    switch (item.getItemId()) {
-	        case R.id.playlist_context_menu_action_remove:
-	        	OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-	        	//TODO fix dequeue in playback first
-				try {
-					app.getPlaybackService().dequeueTrackIndex(info.position);
-					mPlayListAdapter.remove(mPlayListAdapter.getItem(info.position));
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	        	
-	            return true;  
-	        default:
-	            return super.onContextItemSelected(item);
-	    }
+		switch (item.getItemId()) {
+		case R.id.playlist_context_menu_action_remove:
+			OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+			mPlayListAdapter.remove(info.position);
+
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
 	}	
 	
 

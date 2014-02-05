@@ -30,7 +30,8 @@
 
         <service
             android:name="org.odyssey.playbackservice.PlaybackService"
-            android:exported="false" >
+            android:exported="false"
+            android:process=".serviceProcess" >
             <intent-filter>
                 <action android:name="org.odyssey.playbackservice.IOdysseyPlaybackService" >
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />

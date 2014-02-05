@@ -51,6 +51,7 @@ public final class NowPlayingInformation implements Parcelable{
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeInt(mPlaying);
 		dest.writeString(mPlayingURL);
+		dest.writeInt(mPlayingIndex);
 	}
 	
 	public int getPlaying() {
@@ -62,7 +63,7 @@ public final class NowPlayingInformation implements Parcelable{
 	}
 	
 	public String toString() {
-		return "Playing: " + mPlaying + " URL: " +  mPlayingURL;
+		return "Playing: " + mPlaying + " URL: " +  mPlayingURL + " index: " + mPlayingIndex;
 	}
 	
 	public int getPlayingIndex() {

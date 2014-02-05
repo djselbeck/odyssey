@@ -87,7 +87,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
 
 		// Start Handlerthread
-		mHandlerThread = new HandlerThread("OdysseyHandlerThread", Process.THREAD_PRIORITY_AUDIO);
+		mHandlerThread = new HandlerThread("OdysseyHandlerThread", Process.THREAD_PRIORITY_URGENT_AUDIO);
 		mHandlerThread.start();
 		mHandler = new PlaybackServiceHandler(mHandlerThread.getLooper(), this);
 
@@ -98,7 +98,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Set listeners
 		mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
 		mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
-		Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
+		Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
 
 		// Create playlist
 		mCurrentList = new ArrayList<TrackItem>();
@@ -179,7 +179,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 
 		// Next track is availible
-		if (mCurrentPlayingIndex < mCurrentList.size()) {
+		if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
 			// Start playback of new song
 			try {
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
@@ -259,6 +259,17 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	public List<TrackItem> getCurrentList() {
 		return mCurrentList;
+	}
+	
+	public int getPlaylistSize() {
+		return mCurrentList.size();
+	}
+	
+	public TrackItem getPlaylistTrack(int index) {
+		if ( (index >= 0) && (index < mCurrentList.size()) ) {
+			return mCurrentList.get(index);
+		}
+		return new TrackItem();
 	}
 
 	public void clearPlaylist() {
@@ -544,8 +555,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
 
 		NotificationCompat.BigTextStyle notificationStyle = new NotificationCompat.BigTextStyle();
-		notificationStyle.bigText(trackItem.getTrackTitle());
-		mNotificationBuilder.setStyle(notificationStyle);
+//		notificationStyle.bigText(trackItem.getTrackTitle());
+//		mNotificationBuilder.setStyle(notificationStyle);
 		// mNotificationBuilder.addAction(android.R.drawable.ic_media_pause,
 		// "Pause", null);
 		mNotificationBuilder.setContentIntent(resultPendingIntent);
@@ -802,6 +813,16 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			msg.obj = obj;
 			mService.get().getHandler().sendMessage(msg);
 		}
+
+		@Override
+		public TrackItem getPlaylistSong(int index) throws RemoteException {
+			return mService.get().getPlaylistTrack(index);
+		}
+
+		@Override
+		public int getPlaylistSize() throws RemoteException {
+			return mService.get().getPlaylistSize();
+		}
 	}
 
 	private class PlaybackStartListener implements GaplessPlayer.OnTrackStartedListener {
@@ -813,7 +834,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		@Override
 		public void onTrackStarted(String URI) {
-			Log.v(TAG, "track started: " + URI);
+			Log.v(TAG, "track started: " + URI +" PL index: " + mCurrentPlayingIndex);
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 			updateNotification();
 		}
@@ -824,38 +845,47 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		@Override
 		public void onTrackFinished() {
 			Log.v(TAG, "Playback of index: " + mCurrentPlayingIndex + " finished ");
-			// Forward current index and set new song for gapless playback
-			// if new song is availible
-			mCurrentPlayingIndex++;
-			if (mCurrentPlayingIndex < mCurrentList.size()) {
+			// Check if this song was the last one in the playlist
+			if ( (mCurrentPlayingIndex + 1) == mCurrentList.size()) {
+				// Was last song in list stop everything
+				Log.v(TAG,"Last song played");
+				stop();
+			} else {
+				// At least one song to go
+				mCurrentPlayingIndex++;
 				broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 				updateNotification();
-			}
-			if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
-				try {
-					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
-				} catch (IllegalArgumentException e) {
-					// In case of error stop playback and log error
-					mPlayer.stop();
-					Log.e(TAG, "IllegalArgument for playback");
-					Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-				} catch (SecurityException e) {
-					// In case of error stop playback and log error
-					mPlayer.stop();
-					Log.e(TAG, "SecurityException for playback");
-					Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-				} catch (IllegalStateException e) {
-					// In case of error stop playback and log error
-					mPlayer.stop();
-					Log.e(TAG, "IllegalState for playback");
-					Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-				} catch (IOException e) {
-					// In case of error stop playback and log error
-					mPlayer.stop();
-					Log.e(TAG, "IOException for playback");
-					Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+				
+				/* Check if we even have one more song to play
+				 * if it is the case, schedule it for next playback (gapless playback)
+				 */
+				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+					try {
+						mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+					} catch (IllegalArgumentException e) {
+						// In case of error stop playback and log error
+						mPlayer.stop();
+						Log.e(TAG, "IllegalArgument for playback");
+						Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
+					} catch (SecurityException e) {
+						// In case of error stop playback and log error
+						mPlayer.stop();
+						Log.e(TAG, "SecurityException for playback");
+						Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
+					} catch (IllegalStateException e) {
+						// In case of error stop playback and log error
+						mPlayer.stop();
+						Log.e(TAG, "IllegalState for playback");
+						Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
+					} catch (IOException e) {
+						// In case of error stop playback and log error
+						mPlayer.stop();
+						Log.e(TAG, "IOException for playback");
+						Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+					}
 				}
 			}
+			
 		}
 
 	}

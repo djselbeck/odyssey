@@ -261,9 +261,6 @@ public class GaplessPlayer {
 				}
 
 				mNextMediaPlayer = null;
-			} else {
-				Log.v(TAG, "Stopping service");
-				mPlaybackService.stopService();
 			}
 			// notify connected services
 			for (OnTrackFinishedListener listener : mTrackFinishedListeners) {
