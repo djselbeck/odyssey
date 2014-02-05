@@ -1,5 +1,8 @@
 package org.odyssey.fragments;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
@@ -10,7 +13,6 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
@@ -31,7 +33,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 	private ImageView mCoverImageView;
 	private SeekBar mSeekBar;
 	private IOdysseyPlaybackService mPlayer;
-	private Handler seekHandler = new Handler();
+	private Timer mRefreshTimer = null;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -144,6 +146,22 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		return rootView;
 	}
 
+	@Override
+	public void onPause() {
+		super.onPause();
+		if (mRefreshTimer != null) {
+			mRefreshTimer.cancel();
+		}
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		// Create timer for seekbar refresh
+		mRefreshTimer = new Timer();
+		mRefreshTimer.scheduleAtFixedRate(seekBarRunnable, 0, 500);
+	}
+
 	private void updateStatus() {
 
 		// get current track
@@ -208,7 +226,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		}
 		// FIXME add termination condition
 		// FIXME leads to crash when track changes
-		seekHandler.postDelayed(seekBarRunnable, 1000);
+		// seekHandler.postDelayed(seekBarRunnable, 5000);
 	}
 
 	private void updateDurationView() {
@@ -231,12 +249,21 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 	}
 
 	// TODO improve this
-	Runnable seekBarRunnable = new Runnable() {
+	TimerTask seekBarRunnable = new TimerTask() {
 
 		@Override
 		public void run() {
-			updateDurationView();
-			updateSeekBar();
+			Activity activity = (Activity) getActivity();
+			if (activity != null) {
+				activity.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						updateDurationView();
+						updateSeekBar();
+					}
+				});
+			}
+
 		}
 	};
 
