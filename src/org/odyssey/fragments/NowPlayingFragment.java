@@ -225,9 +225,6 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// FIXME add termination condition
-		// FIXME leads to crash when track changes
-		// seekHandler.postDelayed(seekBarRunnable, 5000);
 	}
 
 	private void updateDurationView() {

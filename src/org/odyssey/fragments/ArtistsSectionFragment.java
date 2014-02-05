@@ -80,14 +80,12 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
         mCursorAdapter = new ArtistsCursorAdapter(getActivity(), null, 0);
 
         mRootGrid = (GridView) rootView;
-
         
         mRootGrid.setNumColumns(2);
         
         mRootGrid.setAdapter(mCursorAdapter);
         
         mRootGrid.setOnItemClickListener((OnItemClickListener) this);
-        
         
         // Prepare loader ( start new one or reuse old) 
         getLoaderManager().initLoader(0, null, this);

@@ -16,18 +16,22 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class AlbumsTracksFragment extends Fragment {
 
@@ -59,7 +63,6 @@ public class AlbumsTracksFragment extends Fragment {
 		// indicate this fragment has its own menu
 		setHasOptionsMenu(true);
 		
-
         // update actionbar
         final ActionBar actionBar = getActivity().getActionBar();
 
@@ -129,6 +132,9 @@ public class AlbumsTracksFragment extends Fragment {
 		setAlbumInformation();
 
 		setAlbumTracks();
+		
+		// register context menu
+		registerForContextMenu(trackListView);		
 
 		return rootView;
 	}
@@ -319,5 +325,52 @@ public class AlbumsTracksFragment extends Fragment {
 			}
 		}
 	}
+	
+	private void enqueueTrack(int position) {
+		// Enqueue single track
+		OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();	
+		
+		try {
+			app.getPlaybackService().enqueueTrack(mTrackListAdapter.getItem(position));
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+	                                ContextMenuInfo menuInfo) {
+	    super.onCreateContextMenu(menu, v, menuInfo);
+	    MenuInflater inflater = getActivity().getMenuInflater();
+	    inflater.inflate(R.menu.album_tracks_context_menu, menu);
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {	
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+
+		if(info == null) {
+			return super.onContextItemSelected(item);
+		}
+		
+	    switch (item.getItemId()) {
+	        case R.id.album_tracks_context_menu_action_enqueue:
+	        	if(info.position == 0) {
+	        		enqueueAlbum();
+	        	} else {
+	        		enqueueTrack(info.position-1);
+	        	}
+	            return true;
+	        case R.id.album_tracks_context_menu_action_play:
+	        	Toast.makeText(getActivity(), "Play"+info.position, Toast.LENGTH_SHORT).show();
+	            return true;
+	        case R.id.album_tracks_context_menu_action_artist:
+	        	Toast.makeText(getActivity(), "Show"+info.position, Toast.LENGTH_SHORT).show();
+	            return true;    
+	        default:
+	            return super.onContextItemSelected(item);
+	    }
+	}	
 
 }
