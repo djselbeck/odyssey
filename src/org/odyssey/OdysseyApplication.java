@@ -134,7 +134,7 @@ public class OdysseyApplication extends Application {
 	// OdysseyApplication --> MainActivity
 	private ArrayList<NowPlayingListener> mNowPlayingListeners;
 	
-	public void registerNowPlayingListener(NowPlayingListener listener) {
+	public synchronized void registerNowPlayingListener(NowPlayingListener listener) {
 		Log.v(TAG,"added new nowplayinglistener in mainapplication");
 		mNowPlayingListeners.add(listener);
 		// Notify about last information
@@ -143,12 +143,12 @@ public class OdysseyApplication extends Application {
 		}
 	}
 	
-	public void unregisterNowPlayingListener(NowPlayingListener listener) {
+	public synchronized void unregisterNowPlayingListener(NowPlayingListener listener) {
 		mNowPlayingListeners.remove(listener);
 	}
 	
 	// Notifies connected callback listeners, like labels
-	public void notifyNowPlaying(NowPlayingInformation info) {
+	public synchronized void notifyNowPlaying(NowPlayingInformation info) {
 		mLastNowPlaying = info;
 		for (NowPlayingListener listener : mNowPlayingListeners) {
 			Log.v(TAG,"Notifying application nowplaying listener");
