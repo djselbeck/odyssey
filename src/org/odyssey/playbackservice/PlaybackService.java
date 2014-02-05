@@ -263,11 +263,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	public void clearPlaylist() {
 		// Stop the playback
-		mPlayer.stop();
+		stop();
 		// Clear the list and reset index
 		mCurrentList.clear();
-		mCurrentPlayingIndex = -1;
-		broadcastNowPlaying(new NowPlayingInformation(0, "", mCurrentPlayingIndex));
 
 		// TODO notify connected listeners
 	}
