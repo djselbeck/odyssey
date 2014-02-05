@@ -2,6 +2,7 @@ package org.odyssey.fragments;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.OdysseyApplication;
@@ -47,7 +48,7 @@ public class AlbumsSectionFragment extends Fragment implements
 		LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
 
 	AlbumCursorAdapter mCursorAdapter;
-	ArrayList<String> mSectionList;
+
 	//FIXME listener in new file?
 	OnAlbumSelectedListener mAlbumSelectedCallback;
 	OnArtistSelectedListener mArtistSelectedCallback;
@@ -150,6 +151,7 @@ public class AlbumsSectionFragment extends Fragment implements
 		private LayoutInflater mInflater;
 		private Cursor mCursor;
 		private LruCache<String, Drawable> mCache;
+		ArrayList<String> mSectionList;
 
 		public AlbumCursorAdapter(Context context, Cursor c, int flags) {
 			super(context, c, flags);
@@ -157,6 +159,7 @@ public class AlbumsSectionFragment extends Fragment implements
 			this.mInflater = LayoutInflater.from(context);
 			this.mCursor = c;
 			this.mCache = new LruCache<String, Drawable>(24);
+			mSectionList = new ArrayList<String>();
 		}
 
 		@Override
@@ -280,7 +283,7 @@ public class AlbumsSectionFragment extends Fragment implements
 			if( index > 0) {
 				lastSection = this.mCursor.getString(
 						this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM))
-						.charAt(0);
+						.toUpperCase().charAt(0);
 			}
 
 
@@ -293,7 +296,7 @@ public class AlbumsSectionFragment extends Fragment implements
 				char currentSection = this.mCursor.getString(
 						this.mCursor
 								.getColumnIndex(MediaStore.Audio.Albums.ALBUM))
-						.charAt(0);
+						.toUpperCase().charAt(0);
 
 				if (lastSection != currentSection) {
 					mSectionList.add("" + currentSection);
@@ -309,7 +312,7 @@ public class AlbumsSectionFragment extends Fragment implements
 		@Override
 		public int getPositionForSection(int sectionIndex) {
 
-			char section = mSectionList.get(sectionIndex).charAt(0);
+			char section = mSectionList.get(sectionIndex).toUpperCase().charAt(0);
 
 			for (int i = 0; i < this.mCursor.getCount(); i++) {
 
@@ -317,8 +320,7 @@ public class AlbumsSectionFragment extends Fragment implements
 
 				char currentSection = this.mCursor.getString(
 						this.mCursor
-								.getColumnIndex(MediaStore.Audio.Albums.ALBUM))
-						.charAt(0);
+								.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).toUpperCase().charAt(0);
 
 				if (section == currentSection) {
 					return i;
@@ -337,11 +339,11 @@ public class AlbumsSectionFragment extends Fragment implements
 			String albumName = this.mCursor.getString(this.mCursor
 					.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
 
-			char albumSection = albumName.charAt(0);
+			char albumSection = albumName.toUpperCase().charAt(0);
 
 			for (int i = 0; i < mSectionList.size(); i++) {
 
-				if (albumSection == mSectionList.get(i).charAt(0)) {
+				if (albumSection == mSectionList.get(i).toUpperCase().charAt(0)) {
 					return i;
 				}
 

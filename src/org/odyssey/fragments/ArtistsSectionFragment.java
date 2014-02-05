@@ -41,7 +41,6 @@ import android.widget.AdapterView.OnItemClickListener;
 public class ArtistsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
 
     ArtistsCursorAdapter mCursorAdapter;
-    ArrayList<String> mSectionList;
     OnArtistSelectedListener mArtistSelectedCallback;
     
     private static final String TAG = "ArtistsSectionFragment"; 
@@ -111,6 +110,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     	private LayoutInflater mInflater;
     	private Cursor mCursor;
     	private LruCache<String, Drawable> mCache;
+        ArrayList<String> mSectionList;
     	
 		public ArtistsCursorAdapter(Context context, Cursor c, int flags) {
 			super(context, c, flags);
@@ -118,6 +118,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 			this.mInflater = LayoutInflater.from(context);
 			this.mCursor = c;
 			mCache = new LruCache<String, Drawable>(24);
+			mSectionList = new ArrayList<String>();
 		}
 
 		@Override
@@ -238,7 +239,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 					
 			this.mCursor.moveToPosition(0);
 			
-			char lastSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)).charAt(0);
+			char lastSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)).toUpperCase().charAt(0);
 			
 			mSectionList.add(""+lastSection);
 			
@@ -246,7 +247,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 			
 				this.mCursor.moveToPosition(i);
 				
-				char currentSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)).charAt(0);
+				char currentSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)).toUpperCase().charAt(0);
 				
 				if(lastSection != currentSection){
 					mSectionList.add(""+currentSection);
@@ -262,13 +263,13 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 		@Override
 		public int getPositionForSection(int sectionIndex) {
 			
-			char section = mSectionList.get(sectionIndex).charAt(0);
+			char section = mSectionList.get(sectionIndex).toUpperCase().charAt(0);
 			
 			for(int i = 0; i < this.mCursor.getCount(); i++){
 				
 				this.mCursor.moveToPosition(i);
 				
-				char currentSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)).charAt(0);
+				char currentSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)).toUpperCase().charAt(0);
 				
 				if(section == currentSection){
 					return i;
@@ -286,11 +287,11 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 			
 			String artistsName = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST));
 			
-			char Artistsection = artistsName.charAt(0);
+			char Artistsection = artistsName.toUpperCase().charAt(0);
 			
 			for( int i = 0; i < mSectionList.size(); i++){
 				
-				if(Artistsection == mSectionList.get(i).charAt(0)){
+				if(Artistsection == mSectionList.get(i).toUpperCase().charAt(0)){
 					return i;
 				}
 				
