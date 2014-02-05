@@ -42,6 +42,7 @@ interface IOdysseyPlaybackService {
 	void enqueueTracks(in List<TrackItem> tracks);
 	void dequeueTrack(in TrackItem track);
 	void dequeueTracks(in List<TrackItem> tracks);
+	void dequeueTrackIndex(int index);
 	void clearPlaylist();
 	
 	void getCurrentList(out List<TrackItem> tracks);
