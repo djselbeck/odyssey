@@ -3,13 +3,15 @@ package org.odyssey.playbackservice;
 import java.util.ArrayList;
 
 /**
- * Message object which get passed between PlaybackServiceInterface -> PlaybackServiceHandler
+ * Message object which get passed between PlaybackServiceInterface ->
+ * PlaybackServiceHandler
+ * 
  * @author hendrik
- *
+ * 
  */
 public class ControlObject {
 	public static enum PLAYBACK_ACTION {
-		ODYSSEY_PLAY, ODYSSEY_PAUSE, ODYSSEY_RESUME, ODYSSEY_TOGGLEPAUSE, ODYSSEY_STOP, ODYSSEY_NEXT, ODYSSEY_PREVIOUS, ODYSSEY_SEEKTO, ODYSSEY_JUMPTO, ODYSSEY_REPEAT, ODYSSEY_RANDOM, ODYSSEY_ENQUEUETRACK, ODYSSEY_ENQUEUETRACKS, ODYSSEY_DEQUEUETRACK, ODYSSEY_DEQUEUETRACKS, ODYSSEY_SETNEXTRACK, ODYSSEY_CLEARPLAYLIST
+		ODYSSEY_PLAY, ODYSSEY_PAUSE, ODYSSEY_RESUME, ODYSSEY_TOGGLEPAUSE, ODYSSEY_STOP, ODYSSEY_NEXT, ODYSSEY_PREVIOUS, ODYSSEY_SEEKTO, ODYSSEY_JUMPTO, ODYSSEY_REPEAT, ODYSSEY_RANDOM, ODYSSEY_ENQUEUETRACK, ODYSSEY_ENQUEUETRACKS, ODYSSEY_DEQUEUETRACK, ODYSSEY_DEQUEUEINDEX, ODYSSEY_DEQUEUETRACKS, ODYSSEY_SETNEXTRACK, ODYSSEY_CLEARPLAYLIST
 	}
 
 	private PLAYBACK_ACTION mAction;
@@ -38,15 +40,14 @@ public class ControlObject {
 		mAction = action;
 	}
 
-	
 	public ControlObject(PLAYBACK_ACTION action, ArrayList<TrackItem> list) {
 		mTrackList = list;
 		mAction = action;
 	}
-	
+
 	public ControlObject(PLAYBACK_ACTION action, TrackItem track) {
 		mAction = action;
-		mTrack = track; 
+		mTrack = track;
 	}
 
 	public PLAYBACK_ACTION getAction() {
@@ -64,7 +65,7 @@ public class ControlObject {
 	public int getIntParam() {
 		return mIntparam;
 	}
-	
+
 	public TrackItem getTrack() {
 		return mTrack;
 	}

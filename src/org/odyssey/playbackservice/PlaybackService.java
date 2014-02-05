@@ -345,7 +345,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// gapless playback
 		int oldSize = mCurrentList.size();
 		mCurrentList.add(track);
-		if (mCurrentPlayingIndex == oldSize - 1) {
+		if (mCurrentPlayingIndex == (oldSize - 1)) {
 			// Next song for MP has to be set for gapless mediaplayback
 			try {
 				mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
@@ -387,9 +387,41 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void dequeueTrack(int index) {
 		// Check if track is currently playing, if so stop it
 		if (mCurrentPlayingIndex == index) {
-
-		}
-		if (index < mCurrentList.size()) {
+			// Stop playback of currentsong
+			mPlayer.stop();
+			// Delete song at index
+			mCurrentList.remove(index);
+			// Jump to next song which should be at index now
+			// Jump is safe about playlist length so no need for extra safety
+			jumpToIndex(index);
+		} else if ((mCurrentPlayingIndex + 1) == index) {
+			// Deletion of next song which requires extra handling
+			// because of gapless playback, set next song to next on
+			mCurrentList.remove(index);
+			try {
+				mPlayer.setNextTrack(mCurrentList.get(index).getTrackURL());
+			} catch (IllegalArgumentException e) {
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalArgument for playback");
+				Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
+			} catch (SecurityException e) {
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "SecurityException for playback");
+				Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
+			} catch (IllegalStateException e) {
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IllegalState for playback");
+				Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
+			} catch (IOException e) {
+				// In case of error stop playback and log error
+				mPlayer.stop();
+				Log.e(TAG, "IOException for playback");
+				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+			}
+		} else if (index >= 0 && index > mCurrentList.size()) {
 			mCurrentList.remove(index);
 		}
 	}
@@ -745,6 +777,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		@Override
 		public TrackItem getCurrentSong() throws RemoteException {
 			return mService.get().getCurrentTrack();
+		}
+
+		@Override
+		public void dequeueTrackIndex(int index) throws RemoteException {
+			ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUEINDEX, index);
+			Message msg = mService.get().getHandler().obtainMessage();
+			msg.obj = obj;
+			mService.get().getHandler().sendMessage(msg);
 		}
 	}
 

@@ -16,13 +16,13 @@ public class PlaybackServiceHandler extends Handler {
 		super(looper);
 		Log.v(TAG, "Handler created");
 		mService = new WeakReference<PlaybackService>(service);
-		Log.v(TAG,"MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
+		Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
 	}
 
 	@Override
 	public void handleMessage(Message msg) {
 		Log.v(TAG, "handleMessage:" + msg);
-		Log.v(TAG,"MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
+		Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
 		super.handleMessage(msg);
 
 		ControlObject msgObj = (ControlObject) msg.obj;
@@ -38,7 +38,7 @@ public class PlaybackServiceHandler extends Handler {
 
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_TOGGLEPAUSE) {
 				mService.get().togglePause();
-			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_RESUME) { 
+			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_RESUME) {
 				mService.get().resume();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_NEXT) {
 				mService.get().setNextTrack();
@@ -54,6 +54,8 @@ public class PlaybackServiceHandler extends Handler {
 				mService.get().jumpToIndex(msgObj.getIntParam());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACK) {
 
+			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUEINDEX) {
+				mService.get().dequeueTrack(msgObj.getIntParam());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACKS) {
 
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_ENQUEUETRACK) {
