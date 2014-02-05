@@ -343,8 +343,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void enqueueTrack(TrackItem track) {
 		// Check if current song is old last one, if so set next song to MP for
 		// gapless playback
+		int oldSize = mCurrentList.size();
 		mCurrentList.add(track);
-		if (mCurrentPlayingIndex == mCurrentList.size() - 1) {
+		if (mCurrentPlayingIndex == oldSize - 1) {
 			// Next song for MP has to be set for gapless mediaplayback
 			try {
 				mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
