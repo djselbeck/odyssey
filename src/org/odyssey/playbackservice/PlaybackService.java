@@ -343,7 +343,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// gapless playback
 		int oldSize = mCurrentList.size();
 		mCurrentList.add(track);
-		if (mCurrentPlayingIndex == (oldSize - 1)) {
+		/* If currently playing and playing is the last one in old playlist
+		 * set enqueued one to next one for gapless mediaplayback
+		 */
+		if (mCurrentPlayingIndex == (oldSize - 1) && (mCurrentPlayingIndex >= 0)) {
 			// Next song for MP has to be set for gapless mediaplayback
 			try {
 				mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
@@ -369,6 +372,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
 		}
+		// Send new NowPlaying because playlist changed
+		sendUpdateBroadcast();
 	}
 
 	public void dequeueTracks(ArrayList<String> tracklist) {
@@ -419,9 +424,15 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				Log.e(TAG, "IOException for playback");
 				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
-		} else if (index >= 0 && index > mCurrentList.size()) {
+		} else if (index >= 0 && index <= mCurrentList.size()) {
 			mCurrentList.remove(index);
+			// mCurrentIndex is now moved one position up so set variable
+			if ( index < mCurrentPlayingIndex ) {
+				mCurrentPlayingIndex--;
+			}
 		}
+		// Send new NowPlaying because playlist changed
+		sendUpdateBroadcast();
 	}
 
 	/**
@@ -508,6 +519,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 		return null;
 	}
+	
+	private void sendUpdateBroadcast() {
+		if( mPlayer.isRunning() ) {
+			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+		} else {
+			broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
+		}
+	}
 
 	private void updateNotification() {
 		Intent resultIntent = new Intent(this, MainActivity.class);
@@ -519,6 +538,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
+		// TODO secure
 		String url = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
 		TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(url, getContentResolver());
 		mNotificationBuilder.setContentTitle(trackItem.getTrackTitle());
