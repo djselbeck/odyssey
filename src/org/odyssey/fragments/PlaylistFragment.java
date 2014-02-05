@@ -14,19 +14,23 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.webkit.WebView.FindListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class PlaylistFragment extends Fragment implements OdysseyApplication.NowPlayingListener {
 
@@ -76,6 +80,9 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
 
 		mainApplication.registerNowPlayingListener(this);
+		
+		// register context menu
+		registerForContextMenu(mListView);		
 
 		return rootView;
 	}
@@ -247,5 +254,39 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 		}.start();
 
 	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+	                                ContextMenuInfo menuInfo) {
+	    super.onCreateContextMenu(menu, v, menuInfo);
+	    MenuInflater inflater = getActivity().getMenuInflater();
+	    inflater.inflate(R.menu.playlist_context_menu, menu);
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {	
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+
+		if(info == null) {
+			return super.onContextItemSelected(item);
+		}
+		
+	    switch (item.getItemId()) {
+	        case R.id.playlist_context_menu_action_remove:
+	        	OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+	        	//TODO fix dequeue in playback first
+//				try {
+//					app.getPlaybackService().dequeueTrackIndex(info.position);
+//				} catch (RemoteException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+	        	
+	            return true;  
+	        default:
+	            return super.onContextItemSelected(item);
+	    }
+	}	
+	
 
 }

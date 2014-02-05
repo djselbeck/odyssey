@@ -20,6 +20,8 @@
     <string name="artist_context_menu_action_enqueue"> add to playlist </string>
     <string name="artist_context_menu_action_play"> play albums </string>
     
+     <string name="playlist_context_menu_action_remove"> remove track </string>
+    
     <string name="dummy_section_text">Dummy_Section</string>
     <string name="section_title_albums">Albums</string>
     <string name="section_title_artists">Artists</string>
