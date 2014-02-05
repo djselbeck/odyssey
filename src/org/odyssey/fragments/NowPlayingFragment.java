@@ -143,23 +143,24 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 
 		mainApplication.registerNowPlayingListener(this);
 
+		// Create timer for seekbar refresh
+		mRefreshTimer = new Timer();
+
 		return rootView;
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		if (mRefreshTimer != null) {
-			mRefreshTimer.cancel();
-		}
+		mRefreshTimer.cancel();
+		mRefreshTimer = null;
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		// Create timer for seekbar refresh
 		mRefreshTimer = new Timer();
-		mRefreshTimer.scheduleAtFixedRate(seekBarRunnable, 0, 500);
+		mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
 	}
 
 	private void updateStatus() {
@@ -248,8 +249,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		}
 	}
 
-	// TODO improve this
-	TimerTask seekBarRunnable = new TimerTask() {
+	private class RefreshTask extends TimerTask {
 
 		@Override
 		public void run() {
