@@ -98,7 +98,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Set listeners
 		mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
 		mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
-		Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
+		Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
 
 		// Create playlist
 		mCurrentList = new ArrayList<TrackItem>();
@@ -115,6 +115,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		super.onStartCommand(intent, flags, startId);
 		Log.v(TAG, "onStartCommand");
 		return START_STICKY;
 	}
@@ -154,6 +155,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		} else if (mCurrentPlayingIndex < 0 && mCurrentList.size() == 0) {
 			broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
 		} else {
+			/*
+			 * Make sure service is "started" so android doesn't handle it as a
+			 * "bound service"
+			 */
+			Intent serviceStartIntent = new Intent(this, PlaybackService.class);
+			serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+			startService(serviceStartIntent);
 			mPlayer.resume();
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 		}
@@ -260,13 +268,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public List<TrackItem> getCurrentList() {
 		return mCurrentList;
 	}
-	
+
 	public int getPlaylistSize() {
 		return mCurrentList.size();
 	}
-	
+
 	public TrackItem getPlaylistTrack(int index) {
-		if ( (index >= 0) && (index < mCurrentList.size()) ) {
+		if ((index >= 0) && (index < mCurrentList.size())) {
 			return mCurrentList.get(index);
 		}
 		return new TrackItem();
@@ -298,6 +306,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 					// Abort command
 					return;
 				}
+				/*
+				 * Make sure service is "started" so android doesn't handle it
+				 * as a "bound service"
+				 */
+				Intent serviceStartIntent = new Intent(this, PlaybackService.class);
+				serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+				startService(serviceStartIntent);
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 
 				broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
@@ -354,8 +369,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// gapless playback
 		int oldSize = mCurrentList.size();
 		mCurrentList.add(track);
-		/* If currently playing and playing is the last one in old playlist
-		 * set enqueued one to next one for gapless mediaplayback
+		/*
+		 * If currently playing and playing is the last one in old playlist set
+		 * enqueued one to next one for gapless mediaplayback
 		 */
 		if (mCurrentPlayingIndex == (oldSize - 1) && (mCurrentPlayingIndex >= 0)) {
 			// Next song for MP has to be set for gapless mediaplayback
@@ -436,7 +452,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		} else if (index >= 0 && index < mCurrentList.size()) {
 			mCurrentList.remove(index);
 			// mCurrentIndex is now moved one position up so set variable
-			if ( index < mCurrentPlayingIndex ) {
+			if (index < mCurrentPlayingIndex) {
 				mCurrentPlayingIndex--;
 			}
 		}
@@ -528,9 +544,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 		return null;
 	}
-	
+
 	private void sendUpdateBroadcast() {
-		if( mPlayer.isRunning() ) {
+		if (mPlayer.isRunning()) {
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 		} else {
 			broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
@@ -555,8 +571,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
 
 		NotificationCompat.BigTextStyle notificationStyle = new NotificationCompat.BigTextStyle();
-//		notificationStyle.bigText(trackItem.getTrackTitle());
-//		mNotificationBuilder.setStyle(notificationStyle);
+		// notificationStyle.bigText(trackItem.getTrackTitle());
+		// mNotificationBuilder.setStyle(notificationStyle);
 		// mNotificationBuilder.addAction(android.R.drawable.ic_media_pause,
 		// "Pause", null);
 		mNotificationBuilder.setContentIntent(resultPendingIntent);
@@ -834,7 +850,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		@Override
 		public void onTrackStarted(String URI) {
-			Log.v(TAG, "track started: " + URI +" PL index: " + mCurrentPlayingIndex);
+			Log.v(TAG, "track started: " + URI + " PL index: " + mCurrentPlayingIndex);
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 			updateNotification();
 		}
@@ -846,18 +862,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		public void onTrackFinished() {
 			Log.v(TAG, "Playback of index: " + mCurrentPlayingIndex + " finished ");
 			// Check if this song was the last one in the playlist
-			if ( (mCurrentPlayingIndex + 1) == mCurrentList.size()) {
+			if ((mCurrentPlayingIndex + 1) == mCurrentList.size()) {
 				// Was last song in list stop everything
-				Log.v(TAG,"Last song played");
+				Log.v(TAG, "Last song played");
 				stop();
 			} else {
 				// At least one song to go
 				mCurrentPlayingIndex++;
 				broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 				updateNotification();
-				
-				/* Check if we even have one more song to play
-				 * if it is the case, schedule it for next playback (gapless playback)
+
+				/*
+				 * Check if we even have one more song to play if it is the
+				 * case, schedule it for next playback (gapless playback)
 				 */
 				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
 					try {
@@ -885,7 +902,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 					}
 				}
 			}
-			
+
 		}
 
 	}
