@@ -273,6 +273,7 @@ public class GaplessPlayer {
 			Log.v(TAG, "Track playback completed");
 			// Cleanup old MP
 			mp.release();
+			int audioSessionID = mCurrentMediaPlayer.getAudioSessionId();
 			mCurrentMediaPlayer = null;
 			// Set current MP to next MP
 			if (mNextMediaPlayer != null) {
@@ -293,7 +294,7 @@ public class GaplessPlayer {
 				 * Signal android desire to close audio effect session
 				 */
 				Intent audioEffectIntent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
-				audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mCurrentMediaPlayer.getAudioSessionId());
+				audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, audioSessionID);
 				audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
 			}
 			// notify connected services
