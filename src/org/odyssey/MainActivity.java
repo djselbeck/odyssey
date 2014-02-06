@@ -39,6 +39,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 	private ActionBarDrawerToggle mDrawerToggle;
 	private ListView mNaviBarList;
 	private String[] mNaviBarTitles;
+	
+	private QuickControl mQuickControl;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -98,8 +100,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
 		// Register callbacks in mainapplication which currently manages
 		// callback from playback service process
-		QuickControl quickControl = (QuickControl) findViewById(R.id.quickControl);
-		mainApplication.registerNowPlayingListener(quickControl);
+		mQuickControl = (QuickControl) findViewById(R.id.quickControl);
+		mainApplication.registerNowPlayingListener(mQuickControl);
 		mPlaybackService = mainApplication.getPlaybackService();
 	}
 
@@ -225,12 +227,9 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 			android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 			transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
 			
-			QuickControl quickControl = (QuickControl) findViewById(R.id.quickControl);
-			
 			switch(position) {
 			
-			case 0:
-				quickControl.setVisibility(View.VISIBLE);				
+			case 0:				
 				mDrawerToggle.setDrawerIndicatorEnabled(true);
 				// FIXME always create a new fragment
 				ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
@@ -242,8 +241,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 				transaction.commit();	
 				
 				break;
-			case 1:
-				quickControl.setVisibility(View.VISIBLE);				
+			case 1:			
 				mDrawerToggle.setDrawerIndicatorEnabled(true);
 
 				PlaylistFragment mPlaylistFragment = new PlaylistFragment();
@@ -257,9 +255,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 				invalidateOptionsMenu();
 				
 				break;
-			case 2:
-				quickControl.setVisibility(View.GONE);
-				
+			case 2:			
 				mDrawerToggle.setDrawerIndicatorEnabled(true);
 
 				NowPlayingFragment mNowPlayingFragment = new NowPlayingFragment();
@@ -306,5 +302,9 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
 		invalidateOptionsMenu();		
 		
+	}
+	
+	public QuickControl getQuickControl() {
+		return mQuickControl;
 	}
 }

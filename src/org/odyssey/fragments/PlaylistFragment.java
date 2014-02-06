@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.zip.Inflater;
 
+import org.odyssey.MainActivity;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
@@ -46,6 +47,8 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		
+		((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 		
 		// indicate this fragment has its own menu
 		setHasOptionsMenu(true);

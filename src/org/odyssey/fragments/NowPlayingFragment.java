@@ -3,6 +3,7 @@ package org.odyssey.fragments;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.odyssey.MainActivity;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
@@ -38,6 +39,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+		((MainActivity) getActivity()).getQuickControl().setVisibility(View.GONE);
+		
 		View rootView = inflater.inflate(R.layout.fragment_now_playing, container, false);
 
 		mTitleTextView = (TextView) rootView.findViewById(R.id.nowPlayingTitleView);

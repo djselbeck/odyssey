@@ -2,6 +2,7 @@ package org.odyssey.fragments;
 
 import java.util.ArrayList;
 
+import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
@@ -78,6 +79,8 @@ public class AlbumsTracksFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_albumtracks, container, false);
+		
+		((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 		
 		// indicate this fragment has its own menu
 		setHasOptionsMenu(true);

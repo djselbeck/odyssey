@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
@@ -94,6 +95,8 @@ public class AlbumsSectionFragment extends Fragment implements
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		super.onCreateView(inflater, container, savedInstanceState);	
+		
+		((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 		
 		View rootView = inflater.inflate(R.layout.fragment_albums, container,
 				false);

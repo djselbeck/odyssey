@@ -2,6 +2,7 @@ package org.odyssey.fragments;
 
 import java.util.ArrayList;
 
+import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
@@ -73,6 +74,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
     	super.onCreateView(inflater, container, savedInstanceState);
+    	
+    	((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
     	
         View rootView = inflater.inflate(R.layout.fragment_artists, container, false);
                      

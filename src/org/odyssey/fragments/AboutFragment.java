@@ -1,5 +1,6 @@
 package org.odyssey.fragments;
 
+import org.odyssey.MainActivity;
 import org.odyssey.R;
 
 import android.os.Bundle;
@@ -13,6 +14,8 @@ public class AboutFragment extends Fragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		
+		((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 		
 		View rootView = inflater.inflate(R.layout.fragment_section_dummy, container, false);
 		
