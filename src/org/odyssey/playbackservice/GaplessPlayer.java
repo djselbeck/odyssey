@@ -272,8 +272,8 @@ public class GaplessPlayer {
 		public void onCompletion(MediaPlayer mp) {
 			Log.v(TAG, "Track playback completed");
 			// Cleanup old MP
-			mp.release();
 			int audioSessionID = mCurrentMediaPlayer.getAudioSessionId();
+			mp.release();
 			mCurrentMediaPlayer = null;
 			// Set current MP to next MP
 			if (mNextMediaPlayer != null) {
