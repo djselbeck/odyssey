@@ -3,9 +3,12 @@ package org.odyssey.playbackservice;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.media.audiofx.AudioEffect;
+import android.media.audiofx.Equalizer;
 import android.os.PowerManager;
 import android.util.Log;
 
@@ -20,6 +23,8 @@ public class GaplessPlayer {
 	private String mSecondarySource = null;
 
 	private PlaybackService mPlaybackService;
+
+	private Equalizer mEqualizer = null;
 
 	public GaplessPlayer(PlaybackService service) {
 		this.mTrackFinishedListeners = new ArrayList<GaplessPlayer.OnTrackFinishedListener>();
@@ -49,6 +54,14 @@ public class GaplessPlayer {
 		mCurrentPrepared = false;
 		mCurrentMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mCurrentMediaPlayer.setDataSource(uri);
+		/*
+		 * Signal audio effect desire to android
+		 */
+		Intent audioEffectIntent = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+		audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mCurrentMediaPlayer.getAudioSessionId());
+		audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
+		mPlaybackService.sendBroadcast(audioEffectIntent);
+		mCurrentMediaPlayer.setAuxEffectSendLevel(1.0f);
 		mPrimarySource = uri;
 		mCurrentMediaPlayer.setOnCompletionListener(new TrackCompletionListener());
 		mCurrentMediaPlayer.setOnPreparedListener(mPrimaryPreparedListener);
@@ -100,6 +113,13 @@ public class GaplessPlayer {
 				mNextMediaPlayer.release();
 				mNextMediaPlayer = null;
 			}
+			/*
+			 * Signal android desire to close audio effect session
+			 */
+			Intent audioEffectIntent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
+			audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mCurrentMediaPlayer.getAudioSessionId());
+			audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
+			mPlaybackService.sendBroadcast(audioEffectIntent);
 			mCurrentMediaPlayer.reset();
 			mCurrentMediaPlayer.release();
 			mCurrentMediaPlayer = null;
@@ -168,6 +188,7 @@ public class GaplessPlayer {
 			// If mp equals currentMediaPlayback it should start playing
 			mCurrentPrepared = true;
 			mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+
 			mp.start();
 
 			// Notify connected listeners
@@ -190,6 +211,12 @@ public class GaplessPlayer {
 			// If it is nextMediaPlayer it should be set for currentMP
 			mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 			mSecondPrepared = true;
+			/*
+			 * Attach equalizer effect
+			 */
+			// Equalizer eq = new Equalizer(0,
+			// mCurrentMediaPlayer.getAudioSessionId());
+			// mCurrentMediaPlayer.attachAuxEffect(eq.getId());
 			mCurrentMediaPlayer.setNextMediaPlayer(mp);
 			Log.v(TAG, "Set Next MP");
 		}
@@ -261,6 +288,13 @@ public class GaplessPlayer {
 				}
 
 				mNextMediaPlayer = null;
+			} else {
+				/*
+				 * Signal android desire to close audio effect session
+				 */
+				Intent audioEffectIntent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
+				audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mCurrentMediaPlayer.getAudioSessionId());
+				audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
 			}
 			// notify connected services
 			for (OnTrackFinishedListener listener : mTrackFinishedListeners) {

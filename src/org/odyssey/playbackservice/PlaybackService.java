@@ -87,7 +87,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
 
 		// Start Handlerthread
-		mHandlerThread = new HandlerThread("OdysseyHandlerThread", Process.THREAD_PRIORITY_URGENT_AUDIO);
+		mHandlerThread = new HandlerThread("OdysseyHandlerThread", Process.THREAD_PRIORITY_DEFAULT);
 		mHandlerThread.start();
 		mHandler = new PlaybackServiceHandler(mHandlerThread.getLooper(), this);
 
@@ -98,7 +98,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Set listeners
 		mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
 		mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
-		Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
+		Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
 		// Create playlist
 		mCurrentList = new ArrayList<TrackItem>();
