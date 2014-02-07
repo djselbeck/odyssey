@@ -44,6 +44,7 @@
 		<receiver android:name="org.odyssey.widget.OdysseyAppWidgetProvider" >
 		    <intent-filter>
 		        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+		        <action android:name="org.odyssey.newtrackinfo" />
 		    </intent-filter>
 		    <meta-data android:name="android.appwidget.provider"
 		               android:resource="@xml/odyssey_appwidget_info" />
