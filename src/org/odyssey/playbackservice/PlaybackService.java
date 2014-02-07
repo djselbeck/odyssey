@@ -67,6 +67,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	private ArrayList<TrackItem> mCurrentList;
 	private int mCurrentPlayingIndex;
 	private boolean mIsDucked = false;
+	private boolean mIsPaused = false;
+	private int mLastPosition = 0;
 
 	private boolean mRandom = false;
 	private boolean mRepeat = false;
@@ -162,7 +164,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	public void pause() {
 		if (mPlayer.isRunning()) {
-			mPlayer.pause();
+			mLastPosition = mPlayer.getPosition();
+			mPlayer.pause(); 
+			mIsPaused = true;
 		}
 		broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 		updateNotification();
@@ -190,6 +194,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				mServiceCancelTimer = null;
 			}
 			mPlayer.resume();
+			mIsPaused = false;
+			mLastPosition = 0;
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 			updateNotification();
 		}
@@ -387,7 +393,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	}
 
 	public int getTrackPosition() {
-		return mPlayer.getPosition();
+		if ( !mIsPaused ) {
+			return mPlayer.getPosition();
+		} else {
+			return mLastPosition;
+		}
 	}
 
 	public void enqueueTracks(ArrayList<TrackItem> tracklist) {
@@ -602,6 +612,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(url, getContentResolver());
 		mNotificationBuilder.setContentTitle(trackItem.getTrackTitle());
 		mNotificationBuilder.setContentText(trackItem.getTrackArtist());
+		mNotificationBuilder.setSubText(trackItem.getTrackAlbum());
 
 		// Set Notification image to cover if existing
 //		if ((mCurrentPlayingIndex >= 0) && (mCurrentPlayingIndex < mCurrentList.size())) {
@@ -627,10 +638,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 //			mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
 //		}
 		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-		// NotificationCompat.BigTextStyle notificationStyle = new
-		// NotificationCompat.BigTextStyle();
-		// notificationStyle.bigText(trackItem.getTrackTitle());
-		// mNotificationBuilder.setStyle(notificationStyle);
+		//NotificationCompat.BigTextStyle notificationStyle = new NotificationCompat.BigTextStyle();
+		//notificationStyle.setBigContentTitle(trackItem.getTrackTitle());
+//		notificationStyle.bigText(trackItem.getTrackAlbum() + "\n" + trackItem.getTrackArtist());
+//		mNotificationBuilder.setStyle(notificationStyle);
 
 		// Previous song action
 		Intent prevIntent = new Intent(ACTION_PREVIOUS);
