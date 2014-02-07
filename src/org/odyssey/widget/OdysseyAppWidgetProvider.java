@@ -16,15 +16,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 public class OdysseyAppWidgetProvider extends AppWidgetProvider {
-	
-	private boolean mIsPlaying = false;
 	
 	@Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -46,15 +42,10 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
             
             // Play/Pause action
-            if(!mIsPlaying) {
-	            Intent playIntent = new Intent(PlaybackService.ACTION_PLAY);
-	            PendingIntent playPendingIntent = PendingIntent.getBroadcast(context, 42, playIntent, PendingIntent.FLAG_UPDATE_CURRENT); 
-	            views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, playPendingIntent);
-            } else {
-				Intent pauseIntent = new Intent(PlaybackService.ACTION_PAUSE);
-				PendingIntent pausePendingIntent = PendingIntent.getBroadcast(context, 42, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);            
-				views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, pausePendingIntent);
-            }
+            Intent playPauseIntent = new Intent(PlaybackService.ACTION_TOGGLEPAUSE);
+            PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(context, 42, playPauseIntent, 
+            																	PendingIntent.FLAG_UPDATE_CURRENT); 
+            views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, playPausePendingIntent);
 			
             // Previous song action
     		Intent prevIntent = new Intent(PlaybackService.ACTION_PREVIOUS);
@@ -88,10 +79,10 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 			
 			intent.setExtrasClassLoader(context.getClassLoader());
 
-			ArrayList<Parcelable> arrayList = intent.getParcelableArrayListExtra(PlaybackService.INTENT_TRACKITEMNAME);
+			ArrayList<Parcelable> trackItemList = intent.getParcelableArrayListExtra(PlaybackService.INTENT_TRACKITEMNAME);
 			
-			if(arrayList.size() == 1) {
-				TrackItem item = (TrackItem) arrayList.get(0);
+			if(trackItemList.size() == 1) {
+				TrackItem item = (TrackItem) trackItemList.get(0);
 				//NowPlayingInformation playInfo = (NowPlayingInformation) arrayList.get(1);
 				
 				String text = item.getTrackTitle() + " - " + item.getTrackArtist();
@@ -119,16 +110,14 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 				}	
 			}
 			
-			ArrayList<Parcelable> arrayList2 = intent.getParcelableArrayListExtra(PlaybackService.INTENT_NOWPLAYINGNAME);
+			ArrayList<Parcelable> infoList = intent.getParcelableArrayListExtra(PlaybackService.INTENT_NOWPLAYINGNAME);
 			
-			if(arrayList2.size() == 1) {	
-				NowPlayingInformation info = (NowPlayingInformation) arrayList2.get(0);
+			if(infoList.size() == 1) {	
+				NowPlayingInformation info = (NowPlayingInformation) infoList.get(0);
 				
 				if(info.getPlaying() == 0) {
-					mIsPlaying = false;	
 					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_play);
-				}   else if(info.getPlaying() == 1) {
-					mIsPlaying = true;	
+				}   else if(info.getPlaying() == 1) {	
 					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_pause);
 				}
 			}			
