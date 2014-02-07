@@ -11,14 +11,20 @@ import org.odyssey.playbackservice.TrackItem;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
 public class OdysseyAppWidgetProvider extends AppWidgetProvider {
+	
+	private boolean mIsPlaying = false;
 	
 	@Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -40,13 +46,15 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
             
             // Play/Pause action
-            Intent playIntent = new Intent(PlaybackService.ACTION_PLAY);
-            PendingIntent playPendingIntent = PendingIntent.getBroadcast(context, 42, playIntent, PendingIntent.FLAG_UPDATE_CURRENT); 
-            views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, playPendingIntent);
-            
-//			Intent pauseIntent = new Intent(PlaybackService.ACTION_PAUSE);
-//			PendingIntent pausePendingIntent = PendingIntent.getBroadcast(context, 42, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);            
-//			views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, pausePendingIntent);
+            if(!mIsPlaying) {
+	            Intent playIntent = new Intent(PlaybackService.ACTION_PLAY);
+	            PendingIntent playPendingIntent = PendingIntent.getBroadcast(context, 42, playIntent, PendingIntent.FLAG_UPDATE_CURRENT); 
+	            views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, playPendingIntent);
+            } else {
+				Intent pauseIntent = new Intent(PlaybackService.ACTION_PAUSE);
+				PendingIntent pausePendingIntent = PendingIntent.getBroadcast(context, 42, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);            
+				views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, pausePendingIntent);
+            }
 			
             // Previous song action
     		Intent prevIntent = new Intent(PlaybackService.ACTION_PREVIOUS);
@@ -71,27 +79,61 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		
-		super.onReceive(context, intent);		
+		super.onReceive(context, intent);	
 		
+		// get remoteviews
+		RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.odyssey_appwidget);
+            
 		if(intent.getAction().equals(PlaybackService.MESSAGE_NEWTRACKINFORMATION)) {
 			
 			intent.setExtrasClassLoader(context.getClassLoader());
-			
-            // get remoteviews
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.odyssey_appwidget);  			
-			
+
 			ArrayList<Parcelable> arrayList = intent.getParcelableArrayListExtra(PlaybackService.INTENT_TRACKITEMNAME);
 			
-			if(arrayList.size() == 2) {
+			if(arrayList.size() == 1) {
 				TrackItem item = (TrackItem) arrayList.get(0);
-				NowPlayingInformation playInfo = (NowPlayingInformation) arrayList.get(1);
+				//NowPlayingInformation playInfo = (NowPlayingInformation) arrayList.get(1);
 				
-				String text = item.getTrackArtist() + " - " +item.getTrackTitle();
+				String text = item.getTrackTitle() + " - " + item.getTrackArtist();
 				
 				views.setTextViewText(R.id.odysseyWidgetTextView, text);
+				
+				String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
+
+				String whereVal[] = { item.getTrackAlbum() };				
+				
+				Cursor cursor = context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, 
+											new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
+
+				String coverPath = null;
+				if (cursor.moveToFirst()) {
+					coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+				}			
+				
+				if (coverPath != null) {
+					BitmapDrawable cover = (BitmapDrawable) BitmapDrawable.createFromPath(coverPath);
+					
+					views.setImageViewBitmap(R.id.odysseyWidgetImageView, cover.getBitmap());
+				} else {
+					views.setImageViewResource(R.id.odysseyWidgetImageView, R.drawable.coverplaceholder);
+				}	
 			}
-		}
+			
+			ArrayList<Parcelable> arrayList2 = intent.getParcelableArrayListExtra(PlaybackService.INTENT_NOWPLAYINGNAME);
+			
+			if(arrayList2.size() == 1) {	
+				NowPlayingInformation info = (NowPlayingInformation) arrayList2.get(0);
+				
+				if(info.getPlaying() == 0) {
+					mIsPlaying = false;	
+					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_play);
+				}   else if(info.getPlaying() == 1) {
+					mIsPlaying = true;	
+					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_pause);
+				}
+			}			
+		}	
 		
-	}
-	
+		AppWidgetManager.getInstance(context).updateAppWidget(new ComponentName(context, OdysseyAppWidgetProvider.class), views);
+	}	
 }
