@@ -180,7 +180,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		updateNotification();
 		mServiceCancelTimer = new Timer();
 		// Set timeout to 10 minutes for now
-		mServiceCancelTimer.schedule(new ServiceCancelTask(), (60*1000)*10 );
+		mServiceCancelTimer.schedule(new ServiceCancelTask(), (long) ((60*1000)*5) );
 	}
 
 	public void resume() {

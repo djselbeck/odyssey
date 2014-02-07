@@ -21,6 +21,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -130,6 +131,14 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
 		// Commit the transaction
 		transaction.commit();
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		Log.v(TAG,"Resume mainactivity");
+		// FIXME Workaround for service reconnect 
+		((OdysseyApplication)getApplication()).getPlaybackService();
 	}
 
 	@Override
