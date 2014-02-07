@@ -80,7 +80,7 @@ public class TrackItem implements Parcelable {
 		dest.writeLong(mTrackDuration);
 	}
 
-	static Parcelable.Creator<TrackItem> CREATOR = new Creator<TrackItem>() {
+	public static Parcelable.Creator<TrackItem> CREATOR = new Creator<TrackItem>() {
 		
 		@Override
 		public TrackItem[] newArray(int size) {

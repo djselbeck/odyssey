@@ -19,7 +19,7 @@ public final class NowPlayingInformation implements Parcelable{
 	private int mPlayingIndex;
 	
 	
-	static Parcelable.Creator<NowPlayingInformation> CREATOR = new Parcelable.Creator<NowPlayingInformation>() {
+	public static Parcelable.Creator<NowPlayingInformation> CREATOR = new Parcelable.Creator<NowPlayingInformation>() {
 
 		@Override
 		public NowPlayingInformation createFromParcel(Parcel source) {
