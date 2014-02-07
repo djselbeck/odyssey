@@ -582,6 +582,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				e.printStackTrace();
 			}
 		}
+		
+		if ( mPlayer.isRunning() ) {
+			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
+			ArrayList<Parcelable> extraList = new ArrayList<Parcelable>();
+			extraList.add(mCurrentList.get(mCurrentPlayingIndex));
+			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraList);
+			sendBroadcast(broadcastIntent);
+		} else {
+			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
+			ArrayList<Parcelable> extraList = new ArrayList<Parcelable>();
+			extraList.add(new TrackItem());
+			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraList);
+			sendBroadcast(broadcastIntent);
+		}
 	}
 
 	public TrackItem getCurrentTrack() {
@@ -594,18 +608,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	private void sendUpdateBroadcast() {
 		if (mPlayer.isRunning()) {
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
-			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
-			ArrayList<Parcelable> extraList = new ArrayList<Parcelable>();
-			extraList.add(mCurrentList.get(mCurrentPlayingIndex));
-			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraList);
-			sendBroadcast(broadcastIntent);
+
 		} else {
 			broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
-			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
-			ArrayList<Parcelable> extraList = new ArrayList<Parcelable>();
-			extraList.add(new TrackItem());
-			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraList);
-			sendBroadcast(broadcastIntent);
+
 		}
 	}
 
