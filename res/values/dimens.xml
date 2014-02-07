@@ -9,5 +9,6 @@
     <dimen name="artists_item_height">168dp</dimen>
 	<dimen name="artists_text_height">48dp</dimen>
     <dimen name="artists_cover_height">120dp</dimen>    
+    <dimen name="widget_cover_height">48dp</dimen>
     
 </resources>
