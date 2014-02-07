@@ -111,17 +111,17 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 				}	
 			}
 			
-//			ArrayList<Parcelable> infoList = intent.getParcelableArrayListExtra(PlaybackService.INTENT_NOWPLAYINGNAME);
-//			
-//			if(infoList.size() == 1) {	
-//				NowPlayingInformation info = (NowPlayingInformation) infoList.get(0);
-//				
-//				if(info.getPlaying() == 0) {
-//					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_play);
-//				}   else if(info.getPlaying() == 1) {	
-//					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_pause);
-//				}
-//			}			
+			ArrayList<Parcelable> infoList = intent.getParcelableArrayListExtra(PlaybackService.INTENT_NOWPLAYINGNAME);
+			
+			if(infoList.size() == 1) {	
+				NowPlayingInformation info = (NowPlayingInformation) infoList.get(0);
+				
+				if(info.getPlaying() == 0) {
+					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_play);
+				}   else if(info.getPlaying() == 1) {	
+					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_pause);
+				}
+			}			
 		}	
 		
 		AppWidgetManager.getInstance(context).updateAppWidget(new ComponentName(context, OdysseyAppWidgetProvider.class), views);
