@@ -587,12 +587,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
 			ArrayList<Parcelable> extraList = new ArrayList<Parcelable>();
 			extraList.add(mCurrentList.get(mCurrentPlayingIndex));
+			extraList.add(info);
 			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraList);
 			sendBroadcast(broadcastIntent);
 		} else {
 			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
 			ArrayList<Parcelable> extraList = new ArrayList<Parcelable>();
 			extraList.add(new TrackItem());
+			extraList.add(info);
 			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraList);
 			sendBroadcast(broadcastIntent);
 		}
