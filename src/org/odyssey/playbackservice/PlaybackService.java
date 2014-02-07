@@ -52,6 +52,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public static final String ACTION_STOP = "org.odyssey.stop";
 	public static final String ACTION_QUIT = "org.odyssey.quit";
 	public static final String MESSAGE_NEWTRACKINFORMATION = "org.odyssey.newtrackinfo";
+	
+	public static final String INTENT_TRACKITEMNAME = "OdysseyTrackItem";
 
 	private HandlerThread mHandlerThread;
 	private PlaybackServiceHandler mHandler;
