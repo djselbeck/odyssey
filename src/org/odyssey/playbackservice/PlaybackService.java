@@ -55,6 +55,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public static final String MESSAGE_NEWTRACKINFORMATION = "org.odyssey.newtrackinfo";
 	
 	public static final String INTENT_TRACKITEMNAME = "OdysseyTrackItem";
+	public static final String INTENT_NOWPLAYINGNAME = "OdysseyNowPlaying";
 
 	private HandlerThread mHandlerThread;
 	private PlaybackServiceHandler mHandler;
@@ -585,17 +586,21 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		
 		if ( mPlayer.isRunning() ) {
 			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
-			ArrayList<Parcelable> extraList = new ArrayList<Parcelable>();
-			extraList.add(mCurrentList.get(mCurrentPlayingIndex));
-			extraList.add(info);
-			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraList);
+			ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
+			extraTrackItemList.add(mCurrentList.get(mCurrentPlayingIndex));
+			ArrayList<Parcelable> extraNPList = new ArrayList<Parcelable>();
+			extraNPList.add(info);
+			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraTrackItemList);
+			broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME,extraNPList);
 			sendBroadcast(broadcastIntent);
 		} else {
 			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
-			ArrayList<Parcelable> extraList = new ArrayList<Parcelable>();
-			extraList.add(new TrackItem());
-			extraList.add(info);
-			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraList);
+			ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
+			extraTrackItemList.add(new TrackItem());
+			ArrayList<Parcelable> extraNPList = new ArrayList<Parcelable>();
+			extraNPList.add(info);
+			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraTrackItemList);
+			broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME,extraNPList);
 			sendBroadcast(broadcastIntent);
 		}
 	}
