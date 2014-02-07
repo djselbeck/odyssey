@@ -1,5 +1,6 @@
 package org.odyssey.fragments;
 
+import java.lang.ref.WeakReference;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -7,6 +8,7 @@ import org.odyssey.MainActivity;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
+import org.odyssey.manager.AsyncLoader;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.playbackservice.TrackItem;
 
@@ -17,6 +19,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -194,10 +197,15 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		if (cursor.moveToFirst()) {
 			coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
 		}
-
+		
 		if (coverPath != null) {
-			Drawable tempImage = Drawable.createFromPath(coverPath);
-			mCoverImageView.setImageDrawable(tempImage);
+			// create and execute new asynctask
+			AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();
+			coverHolder.coverView = mCoverImageView;
+			coverHolder.imagePath = coverPath;
+			coverHolder.task = new AsyncLoader();
+			
+			coverHolder.task.execute(coverHolder);
 		} else {
 			mCoverImageView.setImageResource(R.drawable.coverplaceholder);
 		}

@@ -50,7 +50,9 @@ public class AsyncLoader extends
 
 		// set cover if exists
 		if (result != null) {
-			cover.cache.get().put(cover.imagePath, result);
+			if(cover.cache != null) {
+				cover.cache.get().put(cover.imagePath, result);
+			}
 			cover.coverView.setImageDrawable(result);
 		}
 

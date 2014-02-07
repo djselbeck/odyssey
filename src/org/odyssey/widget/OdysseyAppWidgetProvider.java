@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.odyssey.MainActivity;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
+import org.odyssey.manager.AsyncLoader;
 import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.TrackItem;
 
@@ -104,23 +105,23 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 				if (coverPath != null) {
 					BitmapDrawable cover = (BitmapDrawable) BitmapDrawable.createFromPath(coverPath);
 					
-					views.setImageViewBitmap(R.id.odysseyWidgetImageView, cover.getBitmap());
+					views.setImageViewBitmap(R.id.odysseyWidgetImageView, cover.getBitmap());				
 				} else {
 					views.setImageViewResource(R.id.odysseyWidgetImageView, R.drawable.coverplaceholder);
 				}	
 			}
 			
-			ArrayList<Parcelable> infoList = intent.getParcelableArrayListExtra(PlaybackService.INTENT_NOWPLAYINGNAME);
-			
-			if(infoList.size() == 1) {	
-				NowPlayingInformation info = (NowPlayingInformation) infoList.get(0);
-				
-				if(info.getPlaying() == 0) {
-					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_play);
-				}   else if(info.getPlaying() == 1) {	
-					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_pause);
-				}
-			}			
+//			ArrayList<Parcelable> infoList = intent.getParcelableArrayListExtra(PlaybackService.INTENT_NOWPLAYINGNAME);
+//			
+//			if(infoList.size() == 1) {	
+//				NowPlayingInformation info = (NowPlayingInformation) infoList.get(0);
+//				
+//				if(info.getPlaying() == 0) {
+//					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_play);
+//				}   else if(info.getPlaying() == 1) {	
+//					views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_pause);
+//				}
+//			}			
 		}	
 		
 		AppWidgetManager.getInstance(context).updateAppWidget(new ComponentName(context, OdysseyAppWidgetProvider.class), views);
