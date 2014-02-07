@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.odyssey.IOdysseyNowPlayingCallback;
 import org.odyssey.MainActivity;
@@ -19,15 +21,20 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Process;
 import android.os.RemoteException;
+import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.text.format.Time;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -63,6 +70,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	private boolean mRandom = false;
 	private boolean mRepeat = false;
+	
+	// Timer for service stop after certain amount of time
+	private Timer mServiceCancelTimer = null;
 
 	// NowPlaying callbacks
 	// List holding registered callback clients
@@ -110,7 +120,16 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
 		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-		registerReceiver(mNoisyReceiver, new IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+		intentFilter.addAction(ACTION_PREVIOUS);
+		intentFilter.addAction(ACTION_PAUSE);
+		intentFilter.addAction(ACTION_PLAY);
+		intentFilter.addAction(ACTION_NEXT);
+		intentFilter.addAction(ACTION_STOP);
+
+		registerReceiver(mNoisyReceiver, intentFilter);
+		
 	}
 
 	@Override
@@ -146,6 +165,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			mPlayer.pause();
 		}
 		broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+		updateNotification();
+		mServiceCancelTimer = new Timer();
+		// Set timeout to 10 minutes for now
+		mServiceCancelTimer.schedule(new ServiceCancelTask(), (60*1000)*10 );
 	}
 
 	public void resume() {
@@ -162,8 +185,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			Intent serviceStartIntent = new Intent(this, PlaybackService.class);
 			serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
 			startService(serviceStartIntent);
+			if (mServiceCancelTimer != null) {
+				mServiceCancelTimer.cancel();
+				mServiceCancelTimer = null;
+			}
 			mPlayer.resume();
 			broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+			updateNotification();
 		}
 	}
 
@@ -313,6 +341,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 				Intent serviceStartIntent = new Intent(this, PlaybackService.class);
 				serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
 				startService(serviceStartIntent);
+				if (mServiceCancelTimer != null) {
+					mServiceCancelTimer.cancel();
+					mServiceCancelTimer = null;
+				}
 				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 
 				broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
@@ -563,21 +595,74 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
+		mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
+
 		// TODO secure
 		String url = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
 		TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(url, getContentResolver());
 		mNotificationBuilder.setContentTitle(trackItem.getTrackTitle());
 		mNotificationBuilder.setContentText(trackItem.getTrackArtist());
-		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
 
-		NotificationCompat.BigTextStyle notificationStyle = new NotificationCompat.BigTextStyle();
+		// Set Notification image to cover if existing
+//		if ((mCurrentPlayingIndex >= 0) && (mCurrentPlayingIndex < mCurrentList.size())) {
+//			String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
+//
+//			String whereVal[] = { mCurrentList.get(mCurrentPlayingIndex).getTrackAlbum() };
+//
+//			Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
+//
+//			String coverPath = null;
+//			if (cursor.moveToFirst()) {
+//				coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+//			}
+//
+//			if (coverPath != null) {
+//				Drawable tempImage = Drawable.createFromPath(coverPath);
+//				
+//				mNotificationBuilder.setLargeIcon(((BitmapDrawable) tempImage).getBitmap());
+//			} else {
+//				mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+//			}
+//		} else {
+//			mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+//		}
+		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+		// NotificationCompat.BigTextStyle notificationStyle = new
+		// NotificationCompat.BigTextStyle();
 		// notificationStyle.bigText(trackItem.getTrackTitle());
 		// mNotificationBuilder.setStyle(notificationStyle);
-		// mNotificationBuilder.addAction(android.R.drawable.ic_media_pause,
-		// "Pause", null);
+
+		// Previous song action
+		Intent prevIntent = new Intent(ACTION_PREVIOUS);
+		PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this, 42, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		mNotificationBuilder.addAction(android.R.drawable.ic_media_previous, "", prevPendingIntent);
+
+		// Pause/Play action
+		if (mPlayer.isRunning()) {
+			Intent pauseIntent = new Intent(ACTION_PAUSE);
+			PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this, 42, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+			mNotificationBuilder.addAction(android.R.drawable.ic_media_pause, "", pausePendingIntent);
+		} else {
+			Intent playIntent = new Intent(ACTION_PLAY);
+			PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, 42, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+			mNotificationBuilder.addAction(android.R.drawable.ic_media_play, "", playPendingIntent);
+		}
+
+		// Previous song action
+		Intent nextIntent = new Intent(ACTION_NEXT);
+		PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this, 42, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		mNotificationBuilder.addAction(android.R.drawable.ic_media_next, "", nextPendingIntent);
+
 		mNotificationBuilder.setContentIntent(resultPendingIntent);
+		
+		// Quit action
+		Intent stopIntent = new Intent(ACTION_STOP);
+		PendingIntent stopPendingIntent = PendingIntent.getBroadcast(this, 42, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+		mNotificationBuilder.setDeleteIntent(stopPendingIntent);
 		// Make notification persistent
 		mNotificationBuilder.setOngoing(true);
+		
 		mNotification = mNotificationBuilder.build();
 		mNotificationManager.notify(NOTIFICATION_ID, mNotification);
 		startForeground(NOTIFICATION_ID, mNotification);
@@ -909,7 +994,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	@Override
 	public void onAudioFocusChange(int focusChange) {
-		// TODO Auto-generated method stub
 		switch (focusChange) {
 		case AudioManager.AUDIOFOCUS_GAIN:
 			Log.v(TAG, "Gained audiofocus");
@@ -954,9 +1038,28 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			if (intent.getAction().equals(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
 				Log.v(TAG, "NOISY AUDIO! CANCEL MUSIC");
 				pause();
+			} else if (intent.getAction().equals(ACTION_PLAY)) {
+				resume();
+			} else if (intent.getAction().equals(ACTION_PAUSE)) {
+				pause();
+			} else if (intent.getAction().equals(ACTION_NEXT)) {
+				setNextTrack();
+			} else if (intent.getAction().equals(ACTION_PREVIOUS)) {
+				setPreviousTrack();
+			} else if (intent.getAction().equals(ACTION_STOP)) {
+				stop();
 			}
 		}
 
 	};
+	
+	private class ServiceCancelTask extends TimerTask {
+
+		@Override
+		public void run() {
+			stop();
+		}
+		
+	}
 
 }
