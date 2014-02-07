@@ -133,6 +133,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		intentFilter.addAction(ACTION_PREVIOUS);
 		intentFilter.addAction(ACTION_PAUSE);
 		intentFilter.addAction(ACTION_PLAY);
+		intentFilter.addAction(ACTION_TOGGLEPAUSE);
 		intentFilter.addAction(ACTION_NEXT);
 		intentFilter.addAction(ACTION_STOP);
 
@@ -643,28 +644,28 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mNotificationBuilder.setSubText(trackItem.getTrackAlbum());
 
 		// Set Notification image to cover if existing
-//		if ((mCurrentPlayingIndex >= 0) && (mCurrentPlayingIndex < mCurrentList.size())) {
-//			String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
-//
-//			String whereVal[] = { mCurrentList.get(mCurrentPlayingIndex).getTrackAlbum() };
-//
-//			Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
-//
-//			String coverPath = null;
-//			if (cursor.moveToFirst()) {
-//				coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-//			}
-//
-//			if (coverPath != null) {
-//				Drawable tempImage = Drawable.createFromPath(coverPath);
-//				
-//				mNotificationBuilder.setLargeIcon(((BitmapDrawable) tempImage).getBitmap());
-//			} else {
-//				mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-//			}
-//		} else {
-//			mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-//		}
+		if ((mCurrentPlayingIndex >= 0) && (mCurrentPlayingIndex < mCurrentList.size())) {
+			String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
+
+			String whereVal[] = { mCurrentList.get(mCurrentPlayingIndex).getTrackAlbum() };
+
+			Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
+
+			String coverPath = null;
+			if (cursor.moveToFirst()) {
+				coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+			}
+
+			if (coverPath != null) {
+				BitmapDrawable cover = (BitmapDrawable) BitmapDrawable.createFromPath(coverPath);
+				
+				mNotificationBuilder.setLargeIcon(cover.getBitmap());
+			} else {
+				mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+			}
+		} else {
+			mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+		}
 		mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
 		//NotificationCompat.BigTextStyle notificationStyle = new NotificationCompat.BigTextStyle();
 		//notificationStyle.setBigContentTitle(trackItem.getTrackTitle());
