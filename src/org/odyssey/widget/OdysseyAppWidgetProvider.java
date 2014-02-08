@@ -84,11 +84,9 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 			
 			if(trackItemList.size() == 1) {
 				TrackItem item = (TrackItem) trackItemList.get(0);
-				//NowPlayingInformation playInfo = (NowPlayingInformation) arrayList.get(1);
 				
-				String text = item.getTrackTitle() + " - " + item.getTrackArtist();
-				
-				views.setTextViewText(R.id.odysseyWidgetTextView, text);
+				views.setTextViewText(R.id.odysseyWidgetTextViewTrack, item.getTrackTitle());
+				views.setTextViewText(R.id.odysseyWidgetTextViewArtist, item.getTrackArtist());
 				
 				String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
 

@@ -2,10 +2,12 @@ package org.odyssey;
 
 import org.odyssey.fragments.AboutFragment;
 import org.odyssey.fragments.AlbumsSectionFragment;
+import org.odyssey.fragments.SettingsFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.NowPlayingFragment;
 import org.odyssey.fragments.PlaylistFragment;
@@ -30,7 +32,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener {
+public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, 
+														OnAboutSelectedListener, OnSettingsSelectedListener {
 
 	private static final String TAG = "OdysseyMainActivity";
 
@@ -306,12 +309,31 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 		
 		// Commit the transaction
 		transaction.commit();
-		
-		
 
 		invalidateOptionsMenu();		
 		
 	}
+	
+	@Override
+	public void onSettingsSelected() {
+		
+		android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);		
+		
+		mDrawerToggle.setDrawerIndicatorEnabled(false);
+
+		SettingsFragment mSettingsFragment = new SettingsFragment();
+		// Replace whatever is in the fragment_container view with this
+		// fragment,
+		transaction.replace(R.id.fragmentFrame, mSettingsFragment);
+		transaction.addToBackStack(null);
+		
+		// Commit the transaction
+		transaction.commit();
+
+		invalidateOptionsMenu();
+		
+	}	
 	
 	public QuickControl getQuickControl() {
 		return mQuickControl;

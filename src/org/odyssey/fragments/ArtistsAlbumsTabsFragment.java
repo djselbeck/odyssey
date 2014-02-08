@@ -26,11 +26,15 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 	AppSectionsPagerAdapter mAppSectionsPagerAdapter;
 	
 	OnAboutSelectedListener mAboutSelectedCallback;
+	OnSettingsSelectedListener mSettingsSelectedCallback;
 	
 	// Listener for communication via container activity
 	public interface OnAboutSelectedListener {
 		public void onAboutSelected();
 	}
+	public interface OnSettingsSelectedListener {
+		public void onSettingsSelected();
+	}	
 	
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -42,8 +46,14 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnAlbumSelectedListener");
-        }   
+        }          
 		
+        try {
+        	mSettingsSelectedCallback = (OnSettingsSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnSettingsSelectedListener");
+        }         
 	}	
 
 	@Override
@@ -84,7 +94,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 
 	    switch (item.getItemId()) {
 	        case R.id.action_settings:
-				Toast.makeText(getActivity(), "settings", Toast.LENGTH_SHORT).show();
+	        	mSettingsSelectedCallback.onSettingsSelected();
 				return true;
 	        case R.id.action_about:
 	        	mAboutSelectedCallback.onAboutSelected();

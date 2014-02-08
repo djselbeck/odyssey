@@ -45,13 +45,36 @@
     
     </LinearLayout>
     
-	<TextView
-	    android:id="@+id/odysseyWidgetTextView"
-	    android:layout_width="match_parent"
-	    android:layout_height="@dimen/album_text_height"
-	    android:textSize="20sp"
-	    android:maxLines="2"
-	    android:text="Odyssey Widget"
-	/>	    
+    <LinearLayout 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@android:color/background_dark" >      
+    
+		<TextView
+		    android:id="@+id/odysseyWidgetTextViewTrack"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:textSize="20sp"
+		    android:maxLines="1"
+		/>	    
+		
+		<TextView
+		    android:id="@+id/odysseyWidgetTextViewDummy"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:maxLines="1"
+		    android:text=" - "
+		    android:textSize="20sp" />
+		
+		<TextView
+		    android:id="@+id/odysseyWidgetTextViewArtist"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:maxLines="1"
+		    android:textSize="20sp"
+		    android:textColor="#ff777777" />		
+
+</LinearLayout>
 
 </LinearLayout>
