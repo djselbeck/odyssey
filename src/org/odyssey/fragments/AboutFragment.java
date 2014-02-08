@@ -17,11 +17,19 @@ public class AboutFragment extends Fragment {
 		
 		((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 		
-		View rootView = inflater.inflate(R.layout.fragment_section_dummy, container, false);
+		View rootView = inflater.inflate(R.layout.fragment_about, container, false);
 		
-		TextView text = (TextView) rootView.findViewById(android.R.id.text1);
+		TextView version = (TextView) rootView.findViewById(R.id.aboutFragmentVersion);
 		
-		text.setText(R.string.dummy_section_text);
+		version.setText("Alpha 0.5");
+		
+		TextView authors = (TextView) rootView.findViewById(R.id.aboutFragmentAuthors);
+		
+		authors.setText("Hendrik Borghorst"+"\n"+"Frederik Lütkes");
+		
+		TextView gitHub = (TextView) rootView.findViewById(R.id.aboutFragmentGitHub);
+		
+		gitHub.setText("https://github.com/djselbeck/odyssey");		
 		
 		return rootView;
 	}
