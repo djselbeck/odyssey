@@ -122,6 +122,34 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 			}			
 		}	
 		
+		//TODO is there a better way?
+		// reset button actions
+        // Main action
+        Intent mainIntent = new Intent(context, MainActivity.class);
+        PendingIntent mainPendingIntent = PendingIntent.getActivity(context, 0, mainIntent, 0);
+        views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
+        
+        // Play/Pause action
+        Intent playPauseIntent = new Intent(PlaybackService.ACTION_TOGGLEPAUSE);
+        PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(context, 42, playPauseIntent, 
+        																	PendingIntent.FLAG_UPDATE_CURRENT); 
+        views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, playPausePendingIntent);
+		
+        // Previous song action
+		Intent prevIntent = new Intent(PlaybackService.ACTION_PREVIOUS);
+		PendingIntent prevPendingIntent = PendingIntent.getBroadcast(context, 42, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        views.setOnClickPendingIntent(R.id.odysseyWidgetPreviousButton, prevPendingIntent);
+        
+		// Next song action
+		Intent nextIntent = new Intent(PlaybackService.ACTION_NEXT);
+		PendingIntent nextPendingIntent = PendingIntent.getBroadcast(context, 42, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);            
+		views.setOnClickPendingIntent(R.id.odysseyWidgetNextButton, nextPendingIntent);
+		
+		// Quit action
+		Intent stopIntent = new Intent(PlaybackService.ACTION_STOP);
+		PendingIntent stopPendingIntent = PendingIntent.getBroadcast(context, 42, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);    		
+        views.setOnClickPendingIntent(R.id.odysseyWidgetStopButton, stopPendingIntent);		
+		
 		AppWidgetManager.getInstance(context).updateAppWidget(new ComponentName(context, OdysseyAppWidgetProvider.class), views);
 	}	
 }

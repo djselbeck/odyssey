@@ -55,7 +55,7 @@
 		    android:id="@+id/odysseyWidgetTextViewTrack"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
-		    android:textSize="20sp"
+		    android:textSize="16sp"
 		    android:maxLines="1"
 		/>	    
 		
@@ -65,14 +65,14 @@
 		    android:layout_height="wrap_content"
 		    android:maxLines="1"
 		    android:text=" - "
-		    android:textSize="20sp" />
+		    android:textSize="16sp" />
 		
 		<TextView
 		    android:id="@+id/odysseyWidgetTextViewArtist"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
 		    android:maxLines="1"
-		    android:textSize="20sp"
+		    android:textSize="16sp"
 		    android:textColor="#ff777777" />		
 
 </LinearLayout>

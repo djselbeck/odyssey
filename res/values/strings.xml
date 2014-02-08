@@ -27,6 +27,11 @@
     <string name="section_title_artists">Artists</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+    
+    <string name="authors">Hendrik Borghorst \nFrederik Lütkes</string>
+    
+    <string name="easterEgg1">Yeah. Sir, we can´t call it the Enterprise. \nWhy not?</string>
+    <string name="easterEgg2">Weapons to maximum. \nSir? \nIt´s a joke Marks.</string>
 
     <string-array name="navibar_array">
         <item>My Music</item>
