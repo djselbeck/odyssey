@@ -26,6 +26,14 @@ public class RemoteControlReceiver extends BroadcastReceiver {
 					Intent nextIntent = new Intent(PlaybackService.ACTION_TOGGLEPAUSE);
 					context.sendBroadcast(nextIntent);
 				}
+				else if (event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PLAY) {
+					Intent nextIntent = new Intent(PlaybackService.ACTION_PLAY);
+					context.sendBroadcast(nextIntent);
+				}
+				else if (event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+					Intent nextIntent = new Intent(PlaybackService.ACTION_PAUSE);
+					context.sendBroadcast(nextIntent);
+				}
 			}
 		}
 	}
