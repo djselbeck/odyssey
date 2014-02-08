@@ -187,6 +187,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		mPlayer.stop();
 		mCurrentPlayingIndex = -1;
 		mLastCoverURL = "";
+				
 		// Send empty NowPlaying
 		broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
 		stopService();
@@ -656,6 +657,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			
 			editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, item.getTrackAlbum());
 			editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, item.getTrackArtist());
+			editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST, item.getTrackArtist());
 			editor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, item.getTrackTitle());
 			editor.apply();
 			if ( mPlayer.isRunning() ) {
