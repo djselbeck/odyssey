@@ -48,7 +48,13 @@
 		    </intent-filter>
 		    <meta-data android:name="android.appwidget.provider"
 		               android:resource="@xml/odyssey_appwidget_info" />
-		</receiver>        
+		</receiver>   
+		
+		<receiver android:name="org.odyssey.playbackservice.RemoteControlReceiver" >
+		    <intent-filter>
+		        <action android:name="android.intent.action.MEDIA_BUTTON" />
+		    </intent-filter>
+		</receiver>
         
     </application>
 

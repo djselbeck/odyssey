@@ -18,6 +18,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -27,6 +28,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
+import android.media.RemoteControlClient;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
@@ -79,6 +82,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 	private boolean mRandom = false;
 	private boolean mRepeat = false;
+	
+	// Remote control
+	private RemoteController mRemoteControlClient = null;
+	private String mLastCoverURL = "";
 	
 	// Timer for service stop after certain amount of time
 	private Timer mServiceCancelTimer = null;
@@ -140,6 +147,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
 		registerReceiver(mNoisyReceiver, intentFilter);
 		
+		
+		// Remote control client
+		ComponentName remoteReceiver = new ComponentName(getPackageName(), RemoteControlReceiver.class.getName());
+		AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		audioManager.registerMediaButtonEventReceiver(remoteReceiver);
+		
+		
+		Intent buttonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+		buttonIntent.setComponent(remoteReceiver);
+		PendingIntent buttonPendingIntent = PendingIntent.getBroadcast(this, 0, buttonIntent, 0);
+		
+		//Create remotecontrol instance
+		mRemoteControlClient = new RemoteController(buttonPendingIntent);
+		audioManager.registerRemoteControlClient(mRemoteControlClient);
 	}
 
 	@Override
@@ -165,6 +186,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void stop() {
 		mPlayer.stop();
 		mCurrentPlayingIndex = -1;
+		mLastCoverURL = "";
 		// Send empty NowPlaying
 		broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
 		stopService();
@@ -587,7 +609,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			}
 		}
 		
-		if ( mPlayer.isRunning() ) {
+		if ( mCurrentPlayingIndex >= 0 ) {
 			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
 			ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
 			extraTrackItemList.add(mCurrentList.get(mCurrentPlayingIndex));
@@ -596,6 +618,46 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraTrackItemList);
 			broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME,extraNPList);
 			sendBroadcast(broadcastIntent);
+			
+			String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
+			
+			String whereVal[] = { mCurrentList.get(mCurrentPlayingIndex).getTrackAlbum() };
+
+			Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
+
+			String coverPath = null;
+			if (cursor.moveToFirst()) {
+				coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+			}
+
+			BitmapDrawable cover;
+			
+			RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
+			
+			if (coverPath != null) {
+				if ( coverPath != mLastCoverURL ) {
+					mLastCoverURL = coverPath;
+					cover = (BitmapDrawable) BitmapDrawable.createFromPath(mLastCoverURL);
+					editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, cover.getBitmap());
+				}
+
+			} else {
+				editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, null);
+			}
+			
+			// Set remote control
+			TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+			
+			editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, item.getTrackAlbum());
+			editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, item.getTrackArtist());
+			editor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, item.getTrackTitle());
+			editor.apply();
+			if ( mPlayer.isRunning() ) {
+				mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+			} else {
+				mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
+			}
+			mRemoteControlClient.setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE |RemoteControlClient.FLAG_KEY_MEDIA_NEXT| RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS );
 		} else {
 			Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
 			ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
@@ -605,6 +667,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,extraTrackItemList);
 			broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME,extraNPList);
 			sendBroadcast(broadcastIntent);
+			mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+			
 		}
 	}
 
@@ -1105,5 +1169,15 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		}
 		
 	}
+	
+	private class RemoteController extends RemoteControlClient {
+
+		public RemoteController(PendingIntent mediaButtonIntent) {
+			super(mediaButtonIntent);
+			// TODO Auto-generated constructor stub
+		}
+		
+	}
+	
 
 }
