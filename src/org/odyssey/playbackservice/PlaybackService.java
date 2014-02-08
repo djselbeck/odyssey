@@ -247,13 +247,18 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void setNextTrack() {
 		// Needs to set gaplessplayer next object and reorganize playlist
 		mPlayer.stop();
-		if ( (mCurrentPlayingIndex + 1) == mCurrentList.size() ) {
-			// Last track just leave here
-			stop();
-			return;
-		}
+		
 		if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
 			mCurrentPlayingIndex++;
+		} else if( (mCurrentPlayingIndex + 1) == mCurrentList.size() ) {
+			if(mRepeat) {
+				// Last track so set index = 0 and repeat playlist
+				mCurrentPlayingIndex = 0;
+			} else {
+				// Last track just leave here
+				stop();
+				return;
+			}			
 		}
 
 
@@ -296,8 +301,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void setPreviousTrack() {
 		// Needs to set gaplessplayer next object and reorganize playlist
 		mPlayer.stop();
-		if (mCurrentPlayingIndex - 1 >= 0)
+		if (mCurrentPlayingIndex - 1 >= 0) {
 			mCurrentPlayingIndex--;
+		} else if(mRepeat){
+			// In repeat mode next track is last track of playlist
+			mCurrentPlayingIndex = mCurrentList.size() - 1;
+		}
 
 		// Next track is availible
 		if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
@@ -1062,9 +1071,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 			Log.v(TAG, "Playback of index: " + mCurrentPlayingIndex + " finished ");
 			// Check if this song was the last one in the playlist
 			if ((mCurrentPlayingIndex + 1) == mCurrentList.size()) {
-				// Was last song in list stop everything
-				Log.v(TAG, "Last song played");
-				stop();
+				if(mRepeat) {
+					// Was last song in list so repeat playlist
+					jumpToIndex(0);
+				} else {
+					// Was last song in list stop everything
+					Log.v(TAG, "Last song played");
+					stop();
+				}
 			} else {
 				// At least one song to go
 				mCurrentPlayingIndex++;

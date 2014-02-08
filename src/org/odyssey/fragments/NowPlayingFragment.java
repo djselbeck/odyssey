@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
@@ -37,6 +38,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 	private IOdysseyPlaybackService mPlayer;
 	private Timer mRefreshTimer = null;
 	private ImageButton mPlayPauseButton;
+	private ImageButton mRepeatButton;
+	private ImageButton mShuffleButton;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -91,7 +94,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 
 		mPlayPauseButton = (ImageButton) rootView.findViewById(R.id.nowPlayingPlaypauseButton);
 				
-		mPlayPauseButton .setOnClickListener(new OnClickListener() {
+		mPlayPauseButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
@@ -118,12 +121,19 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		});
 
 		// TODO change repeat behavior to toggle track, playlist, nothing
-		rootView.findViewById(R.id.nowPlayingRepeatButton).setOnClickListener(new OnClickListener() {
+		mRepeatButton = (ImageButton) rootView.findViewById(R.id.nowPlayingRepeatButton);
+		
+		mRepeatButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
 				try {
 					mPlayer.setRepeat(!mPlayer.getRepeat());
+					if(mPlayer.getRepeat()) {
+						mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+					} else {
+						mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
+					}
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -132,12 +142,19 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		});
 
 		// TODO change shuffle behavior
-		rootView.findViewById(R.id.nowPlayingShuffleButton).setOnClickListener(new OnClickListener() {
+		mShuffleButton = (ImageButton) rootView.findViewById(R.id.nowPlayingShuffleButton);
+		
+		mShuffleButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
 				try {
 					mPlayer.setRandom(!mPlayer.getRandom());
+					if(mPlayer.getRandom()) {
+						mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+					} else {
+						mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
+					}
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
