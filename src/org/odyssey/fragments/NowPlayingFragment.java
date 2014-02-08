@@ -1,6 +1,5 @@
 package org.odyssey.fragments;
 
-import java.lang.ref.WeakReference;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -14,16 +13,15 @@ import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
-import android.support.v4.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -38,6 +36,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 	private SeekBar mSeekBar;
 	private IOdysseyPlaybackService mPlayer;
 	private Timer mRefreshTimer = null;
+	private ImageButton mPlayPauseButton;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -90,7 +89,9 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 			}
 		});
 
-		rootView.findViewById(R.id.nowPlayingPlaypauseButton).setOnClickListener(new OnClickListener() {
+		mPlayPauseButton = (ImageButton) rootView.findViewById(R.id.nowPlayingPlaypauseButton);
+				
+		mPlayPauseButton .setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
@@ -303,6 +304,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 	@Override
 	public void onNewInformation(NowPlayingInformation info) {
 
+		final boolean songPlaying = (info.getPlaying() == 1 ) ? true : false;
+		
 		new Thread() {
 			public void run() {
 				Activity activity = (Activity) getActivity();
@@ -310,6 +313,11 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 					activity.runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
+							if (songPlaying) {
+								mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+							} else {
+								mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+							}							
 							// update views
 							updateStatus();
 						}
