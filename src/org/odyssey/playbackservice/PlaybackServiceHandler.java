@@ -45,9 +45,9 @@ public class PlaybackServiceHandler extends Handler {
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PREVIOUS) {
 				mService.get().setPreviousTrack();
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_RANDOM) {
-
+				mService.get().setRandom(msgObj.getBoolParam());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_REPEAT) {
-
+				mService.get().setRepeat(msgObj.getBoolParam());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_SEEKTO) {
 				mService.get().seekTo(msgObj.getIntParam());
 			} else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_JUMPTO) {

@@ -65,6 +65,10 @@ public class ControlObject {
 	public int getIntParam() {
 		return mIntparam;
 	}
+	
+	public boolean getBoolParam() {
+		return mBoolparam;
+	}
 
 	public TrackItem getTrack() {
 		return mTrack;
