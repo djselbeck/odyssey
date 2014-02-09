@@ -17,6 +17,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -153,7 +154,7 @@ public class AlbumsSectionFragment extends Fragment implements
 
 		private LayoutInflater mInflater;
 		private Cursor mCursor;
-		private LruCache<String, Drawable> mCache;
+		private LruCache<String, Bitmap> mCache;
 		ArrayList<String> mSectionList;
 
 		public AlbumCursorAdapter(Context context, Cursor c, int flags) {
@@ -161,7 +162,7 @@ public class AlbumsSectionFragment extends Fragment implements
 
 			this.mInflater = LayoutInflater.from(context);
 			this.mCursor = c;
-			this.mCache = new LruCache<String, Drawable>(24);
+			this.mCache = new LruCache<String, Bitmap>(24);
 			mSectionList = new ArrayList<String>();
 		}
 
@@ -194,8 +195,8 @@ public class AlbumsSectionFragment extends Fragment implements
 				// create new coverholder for imageview(cover) and
 				// textview(albumlabel)
 				coverHolder = new AsyncLoader.CoverViewHolder();
-				coverHolder.coverView = (ImageView) convertView
-						.findViewById(R.id.imageViewAlbum);
+				coverHolder.coverViewReference = new WeakReference<ImageView>((ImageView) convertView
+						.findViewById(R.id.imageViewAlbum));
 				coverHolder.labelView = (TextView) convertView
 						.findViewById(R.id.textViewAlbumItem);
 
@@ -204,7 +205,7 @@ public class AlbumsSectionFragment extends Fragment implements
 			} else {
 				// get coverholder from convertview and cancel asynctask
 				coverHolder = (CoverViewHolder) convertView.getTag();
-				coverHolder.coverView.setImageResource(R.drawable.coverplaceholder);
+				coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
 				if (coverHolder.task != null)
 					coverHolder.task.cancel(true);
 			}
@@ -239,25 +240,25 @@ public class AlbumsSectionFragment extends Fragment implements
 				coverHolder.imagePath = mCursor.getString(coverIndex);
 				if (coverHolder.imagePath != null) {
 					// Check cache first
-					Drawable cacheImage = mCache.get(coverHolder.imagePath);
+					Bitmap cacheImage = mCache.get(coverHolder.imagePath);
 					if (cacheImage == null) {
 						// Cache miss
 						// create and execute new asynctask
 						coverHolder.task = new AsyncLoader();
-						coverHolder.cache = new WeakReference<LruCache<String, Drawable>>(
+						coverHolder.cache = new WeakReference<LruCache<String, Bitmap>>(
 								mCache);
 						coverHolder.task.execute(coverHolder);
 					} else {
 						// Cache hit
-						coverHolder.coverView.setImageDrawable(cacheImage);
+						coverHolder.coverViewReference.get().setImageBitmap(cacheImage);
 					}
 				} else {
 					// Cover entry has no album art
-					coverHolder.coverView
+					coverHolder.coverViewReference.get()
 							.setImageResource(R.drawable.coverplaceholder);
 				}
 			} else {
-				coverHolder.coverView
+				coverHolder.coverViewReference.get()
 						.setImageResource(R.drawable.coverplaceholder);
 				coverHolder.imagePath = null;
 			}

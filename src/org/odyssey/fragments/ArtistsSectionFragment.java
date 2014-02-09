@@ -1,5 +1,6 @@
 package org.odyssey.fragments;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import org.odyssey.MainActivity;
@@ -153,8 +154,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 				// create new coverholder for imageview(cover) and
 				// textview(artistlabel)
 				coverHolder = new AsyncLoader.CoverViewHolder();
-				coverHolder.coverView = (ImageView) convertView
-						.findViewById(R.id.imageViewArtists);
+				coverHolder.coverViewReference = new WeakReference<ImageView>((ImageView) convertView
+						.findViewById(R.id.imageViewArtists));
 				coverHolder.labelView = (TextView) convertView
 						.findViewById(R.id.textViewArtistsItem);
 
@@ -220,7 +221,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 //				coverHolder.imagePath = null;
 //			}
 
-			coverHolder.coverView.setImageResource(R.drawable.coverplaceholder);
+			coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
 			coverHolder.imagePath = null;			
 			
 			return convertView;		

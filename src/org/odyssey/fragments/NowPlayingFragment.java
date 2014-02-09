@@ -1,5 +1,6 @@
 package org.odyssey.fragments;
 
+import java.lang.ref.WeakReference;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -219,7 +220,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		if (coverPath != null) {
 			// create and execute new asynctask
 			AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();
-			coverHolder.coverView = mCoverImageView;
+			coverHolder.coverViewReference = new WeakReference<ImageView>(mCoverImageView);
 			coverHolder.imagePath = coverPath;
 			coverHolder.task = new AsyncLoader();
 			
