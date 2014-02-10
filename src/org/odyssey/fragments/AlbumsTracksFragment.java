@@ -179,21 +179,12 @@ public class AlbumsTracksFragment extends Fragment {
 
 				TrackItem item = new TrackItem(title,artist,album,url,no,duration);
 				if (!item.getTrackArtist().equals(mAlbumArtist)) {
-
-					if (!item.getTrackArtist().contains(mAlbumArtist)) {
-
-						// trackartist not albumartist and not contains
-						// albumartist -> sampler
-						isSampler = true;
-					}
-
+					
+					// trackartist not albumartist -> sampler
+					isSampler = true;
 				}
 				trackList.add(item);
 			} while (cursor.moveToNext());
-		}
-
-		if (isSampler) {
-			mAlbumArtistView.setText("");
 		}
 
 		mTrackListAdapter.setIsSampler(isSampler);
@@ -285,8 +276,8 @@ public class AlbumsTracksFragment extends Fragment {
 				trackNumberView.setText(trackNumber);
 			}
 
-			// set artist if sampler or multiple artists
-			if (mIsSampler || (trackItem.getTrackArtist().contains(mAlbumArtist) && !trackItem.getTrackArtist().equals(mAlbumArtist))) {
+			// set artist if sampler
+			if (mIsSampler) {
 				trackArtistView.setText(trackItem.getTrackArtist());
 			}
 
