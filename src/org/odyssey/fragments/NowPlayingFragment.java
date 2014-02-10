@@ -26,7 +26,6 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
@@ -185,6 +184,11 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     @Override
     public void onResume() {
         super.onResume();
+        // get the playbackservice
+        mPlayer = null;
+        while (mPlayer == null) {
+            mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+        }
         mRefreshTimer = new Timer();
         mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
     }
