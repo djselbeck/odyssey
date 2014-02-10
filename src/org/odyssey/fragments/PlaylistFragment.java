@@ -1,7 +1,5 @@
 package org.odyssey.fragments;
 
-import java.lang.ref.WeakReference;
-
 import org.odyssey.MainActivity;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
@@ -38,6 +36,8 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
     private PlaylistTracksAdapter mPlayListAdapter;
 
+    private IOdysseyPlaybackService mPBService = null;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -62,7 +62,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
             @Override
             public void onItemClick(AdapterView<?> arg0, View viewItem, int position, long id) {
 
-                // Get main application object for serice connection
+                // Get main application object for service connection
                 OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
                 try {
@@ -94,10 +94,12 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
     @Override
     public void onResume() {
         super.onResume();
-        IOdysseyPlaybackService service = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
-        while (service == null) {
-            service = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+        mPBService = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+        while (mPBService == null) {
+            mPBService = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
         }
+        mPlayListAdapter = new PlaylistTracksAdapter(mPBService);
+        mListView.setAdapter(mPlayListAdapter);
         mListView.setSelection(mPlayingIndex);
     }
 
@@ -129,13 +131,13 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
         private LayoutInflater mInflater;
         private int mAdapterPlayingIndex = 0;
-        private WeakReference<IOdysseyPlaybackService> mPlaybackService;
+        private IOdysseyPlaybackService mPlaybackService;
 
         public PlaylistTracksAdapter(IOdysseyPlaybackService iOdysseyPlaybackService) {
             super();
 
             mInflater = getLayoutInflater(getArguments());
-            mPlaybackService = new WeakReference<IOdysseyPlaybackService>(iOdysseyPlaybackService);
+            mPlaybackService = iOdysseyPlaybackService;
         }
 
         @Override
@@ -158,7 +160,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
             // set tracktitle
             TrackItem trackItem;
             try {
-                trackItem = mPlaybackService.get().getPlaylistSong(position);
+                trackItem = mPlaybackService.getPlaylistSong(position);
             } catch (RemoteException e) {
                 trackItem = new TrackItem();
             }
@@ -214,7 +216,11 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
         @Override
         public int getCount() {
             try {
-                return mPlaybackService.get().getPlaylistSize();
+                if (mPlaybackService != null) {
+                    return mPlaybackService.getPlaylistSize();
+                } else {
+                    return 0;
+                }
             } catch (RemoteException e) {
                 return 0;
             }
@@ -223,7 +229,11 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
         @Override
         public Object getItem(int position) {
             try {
-                return mPlaybackService.get().getPlaylistSong(position);
+                if (mPlaybackService != null) {
+                    return mPlaybackService.getPlaylistSong(position);
+                } else {
+                    return null;
+                }
             } catch (RemoteException e) {
                 return null;
             }
@@ -237,7 +247,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
         public void remove(int position) {
             try {
-                mPlaybackService.get().dequeueTrackIndex(position);
+                mPlaybackService.dequeueTrackIndex(position);
             } catch (RemoteException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -247,7 +257,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
         public void clear() {
             try {
-                mPlaybackService.get().clearPlaylist();
+                mPlaybackService.clearPlaylist();
             } catch (RemoteException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
