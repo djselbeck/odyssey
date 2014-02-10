@@ -96,11 +96,9 @@ public class OdysseyApplication extends Application {
         public void onServiceDisconnected(ComponentName name) {
             // TODO Auto-generated method stub
             Log.v(TAG, "Service connection lost");
-            unbindService(mPBServiceConnection);
-            mPlaybackService = null;
-            mPBCallback = null;
-            mConnectionEstablishing = false;
-            mPBServiceConnection = null;
+            Intent serviceStartIntent = new Intent(mApplication, PlaybackService.class);
+            // startService(serviceStartIntent);
+            bindService(serviceStartIntent, mPBServiceConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
