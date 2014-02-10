@@ -194,6 +194,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // Stops all playback
     public void stop() {
+        if (mCurrentPlayingIndex >= 0) {
+            // Broadcast simple.last.fm.scrobble broadcast
+            TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+            bCast.putExtra("state", 3);
+            bCast.putExtra("app-name", "Odyssey");
+            bCast.putExtra("app-package", "org.odyssey");
+            bCast.putExtra("artist", item.getTrackArtist());
+            bCast.putExtra("album", item.getTrackAlbum());
+            bCast.putExtra("track", item.getTrackTitle());
+            bCast.putExtra("duration", item.getTrackDuration() / 1000);
+            sendBroadcast(bCast);
+        }
+
         mPlayer.stop();
         mCurrentPlayingIndex = -1;
         mLastCoverURL = "";
@@ -207,8 +221,22 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (mPlayer.isRunning()) {
             mLastPosition = mPlayer.getPosition();
             mPlayer.pause();
+
+            // Broadcast simple.last.fm.scrobble broadcast
+            TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+            bCast.putExtra("state", 2);
+            bCast.putExtra("app-name", "Odyssey");
+            bCast.putExtra("app-package", "org.odyssey");
+            bCast.putExtra("artist", item.getTrackArtist());
+            bCast.putExtra("album", item.getTrackAlbum());
+            bCast.putExtra("track", item.getTrackTitle());
+            bCast.putExtra("duration", item.getTrackDuration() / 1000);
+            sendBroadcast(bCast);
+
             mIsPaused = true;
         }
+
         broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
         updateNotification();
         mServiceCancelTimer = new Timer();
@@ -235,6 +263,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 mServiceCancelTimer = null;
             }
             mPlayer.resume();
+
+            // Broadcast simple.last.fm.scrobble broadcast
+            TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+            bCast.putExtra("state", 1);
+            bCast.putExtra("app-name", "Odyssey");
+            bCast.putExtra("app-package", "org.odyssey");
+            bCast.putExtra("artist", item.getTrackArtist());
+            bCast.putExtra("album", item.getTrackAlbum());
+            bCast.putExtra("track", item.getTrackTitle());
+            bCast.putExtra("duration", item.getTrackDuration() / 1000);
+            sendBroadcast(bCast);
+
             mIsPaused = false;
             mLastPosition = 0;
             broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
@@ -828,6 +869,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             editor.apply();
             if (mPlayer.isRunning()) {
                 mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+
             } else {
                 mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
             }
@@ -1237,6 +1279,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         @Override
         public void onTrackStarted(String URI) {
             Log.v(TAG, "track started: " + URI + " PL index: " + mCurrentPlayingIndex);
+
+            // Broadcast simple.last.fm.scrobble broadcast
+            TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+            bCast.putExtra("state", 0);
+            bCast.putExtra("app-name", "Odyssey");
+            bCast.putExtra("app-package", "org.odyssey");
+            bCast.putExtra("artist", item.getTrackArtist());
+            bCast.putExtra("album", item.getTrackAlbum());
+            bCast.putExtra("track", item.getTrackTitle());
+            bCast.putExtra("duration", item.getTrackDuration() / 1000);
+            sendBroadcast(bCast);
+
             broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
             updateNotification();
             if (mTempWakelock.isHeld()) {
@@ -1252,6 +1307,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         public void onTrackFinished() {
             Log.v(TAG, "Playback of index: " + mCurrentPlayingIndex + " finished ");
             // Check if random is active
+
+            // Broadcast simple.last.fm.scrobble broadcast
+            TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+            bCast.putExtra("state", 3);
+            bCast.putExtra("app-name", "Odyssey");
+            bCast.putExtra("app-package", "org.odyssey");
+            bCast.putExtra("artist", item.getTrackArtist());
+            bCast.putExtra("album", item.getTrackAlbum());
+            bCast.putExtra("track", item.getTrackTitle());
+            bCast.putExtra("duration", item.getTrackDuration() / 1000);
+            sendBroadcast(bCast);
+
             if (mRandom) {
                 Random rand = new Random();
 
