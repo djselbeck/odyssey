@@ -296,7 +296,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 		@Override
 		public int getPositionForSection(int sectionIndex) {
 			if (sectionIndex >= 0 && sectionIndex < mSectionPositions.size()) {
-				Log.v(TAG, "Position for section: " + sectionIndex + " = " + mSectionPositions.get(sectionIndex));
 				return mSectionPositions.get(sectionIndex);
 			}
 			return 0;
