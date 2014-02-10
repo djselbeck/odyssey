@@ -13,6 +13,7 @@ import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
+import android.content.res.Resources.NotFoundException;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -239,6 +240,34 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 		} else {
 			mMaxDuration.setText(minutes + ":" + seconds);
 		}
+		
+		// update repeat and random button
+		try {
+			if(mPlayer.getRepeat()) {
+				mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+			} else {
+				mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
+		try {
+			if(mPlayer.getRandom()) {
+				mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+			} else {
+				mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 
 		// set up seekbar
 		mSeekBar.setMax((int) currentTrack.getTrackDuration());
@@ -331,11 +360,12 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 					activity.runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
+							// update imagebuttons
 							if (songPlaying) {
 								mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
 							} else {
 								mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
-							}							
+							}								
 							// update views
 							updateStatus();
 						}

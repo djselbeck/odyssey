@@ -3,7 +3,9 @@ package org.odyssey.playbackservice;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -76,6 +78,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	private GaplessPlayer mPlayer;
 	private ArrayList<TrackItem> mCurrentList;
 	private int mCurrentPlayingIndex;
+	private int mNextPlayingIndex;
+	private int mLastPlayingIndex;
 	private boolean mIsDucked = false;
 	private boolean mIsPaused = false;
 	private int mLastPosition = 0;
@@ -129,6 +133,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Create playlist
 		mCurrentList = new ArrayList<TrackItem>();
 		mCurrentPlayingIndex = -1;
+		mLastPlayingIndex = -1;
+		mNextPlayingIndex = -1;
 
 		// NowPlaying
 		mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
@@ -248,49 +254,103 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		// Needs to set gaplessplayer next object and reorganize playlist
 		mPlayer.stop();
 		
-		if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
-			mCurrentPlayingIndex++;
-		} else if( (mCurrentPlayingIndex + 1) == mCurrentList.size() ) {
-			if(mRepeat) {
-				// Last track so set index = 0 and repeat playlist
-				mCurrentPlayingIndex = 0;
+		if(mRandom) {
+			
+			// save lastindex for previous
+			mLastPlayingIndex = mCurrentPlayingIndex;
+			
+			// set currentindex to nextindex if exists
+			Random rand = new Random();
+			if(mNextPlayingIndex == -1) {
+				mCurrentPlayingIndex = rand.nextInt(mCurrentList.size());
 			} else {
-				// Last track just leave here
-				stop();
-				return;
-			}			
-		}
-
-
-		// Next track is availible
-		if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
-			// Start playback of new song
-			try {
-				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
-				// Check if next song is availible (gapless)
-				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
-					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+				mCurrentPlayingIndex = mNextPlayingIndex;
+			}
+			
+			// set new random nextindex
+			mNextPlayingIndex = rand.nextInt(mCurrentList.size());
+			
+			// Next track is availible
+			if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {			
+				try {
+					mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+					// Check if next song is availible (gapless)
+					if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
+						mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
+					}
+	
+				} catch (IllegalArgumentException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalArgument for playback");
+					Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
+				} catch (SecurityException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "SecurityException for playback");
+					Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
+				} catch (IllegalStateException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalState for playback");
+					Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
+				} catch (IOException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IOException for playback");
+					Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+				}		
+			}
+			
+		} else {
+			
+			// save lastindex for previous in random mode
+			mLastPlayingIndex = mCurrentPlayingIndex;
+		
+			if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+				mCurrentPlayingIndex++;
+			} else if( (mCurrentPlayingIndex + 1) == mCurrentList.size() ) {
+				if(mRepeat) {
+					// Last track so set index = 0 and repeat playlist
+					mCurrentPlayingIndex = 0;
+				} else {
+					// Last track just leave here
+					stop();
+					return;
+				}			
+			}
+	
+	
+			// Next track is availible
+			if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
+				// Start playback of new song
+				try {
+					mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+					// Check if next song is availible (gapless)
+					if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+						mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+					}
+				} catch (IllegalArgumentException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalArgument for playback");
+					Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
+				} catch (SecurityException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "SecurityException for playback");
+					Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
+				} catch (IllegalStateException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalState for playback");
+					Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
+				} catch (IOException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IOException for playback");
+					Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 				}
-			} catch (IllegalArgumentException e) {
-				// In case of error stop playback and log error
-				mPlayer.stop();
-				Log.e(TAG, "IllegalArgument for playback");
-				Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-			} catch (SecurityException e) {
-				// In case of error stop playback and log error
-				mPlayer.stop();
-				Log.e(TAG, "SecurityException for playback");
-				Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-			} catch (IllegalStateException e) {
-				// In case of error stop playback and log error
-				mPlayer.stop();
-				Log.e(TAG, "IllegalState for playback");
-				Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-			} catch (IOException e) {
-				// In case of error stop playback and log error
-				mPlayer.stop();
-				Log.e(TAG, "IOException for playback");
-				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -301,42 +361,93 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 	public void setPreviousTrack() {
 		// Needs to set gaplessplayer next object and reorganize playlist
 		mPlayer.stop();
-		if (mCurrentPlayingIndex - 1 >= 0) {
-			mCurrentPlayingIndex--;
-		} else if(mRepeat){
-			// In repeat mode next track is last track of playlist
-			mCurrentPlayingIndex = mCurrentList.size() - 1;
-		}
-
-		// Next track is availible
-		if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
-			// Start playback of new song
-			try {
-				mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
-				// Check if next song is availible (gapless)
-				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
-					mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+		
+		if(mRandom) {
+			
+			if(mLastPlayingIndex == -1) {
+				// if no lastindex reuse currentindex
+				mLastPlayingIndex = mCurrentPlayingIndex;
+				
+			} 
+			
+			// use lastindex for currentindex
+			mCurrentPlayingIndex = mLastPlayingIndex;
+			
+			// create new random nextindex
+			Random rand = new Random();
+			mNextPlayingIndex = rand.nextInt(mCurrentList.size());
+			
+			// Next track is availible
+			if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
+				try {
+					mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+					// Check if next song is availible (gapless)
+					if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
+						mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
+					}
+					
+				} catch (IllegalArgumentException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalArgument for playback");
+					Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
+				} catch (SecurityException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "SecurityException for playback");
+					Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
+				} catch (IllegalStateException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalState for playback");
+					Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
+				} catch (IOException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IOException for playback");
+					Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+				}			
+			}
+			
+		} else {	
+		
+			if (mCurrentPlayingIndex - 1 >= 0) {
+				mCurrentPlayingIndex--;
+			} else if(mRepeat){
+				// In repeat mode next track is last track of playlist
+				mCurrentPlayingIndex = mCurrentList.size() - 1;
+			}
+	
+			// Next track is availible
+			if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
+				// Start playback of new song
+				try {
+					mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+					// Check if next song is availible (gapless)
+					if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+						mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+					}
+				} catch (IllegalArgumentException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalArgument for playback");
+					Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
+				} catch (SecurityException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "SecurityException for playback");
+					Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
+				} catch (IllegalStateException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IllegalState for playback");
+					Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
+				} catch (IOException e) {
+					// In case of error stop playback and log error
+					mPlayer.stop();
+					Log.e(TAG, "IOException for playback");
+					Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 				}
-			} catch (IllegalArgumentException e) {
-				// In case of error stop playback and log error
-				mPlayer.stop();
-				Log.e(TAG, "IllegalArgument for playback");
-				Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-			} catch (SecurityException e) {
-				// In case of error stop playback and log error
-				mPlayer.stop();
-				Log.e(TAG, "SecurityException for playback");
-				Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-			} catch (IllegalStateException e) {
-				// In case of error stop playback and log error
-				mPlayer.stop();
-				Log.e(TAG, "IllegalState for playback");
-				Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-			} catch (IOException e) {
-				// In case of error stop playback and log error
-				mPlayer.stop();
-				Log.e(TAG, "IOException for playback");
-				Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -1069,29 +1180,31 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 		@Override
 		public void onTrackFinished() {
 			Log.v(TAG, "Playback of index: " + mCurrentPlayingIndex + " finished ");
-			// Check if this song was the last one in the playlist
-			if ((mCurrentPlayingIndex + 1) == mCurrentList.size()) {
-				if(mRepeat) {
-					// Was last song in list so repeat playlist
-					jumpToIndex(0);
+			
+			// Check if random is active
+			if(mRandom) {
+				Random rand = new Random();
+				
+				// save lastindex for previous
+				mLastPlayingIndex = mCurrentPlayingIndex;				
+				
+				// set currentindex to nextindex if exists
+				if(mNextPlayingIndex == -1) {
+					// create new random index
+					mCurrentPlayingIndex = rand.nextInt(mCurrentList.size());		
 				} else {
-					// Was last song in list stop everything
-					Log.v(TAG, "Last song played");
-					stop();
+					mCurrentPlayingIndex = mNextPlayingIndex;
 				}
-			} else {
-				// At least one song to go
-				mCurrentPlayingIndex++;
 				broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
-				updateNotification();
-
-				/*
-				 * Check if we even have one more song to play if it is the
-				 * case, schedule it for next playback (gapless playback)
-				 */
-				if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+				updateNotification();				
+				
+				// create new random nextindex
+				mNextPlayingIndex = rand.nextInt(mCurrentList.size());
+				
+				// set next track for gapless playback
+				if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
 					try {
-						mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+						mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
 					} catch (IllegalArgumentException e) {
 						// In case of error stop playback and log error
 						mPlayer.stop();
@@ -1112,6 +1225,57 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 						mPlayer.stop();
 						Log.e(TAG, "IOException for playback");
 						Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+					}	
+				}
+			} else {
+				
+				// save lastindex for previous in random mode
+				mLastPlayingIndex = mCurrentPlayingIndex;				
+			
+				// Check if this song was the last one in the playlist
+				if ((mCurrentPlayingIndex + 1) == mCurrentList.size()) {
+					if(mRepeat) {
+						// Was last song in list so repeat playlist
+						jumpToIndex(0);
+					} else {
+						// Was last song in list stop everything
+						Log.v(TAG, "Last song played");
+						stop();
+					}
+				} else {
+					// At least one song to go
+					mCurrentPlayingIndex++;
+					broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+					updateNotification();
+	
+					/*
+					 * Check if we even have one more song to play if it is the
+					 * case, schedule it for next playback (gapless playback)
+					 */
+					if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+						try {
+							mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+						} catch (IllegalArgumentException e) {
+							// In case of error stop playback and log error
+							mPlayer.stop();
+							Log.e(TAG, "IllegalArgument for playback");
+							Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
+						} catch (SecurityException e) {
+							// In case of error stop playback and log error
+							mPlayer.stop();
+							Log.e(TAG, "SecurityException for playback");
+							Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
+						} catch (IllegalStateException e) {
+							// In case of error stop playback and log error
+							mPlayer.stop();
+							Log.e(TAG, "IllegalState for playback");
+							Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
+						} catch (IOException e) {
+							// In case of error stop playback and log error
+							mPlayer.stop();
+							Log.e(TAG, "IOException for playback");
+							Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+						}
 					}
 				}
 			}
