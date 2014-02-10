@@ -1,41 +1,34 @@
 package org.odyssey.fragments;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.zip.Inflater;
 
 import org.odyssey.MainActivity;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
-import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.webkit.WebView.FindListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class PlaylistFragment extends Fragment implements OdysseyApplication.NowPlayingListener {
 
@@ -96,6 +89,16 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
     public void onStart() {
         super.onStart();
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        IOdysseyPlaybackService service = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+        while (service == null) {
+            service = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+        }
+        mListView.setSelection(mPlayingIndex);
     }
 
     @Override
