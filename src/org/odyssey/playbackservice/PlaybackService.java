@@ -33,6 +33,8 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Parcelable;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.os.Process;
 import android.os.RemoteException;
 import android.provider.MediaStore;
@@ -89,6 +91,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // Timer for service stop after certain amount of time
     private Timer mServiceCancelTimer = null;
+    private WakeLock mTempWakelock = null;
 
     // NowPlaying callbacks
     // List holding registered callback clients
@@ -161,6 +164,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Create remotecontrol instance
         mRemoteControlClient = new RemoteController(buttonPendingIntent);
         audioManager.registerRemoteControlClient(mRemoteControlClient);
+
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        mTempWakelock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
     }
 
     @Override
@@ -246,6 +252,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      */
     public void setNextTrack() {
         // Needs to set gaplessplayer next object and reorganize playlist
+        // Keep device at least for 5 seconds turned on
+        mTempWakelock.acquire(5000);
         mPlayer.stop();
         if (mRandom) {
 
@@ -389,6 +397,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      */
     public void setPreviousTrack() {
         // Needs to set gaplessplayer next object and reorganize playlist
+        // Get wakelock otherwise device could go to deepsleep until new song
+        // starts playing
+
+        // Keep device at least for 5 seconds turned on
+        mTempWakelock.acquire(5000);
+
         mPlayer.stop();
         if (mRandom) {
 
@@ -1221,6 +1235,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Log.v(TAG, "track started: " + URI + " PL index: " + mCurrentPlayingIndex);
             broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
             updateNotification();
+            if (mTempWakelock.isHeld()) {
+                // we could release wakelock here already
+                mTempWakelock.release();
+            }
         }
     }
 
