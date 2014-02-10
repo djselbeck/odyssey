@@ -278,6 +278,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
                         @Override
                         public void run() {
                             mPlayListAdapter.setPlayingIndex(mPlayingIndex);
+                            mListView.setSelection(mPlayingIndex);
                         }
                     });
                 }

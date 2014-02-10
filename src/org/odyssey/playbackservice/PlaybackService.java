@@ -105,6 +105,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     @Override
     public boolean onUnbind(final Intent intent) {
+        super.onUnbind(intent);
         Log.v(TAG, "Unbind");
         return true;
     }
@@ -178,6 +179,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     @Override
     public void onDestroy() {
+        stopSelf();
     }
 
     // Directly plays uri
