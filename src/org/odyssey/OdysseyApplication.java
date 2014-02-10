@@ -76,7 +76,7 @@ public class OdysseyApplication extends Application {
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.v(TAG, "Service connection created");
             if (mPlaybackService == null) {
-                setPlaybackService(IOdysseyPlaybackService.Stub.asInterface(service));
+                mPlaybackService = IOdysseyPlaybackService.Stub.asInterface(service);
             }
             // Create callback connection
             // PlaybackService -> OdysseyApplication
@@ -96,6 +96,7 @@ public class OdysseyApplication extends Application {
         public void onServiceDisconnected(ComponentName name) {
             // TODO Auto-generated method stub
             Log.v(TAG, "Service connection lost");
+            mPlaybackService = null;
             Intent serviceStartIntent = new Intent(mApplication, PlaybackService.class);
             // startService(serviceStartIntent);
             bindService(serviceStartIntent, mPBServiceConnection, Context.BIND_AUTO_CREATE);
