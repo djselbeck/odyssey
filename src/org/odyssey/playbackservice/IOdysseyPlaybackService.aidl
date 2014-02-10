@@ -42,6 +42,8 @@ interface IOdysseyPlaybackService {
 	// track is the full uri with "file://" !
 	void setNextTrack(String track);
 	
+	void enqueueTrackAsNext(in TrackItem track);
+	
 	void enqueueTrack(in TrackItem track);
 	void enqueueTracks(in List<TrackItem> tracks);
 	void dequeueTrack(in TrackItem track);

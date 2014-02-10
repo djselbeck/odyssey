@@ -16,148 +16,148 @@ import android.os.RemoteException;
 import android.util.Log;
 
 public class OdysseyApplication extends Application {
-	private MusicLibraryHelper mLibraryHelper;
-	private IOdysseyPlaybackService mPlaybackService = null;
-	private PlaybackServiceConnection mPBServiceConnection = null;
-	private IOdysseyNowPlayingCallback mPBCallback = null;
+    private MusicLibraryHelper mLibraryHelper;
+    private IOdysseyPlaybackService mPlaybackService = null;
+    private PlaybackServiceConnection mPBServiceConnection = null;
+    private IOdysseyNowPlayingCallback mPBCallback = null;
 
-	private static final String TAG = "OdysseyApplication";
+    private static final String TAG = "OdysseyApplication";
 
-	private NowPlayingInformation mLastNowPlaying = null;
+    private NowPlayingInformation mLastNowPlaying = null;
 
-	public OdysseyApplication() {
-		mNowPlayingListeners = new ArrayList<OdysseyApplication.NowPlayingListener>();
-		mPBServiceConnection = new PlaybackServiceConnection(this);
-		Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
-	}
+    public OdysseyApplication() {
+        mNowPlayingListeners = new ArrayList<OdysseyApplication.NowPlayingListener>();
+        mPBServiceConnection = new PlaybackServiceConnection(this);
+        Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
+    }
 
-	public void setLibraryHelper(MusicLibraryHelper helper) {
-		if (helper != null) {
-			mLibraryHelper = helper;
-		}
-	}
+    public void setLibraryHelper(MusicLibraryHelper helper) {
+        if (helper != null) {
+            mLibraryHelper = helper;
+        }
+    }
 
-	public MusicLibraryHelper getLibraryHelper() {
-		return mLibraryHelper;
-	}
+    public MusicLibraryHelper getLibraryHelper() {
+        return mLibraryHelper;
+    }
 
-	private void setPlaybackService(IOdysseyPlaybackService service) {
-		if (service != null) {
-			mPlaybackService = service;
-		}
-	}
+    private void setPlaybackService(IOdysseyPlaybackService service) {
+        if (service != null) {
+            mPlaybackService = service;
+        }
+    }
 
-	public IOdysseyPlaybackService getPlaybackService() {
-		Log.v(TAG, "Playback service requested");
-		
-		if (mPlaybackService == null) {
-			// Create initial service connection here
-			// create service connection
-			Intent serviceStartIntent = new Intent(this, PlaybackService.class);
-			serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-//			startService(serviceStartIntent);
-			
-			bindService(serviceStartIntent, mPBServiceConnection, Context.BIND_AUTO_CREATE);
-		}
-		return mPlaybackService;
-	}
+    public IOdysseyPlaybackService getPlaybackService() {
+        Log.v(TAG, "Playback service requested");
 
-	private class PlaybackServiceConnection implements ServiceConnection {
+        if (mPlaybackService == null) {
+            // Create initial service connection here
+            // create service connection
+            Intent serviceStartIntent = new Intent(this, PlaybackService.class);
+            serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+            // startService(serviceStartIntent);
 
-		private OdysseyApplication mApplication;
+            bindService(serviceStartIntent, mPBServiceConnection, Context.BIND_AUTO_CREATE);
+        }
+        return mPlaybackService;
+    }
 
-		public PlaybackServiceConnection(OdysseyApplication application) {
-			mApplication = application;
-		}
+    private class PlaybackServiceConnection implements ServiceConnection {
 
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			Log.v(TAG, "Service connection created");
-			if (mPlaybackService == null) {
-				setPlaybackService(IOdysseyPlaybackService.Stub.asInterface(service));
-			}
-			// Create callback connection
-			// PlaybackService -> OdysseyApplication
-			try {
-				if (mPBCallback == null) {
-					mPBCallback = new OdysseyNowPlayingReceiver(mApplication);
-				}
-				mPlaybackService.registerNowPlayingReceiver(mPBCallback);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+        private OdysseyApplication mApplication;
 
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			// TODO Auto-generated method stub
-			Log.v(TAG, "Service connection lost");
-			mPlaybackService = null;
-		}
-	}
+        public PlaybackServiceConnection(OdysseyApplication application) {
+            mApplication = application;
+        }
 
-	// This class implements the callback function which got called from
-	// PlaybackService
-	// Interface implementation for IOdysseyNowPlayingCallback.aidl
-	private static final class OdysseyNowPlayingReceiver extends IOdysseyNowPlayingCallback.Stub {
-		private final WeakReference<OdysseyApplication> mApplication;
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.v(TAG, "Service connection created");
+            if (mPlaybackService == null) {
+                setPlaybackService(IOdysseyPlaybackService.Stub.asInterface(service));
+            }
+            // Create callback connection
+            // PlaybackService -> OdysseyApplication
+            try {
+                if (mPBCallback == null) {
+                    mPBCallback = new OdysseyNowPlayingReceiver(mApplication);
+                }
+                mPlaybackService.registerNowPlayingReceiver(mPBCallback);
+            } catch (RemoteException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
 
-		public OdysseyNowPlayingReceiver(OdysseyApplication application) {
-			mApplication = new WeakReference<OdysseyApplication>(application);
-		}
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            // TODO Auto-generated method stub
+            Log.v(TAG, "Service connection lost");
+            mPlaybackService = null;
+        }
+    }
 
-		@Override
-		public void receiveNewNowPlayingInformation(NowPlayingInformation nowPlaying) throws RemoteException {
-			Log.v(TAG, "Received new playing information: " + MusicLibraryHelper.getTrackItemFromURL(nowPlaying.getPlayingURL(), mApplication.get().getContentResolver()));
-			mApplication.get().notifyNowPlaying(nowPlaying);
-		}
+    // This class implements the callback function which got called from
+    // PlaybackService
+    // Interface implementation for IOdysseyNowPlayingCallback.aidl
+    private static final class OdysseyNowPlayingReceiver extends IOdysseyNowPlayingCallback.Stub {
+        private final WeakReference<OdysseyApplication> mApplication;
 
-	}
+        public OdysseyNowPlayingReceiver(OdysseyApplication application) {
+            mApplication = new WeakReference<OdysseyApplication>(application);
+        }
 
-	// Clear up connections to service otherwise IT WILL crash
-	public void finalize() {
-		// Remove callback object or it will get really nasty for the
-		// PlaybackService
-		try {
-			mPlaybackService.unregisterNowPlayingReceiver(mPBCallback);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// Close service connection
-		mPBServiceConnection = null;
-	}
+        @Override
+        public void receiveNewNowPlayingInformation(NowPlayingInformation nowPlaying) throws RemoteException {
+            Log.v(TAG, "Received new playing information: " + MusicLibraryHelper.getTrackItemFromURL(nowPlaying.getPlayingURL(), mApplication.get().getContentResolver()));
+            mApplication.get().notifyNowPlaying(nowPlaying);
+        }
 
-	// Callback functions/attributes for rest of application
-	// Used for notifying other parts of the main gui
-	// OdysseyApplication --> MainActivity
-	private ArrayList<NowPlayingListener> mNowPlayingListeners;
+    }
 
-	public synchronized void registerNowPlayingListener(NowPlayingListener listener) {
-		Log.v(TAG, "added new nowplayinglistener in mainapplication");
-		mNowPlayingListeners.add(listener);
-		// Notify about last information
-		if (mLastNowPlaying != null) {
-			listener.onNewInformation(mLastNowPlaying);
-		}
-	}
+    // Clear up connections to service otherwise IT WILL crash
+    public void finalize() {
+        // Remove callback object or it will get really nasty for the
+        // PlaybackService
+        try {
+            mPlaybackService.unregisterNowPlayingReceiver(mPBCallback);
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        // Close service connection
+        mPBServiceConnection = null;
+    }
 
-	public synchronized void unregisterNowPlayingListener(NowPlayingListener listener) {
-		mNowPlayingListeners.remove(listener);
-	}
+    // Callback functions/attributes for rest of application
+    // Used for notifying other parts of the main gui
+    // OdysseyApplication --> MainActivity
+    private ArrayList<NowPlayingListener> mNowPlayingListeners;
 
-	// Notifies connected callback listeners, like labels
-	public synchronized void notifyNowPlaying(NowPlayingInformation info) {
-		mLastNowPlaying = info;
-		for (NowPlayingListener listener : mNowPlayingListeners) {
-			Log.v(TAG, "Notifying application nowplaying listener");
-			listener.onNewInformation(info);
-		}
-	}
+    public synchronized void registerNowPlayingListener(NowPlayingListener listener) {
+        Log.v(TAG, "added new nowplayinglistener in mainapplication");
+        mNowPlayingListeners.add(listener);
+        // Notify about last information
+        if (mLastNowPlaying != null) {
+            listener.onNewInformation(mLastNowPlaying);
+        }
+    }
 
-	// Interface specification for NowPlaying listeners
-	public interface NowPlayingListener {
-		public void onNewInformation(NowPlayingInformation info);
-	}
+    public synchronized void unregisterNowPlayingListener(NowPlayingListener listener) {
+        mNowPlayingListeners.remove(listener);
+    }
+
+    // Notifies connected callback listeners, like labels
+    public synchronized void notifyNowPlaying(NowPlayingInformation info) {
+        mLastNowPlaying = info;
+        for (NowPlayingListener listener : mNowPlayingListeners) {
+            Log.v(TAG, "Notifying application nowplaying listener");
+            listener.onNewInformation(info);
+        }
+    }
+
+    // Interface specification for NowPlaying listeners
+    public interface NowPlayingListener {
+        public void onNewInformation(NowPlayingInformation info);
+    }
 }

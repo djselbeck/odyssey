@@ -32,310 +32,309 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, 
-														OnAboutSelectedListener, OnSettingsSelectedListener {
+public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener, OnSettingsSelectedListener {
 
-	private static final String TAG = "OdysseyMainActivity";
+    private static final String TAG = "OdysseyMainActivity";
 
-	private IOdysseyPlaybackService mPlaybackService;
+    private IOdysseyPlaybackService mPlaybackService;
 
-	private DrawerLayout mDrawerLayout;
-	private ActionBarDrawerToggle mDrawerToggle;
-	private ListView mNaviBarList;
-	private String[] mNaviBarTitles;
-	
-	private QuickControl mQuickControl;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private ListView mNaviBarList;
+    private String[] mNaviBarTitles;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main_activity);
+    private QuickControl mQuickControl;
 
-		// get Titles
-		mNaviBarTitles = getResources().getStringArray(R.array.navibar_array);
-		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-		mNaviBarList = (ListView) findViewById(R.id.left_drawer);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main_activity);
 
-		// set a custom shadow that overlays the main content when the drawer
-		// opens
-		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
-		// set up the drawer's list view with items and click listener
-		mNaviBarList.setAdapter(new ArrayAdapter<String>(this, R.layout.navibar_list_item, mNaviBarTitles));
-		mNaviBarList.setOnItemClickListener(new NaviBarItemClickListener());
+        // get Titles
+        mNaviBarTitles = getResources().getStringArray(R.array.navibar_array);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mNaviBarList = (ListView) findViewById(R.id.left_drawer);
 
-		// Set up the action bar.
-		final ActionBar actionBar = getActionBar();
+        // set a custom shadow that overlays the main content when the drawer
+        // opens
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        // set up the drawer's list view with items and click listener
+        mNaviBarList.setAdapter(new ArrayAdapter<String>(this, R.layout.navibar_list_item, mNaviBarTitles));
+        mNaviBarList.setOnItemClickListener(new NaviBarItemClickListener());
 
-		actionBar.setHomeButtonEnabled(true);
-		// disable up home function
-		actionBar.setDisplayHomeAsUpEnabled(true);
+        // Set up the action bar.
+        final ActionBar actionBar = getActionBar();
 
-		// ActionBarDrawerToggle ties together the the proper interactions
-		// between the sliding drawer and the action bar app icon
-		mDrawerToggle = new ActionBarDrawerToggle(this, /* host Activity */
-		mDrawerLayout, /* DrawerLayout object */
-		R.drawable.ic_drawer, /* nav drawer image to replace 'Up' caret */
-		R.string.drawer_open, /* "open drawer" description for accessibility */
-		R.string.drawer_close /* "close drawer" description for accessibility */
-		) {
-			public void onDrawerClosed(View view) {
-				invalidateOptionsMenu();
+        actionBar.setHomeButtonEnabled(true);
+        // disable up home function
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
-			}
+        // ActionBarDrawerToggle ties together the the proper interactions
+        // between the sliding drawer and the action bar app icon
+        mDrawerToggle = new ActionBarDrawerToggle(this, /* host Activity */
+        mDrawerLayout, /* DrawerLayout object */
+        R.drawable.ic_drawer, /* nav drawer image to replace 'Up' caret */
+        R.string.drawer_open, /* "open drawer" description for accessibility */
+        R.string.drawer_close /* "close drawer" description for accessibility */
+        ) {
+            public void onDrawerClosed(View view) {
+                invalidateOptionsMenu();
 
-			public void onDrawerOpened(View view) {
-				invalidateOptionsMenu();
+            }
 
-			}
-		};
-		mDrawerLayout.setDrawerListener(mDrawerToggle);
+            public void onDrawerOpened(View view) {
+                invalidateOptionsMenu();
 
-		if (savedInstanceState == null) {
-			ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
+            }
+        };
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-			// Add the fragment to the 'fragmentContainer' FrameLayout
-			getSupportFragmentManager().beginTransaction().add(R.id.fragmentFrame, mArtistsAlbumsTabsFragment).commit();
-		}
+        if (savedInstanceState == null) {
+            ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
 
-		OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
-		if (mainApplication.getLibraryHelper() == null) {
-			mainApplication.setLibraryHelper(new MusicLibraryHelper());
-		}
+            // Add the fragment to the 'fragmentContainer' FrameLayout
+            getSupportFragmentManager().beginTransaction().add(R.id.fragmentFrame, mArtistsAlbumsTabsFragment).commit();
+        }
 
-		// Register callbacks in mainapplication which currently manages
-		// callback from playback service process
-		mQuickControl = (QuickControl) findViewById(R.id.quickControl);
-		mainApplication.registerNowPlayingListener(mQuickControl);
-		mPlaybackService = mainApplication.getPlaybackService();
-	}
+        OdysseyApplication mainApplication = (OdysseyApplication) getApplication();
+        if (mainApplication.getLibraryHelper() == null) {
+            mainApplication.setLibraryHelper(new MusicLibraryHelper());
+        }
 
-	@Override
-	public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist) {
+        // Register callbacks in mainapplication which currently manages
+        // callback from playback service process
+        mQuickControl = (QuickControl) findViewById(R.id.quickControl);
+        mainApplication.registerNowPlayingListener(mQuickControl);
+        mPlaybackService = mainApplication.getPlaybackService();
+    }
 
-		mDrawerToggle.setDrawerIndicatorEnabled(false);
-		// Create fragment and give it an argument for the selected article
-		AlbumsTracksFragment newFragment = new AlbumsTracksFragment();
-		Bundle args = new Bundle();
-		args.putString(AlbumsTracksFragment.ARG_ALBUMKEY, albumKey);
-		args.putString(AlbumsTracksFragment.ARG_ALBUMTITLE, albumTitle);
-		args.putString(AlbumsTracksFragment.ARG_ALBUMART, albumCoverImagePath);
-		args.putString(AlbumsTracksFragment.ARG_ALBUMARTIST, albumArtist);
-		newFragment.setArguments(args);
+    @Override
+    public void onAlbumSelected(String albumKey, String albumTitle, String albumCoverImagePath, String albumArtist) {
 
-		android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+        mDrawerToggle.setDrawerIndicatorEnabled(false);
+        // Create fragment and give it an argument for the selected article
+        AlbumsTracksFragment newFragment = new AlbumsTracksFragment();
+        Bundle args = new Bundle();
+        args.putString(AlbumsTracksFragment.ARG_ALBUMKEY, albumKey);
+        args.putString(AlbumsTracksFragment.ARG_ALBUMTITLE, albumTitle);
+        args.putString(AlbumsTracksFragment.ARG_ALBUMART, albumCoverImagePath);
+        args.putString(AlbumsTracksFragment.ARG_ALBUMARTIST, albumArtist);
+        newFragment.setArguments(args);
 
-		// Replace whatever is in the fragment_container view with this
-		// fragment,
-		// and add the transaction to the back stack so the user can navigate
-		// back
-		transaction.replace(R.id.fragmentFrame, newFragment);
-		transaction.addToBackStack(null);
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
 
-		// Commit the transaction
-		transaction.commit();
-	}
-	
-	@Override
-	public void onResume() {
-		super.onResume();
-		Log.v(TAG,"Resume mainactivity");
-		// FIXME Workaround for service reconnect 
-		((OdysseyApplication)getApplication()).getPlaybackService();
-	}
+        // Replace whatever is in the fragment_container view with this
+        // fragment,
+        // and add the transaction to the back stack so the user can navigate
+        // back
+        transaction.replace(R.id.fragmentFrame, newFragment);
+        transaction.addToBackStack(null);
 
-	@Override
-	public void onArtistSelected(String artist, long artistID) {
+        // Commit the transaction
+        transaction.commit();
+    }
 
-		mDrawerToggle.setDrawerIndicatorEnabled(false);
-		// Create fragment and give it an argument for the selected article
-		AlbumsSectionFragment newFragment = new AlbumsSectionFragment();
-		Bundle args = new Bundle();
-		args.putString(AlbumsSectionFragment.ARG_ARTISTNAME, artist);
-		args.putLong(AlbumsSectionFragment.ARG_ARTISTID, artistID);
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.v(TAG, "Resume mainactivity");
+        // FIXME Workaround for service reconnect
+        ((OdysseyApplication) getApplication()).getPlaybackService();
+    }
 
-		newFragment.setArguments(args);
+    @Override
+    public void onArtistSelected(String artist, long artistID) {
 
-		android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
-		// Replace whatever is in the fragment_container view with this
-		// fragment,
-		// and add the transaction to the back stack so the user can navigate
-		// back
-		transaction.replace(R.id.fragmentFrame, newFragment);
-		transaction.addToBackStack("ArtistFragment");
+        mDrawerToggle.setDrawerIndicatorEnabled(false);
+        // Create fragment and give it an argument for the selected article
+        AlbumsSectionFragment newFragment = new AlbumsSectionFragment();
+        Bundle args = new Bundle();
+        args.putString(AlbumsSectionFragment.ARG_ARTISTNAME, artist);
+        args.putLong(AlbumsSectionFragment.ARG_ARTISTID, artistID);
 
-		// Commit the transaction
-		transaction.commit();
-	}
+        newFragment.setArguments(args);
 
-	@Override
-	public void onBackPressed() {
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+        // Replace whatever is in the fragment_container view with this
+        // fragment,
+        // and add the transaction to the back stack so the user can navigate
+        // back
+        transaction.replace(R.id.fragmentFrame, newFragment);
+        transaction.addToBackStack("ArtistFragment");
 
-		invalidateOptionsMenu();
-		android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
+        // Commit the transaction
+        transaction.commit();
+    }
 
-		super.onBackPressed();
+    @Override
+    public void onBackPressed() {
 
-		// enable navigation bar when backstack empty
-		if (manager.getBackStackEntryCount() == 0) {
-			mDrawerToggle.setDrawerIndicatorEnabled(true);
-		}
+        invalidateOptionsMenu();
+        android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
 
-	}
+        super.onBackPressed();
 
-	/**
-	 * When using the ActionBarDrawerToggle, you must call it during
-	 * onPostCreate() and onConfigurationChanged()...
-	 */
+        // enable navigation bar when backstack empty
+        if (manager.getBackStackEntryCount() == 0) {
+            mDrawerToggle.setDrawerIndicatorEnabled(true);
+        }
 
-	@Override
-	protected void onPostCreate(Bundle savedInstanceState) {
-		super.onPostCreate(savedInstanceState);
-		// Sync the toggle state after onRestoreInstanceState has occurred.
-		mDrawerToggle.syncState();
-	}
+    }
 
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		// Pass any configuration change to the drawer toggls
-		mDrawerToggle.onConfigurationChanged(newConfig);
-	}
+    /**
+     * When using the ActionBarDrawerToggle, you must call it during
+     * onPostCreate() and onConfigurationChanged()...
+     */
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+    }
 
-		android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Pass any configuration change to the drawer toggls
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
 
-		switch (item.getItemId()) {
-		// Respond to the action bar's Up/Home button
-		case android.R.id.home:
-			if (manager.getBackStackEntryCount() > 0) {
-				onBackPressed();
-			} else {
-				mDrawerToggle.setDrawerIndicatorEnabled(true);
-				// The action bar home/up action should open or close the
-				// drawer.
-				// ActionBarDrawerToggle will take care of this.
-				if (mDrawerToggle.onOptionsItemSelected(item)) {
-					return true;
-				}
-			}
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
 
-	/* The click listner for ListView in the navigation drawer */
-	private class NaviBarItemClickListener implements ListView.OnItemClickListener {
-		@Override
-		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			
-			invalidateOptionsMenu();
-			// TODO check clear backstack
-			getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
 
-			android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-			transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
-			
-			switch(position) {
-			
-			case 0:				
-				mDrawerToggle.setDrawerIndicatorEnabled(true);
-				// FIXME always create a new fragment
-				ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
-				// Replace whatever is in the fragment_container view with this
-				// fragment,
-				transaction.replace(R.id.fragmentFrame, mArtistsAlbumsTabsFragment);
+        switch (item.getItemId()) {
+        // Respond to the action bar's Up/Home button
+        case android.R.id.home:
+            if (manager.getBackStackEntryCount() > 0) {
+                onBackPressed();
+            } else {
+                mDrawerToggle.setDrawerIndicatorEnabled(true);
+                // The action bar home/up action should open or close the
+                // drawer.
+                // ActionBarDrawerToggle will take care of this.
+                if (mDrawerToggle.onOptionsItemSelected(item)) {
+                    return true;
+                }
+            }
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
-				// Commit the transaction
-				transaction.commit();	
-				
-				break;
-			case 1:			
-				mDrawerToggle.setDrawerIndicatorEnabled(true);
+    /* The click listner for ListView in the navigation drawer */
+    private class NaviBarItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-				PlaylistFragment mPlaylistFragment = new PlaylistFragment();
-				// Replace whatever is in the fragment_container view with this
-				// fragment,
-				transaction.replace(R.id.fragmentFrame, mPlaylistFragment);
+            invalidateOptionsMenu();
+            // TODO check clear backstack
+            getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-				// Commit the transaction
-				transaction.commit();
+            android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
 
-				invalidateOptionsMenu();
-				
-				break;
-			case 2:			
-				mDrawerToggle.setDrawerIndicatorEnabled(true);
+            switch (position) {
 
-				NowPlayingFragment mNowPlayingFragment = new NowPlayingFragment();
-				// Replace whatever is in the fragment_container view with this
-				// fragment,
-				transaction.replace(R.id.fragmentFrame, mNowPlayingFragment);
+            case 0:
+                mDrawerToggle.setDrawerIndicatorEnabled(true);
+                // FIXME always create a new fragment
+                ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
+                // Replace whatever is in the fragment_container view with this
+                // fragment,
+                transaction.replace(R.id.fragmentFrame, mArtistsAlbumsTabsFragment);
 
-				// Commit the transaction
-				transaction.commit();
+                // Commit the transaction
+                transaction.commit();
 
-				invalidateOptionsMenu();	
-				
-				break;
-				
-			default:
-				break;
-			
-			}
+                break;
+            case 1:
+                mDrawerToggle.setDrawerIndicatorEnabled(true);
 
-			// update selected item and title, then close the drawer
-			mNaviBarList.setItemChecked(position, true);
-			mDrawerLayout.closeDrawer(mNaviBarList);
-		}
-	}
+                PlaylistFragment mPlaylistFragment = new PlaylistFragment();
+                // Replace whatever is in the fragment_container view with this
+                // fragment,
+                transaction.replace(R.id.fragmentFrame, mPlaylistFragment);
 
-	@Override
-	public void onAboutSelected() {
-		
-		android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);		
-		
-		mDrawerToggle.setDrawerIndicatorEnabled(false);
+                // Commit the transaction
+                transaction.commit();
 
-		AboutFragment mAboutFragment = new AboutFragment();
-		// Replace whatever is in the fragment_container view with this
-		// fragment,
-		transaction.replace(R.id.fragmentFrame, mAboutFragment);
-		transaction.addToBackStack(null);
-		
-		// Commit the transaction
-		transaction.commit();
+                invalidateOptionsMenu();
 
-		invalidateOptionsMenu();		
-		
-	}
-	
-	@Override
-	public void onSettingsSelected() {
-		
-		android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);		
-		
-		mDrawerToggle.setDrawerIndicatorEnabled(false);
+                break;
+            case 2:
+                mDrawerToggle.setDrawerIndicatorEnabled(true);
 
-		SettingsFragment mSettingsFragment = new SettingsFragment();
-		// Replace whatever is in the fragment_container view with this
-		// fragment,
-		transaction.replace(R.id.fragmentFrame, mSettingsFragment);
-		transaction.addToBackStack(null);
-		
-		// Commit the transaction
-		transaction.commit();
+                NowPlayingFragment mNowPlayingFragment = new NowPlayingFragment();
+                // Replace whatever is in the fragment_container view with this
+                // fragment,
+                transaction.replace(R.id.fragmentFrame, mNowPlayingFragment);
 
-		invalidateOptionsMenu();
-		
-	}	
-	
-	public QuickControl getQuickControl() {
-		return mQuickControl;
-	}
+                // Commit the transaction
+                transaction.commit();
+
+                invalidateOptionsMenu();
+
+                break;
+
+            default:
+                break;
+
+            }
+
+            // update selected item and title, then close the drawer
+            mNaviBarList.setItemChecked(position, true);
+            mDrawerLayout.closeDrawer(mNaviBarList);
+        }
+    }
+
+    @Override
+    public void onAboutSelected() {
+
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+
+        mDrawerToggle.setDrawerIndicatorEnabled(false);
+
+        AboutFragment mAboutFragment = new AboutFragment();
+        // Replace whatever is in the fragment_container view with this
+        // fragment,
+        transaction.replace(R.id.fragmentFrame, mAboutFragment);
+        transaction.addToBackStack(null);
+
+        // Commit the transaction
+        transaction.commit();
+
+        invalidateOptionsMenu();
+
+    }
+
+    @Override
+    public void onSettingsSelected() {
+
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+
+        mDrawerToggle.setDrawerIndicatorEnabled(false);
+
+        SettingsFragment mSettingsFragment = new SettingsFragment();
+        // Replace whatever is in the fragment_container view with this
+        // fragment,
+        transaction.replace(R.id.fragmentFrame, mSettingsFragment);
+        transaction.addToBackStack(null);
+
+        // Commit the transaction
+        transaction.commit();
+
+        invalidateOptionsMenu();
+
+    }
+
+    public QuickControl getQuickControl() {
+        return mQuickControl;
+    }
 }

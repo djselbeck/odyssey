@@ -7,6 +7,12 @@
         android:showAsAction="never"
         android:title="@string/album_tracks_context_menu_action_enqueue"/>
     
+    <item
+        android:id="@+id/album_tracks_context_menu_action_enqueueasnext"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/album_tracks_context_menu_action_enqueueasnext"/>
+    
 	<item
         android:id="@+id/album_tracks_context_menu_action_play"
         android:orderInCategory="100"

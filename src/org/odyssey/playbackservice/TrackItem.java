@@ -5,99 +5,93 @@ import android.os.Parcelable;
 import android.util.Log;
 
 public class TrackItem implements Parcelable {
-	private final static String TAG = "OdysseyTrackItem";
-	private String mTrackTitle = null;
-	private String mTrackAlbum = null;
-	private long mTrackDuration = 0;
-	private int mTrackNumber = 0;
-	private String mTrackArtist = null;
-	private String mTrackURL = null;
-	
-	public String getTrackTitle() {
-		return mTrackTitle;
-	}
+    private final static String TAG = "OdysseyTrackItem";
+    private String mTrackTitle = null;
+    private String mTrackAlbum = null;
+    private long mTrackDuration = 0;
+    private int mTrackNumber = 0;
+    private String mTrackArtist = null;
+    private String mTrackURL = null;
 
+    public String getTrackTitle() {
+        return mTrackTitle;
+    }
 
-	public String getTrackAlbum() {
-		return mTrackAlbum;
-	}
+    public String getTrackAlbum() {
+        return mTrackAlbum;
+    }
 
+    public long getTrackDuration() {
+        return mTrackDuration;
+    }
 
-	public long getTrackDuration() {
-		return mTrackDuration;
-	}
+    public int getTrackNumber() {
+        return mTrackNumber;
+    }
 
+    public String getTrackArtist() {
+        return mTrackArtist;
+    }
 
-	public int getTrackNumber() {
-		return mTrackNumber;
-	}
+    public String getTrackURL() {
+        return mTrackURL;
+    }
 
+    public TrackItem(String title, String artist, String album, String url, int trackNo, long trackDuration) {
+        mTrackTitle = title;
+        mTrackArtist = artist;
+        mTrackAlbum = album;
+        mTrackURL = url;
+        mTrackNumber = trackNo;
+        mTrackDuration = trackDuration;
+    }
 
-	public String getTrackArtist() {
-		return mTrackArtist;
-	}
+    public TrackItem() {
+        mTrackTitle = "";
+        mTrackArtist = "";
+        mTrackAlbum = "";
+        mTrackURL = "";
+        mTrackNumber = 0;
+        mTrackDuration = 0;
+    }
 
+    @Override
+    public int describeContents() {
+        return 1;
+    }
 
-	public String getTrackURL() {
-		return mTrackURL;
-	}
+    public String toString() {
+        return "Title: " + mTrackTitle + " Artist: " + mTrackArtist + " URL: " + mTrackURL + " No.: " + mTrackNumber + " Duration(s): " + mTrackDuration;
+    }
 
-	public TrackItem(String title, String artist, String album, String url, int trackNo, long trackDuration ) {
-		mTrackTitle = title;
-		mTrackArtist = artist;
-		mTrackAlbum = album;
-		mTrackURL = url;
-		mTrackNumber = trackNo;
-		mTrackDuration = trackDuration;
-	}
-	
-	public TrackItem() {
-		mTrackTitle = "";
-		mTrackArtist = "";
-		mTrackAlbum = "";
-		mTrackURL = "";
-		mTrackNumber = 0;
-		mTrackDuration = 0;
-	}
-	
-	
-	@Override
-	public int describeContents() {
-		return 1;
-	}
-	
-	public String toString() {
-		return "Title: " + mTrackTitle + " Artist: " + mTrackArtist + " URL: " + mTrackURL + " No.: " + mTrackNumber + " Duration(s): " + mTrackDuration;
-	}
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mTrackTitle);
+        dest.writeString(mTrackArtist);
+        dest.writeString(mTrackAlbum);
+        dest.writeString(mTrackURL);
+        dest.writeInt(mTrackNumber);
+        dest.writeLong(mTrackDuration);
+    }
 
-	@Override
-	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeString(mTrackTitle);
-		dest.writeString(mTrackArtist);
-		dest.writeString(mTrackAlbum);
-		dest.writeString(mTrackURL);
-		dest.writeInt(mTrackNumber);
-		dest.writeLong(mTrackDuration);
-	}
+    public static Parcelable.Creator<TrackItem> CREATOR = new Creator<TrackItem>() {
 
-	public static Parcelable.Creator<TrackItem> CREATOR = new Creator<TrackItem>() {
-		
-		@Override
-		public TrackItem[] newArray(int size) {
-			return new TrackItem[size];
-		}
-		
-		@Override
-		public TrackItem createFromParcel(Parcel source) {
-			String title = source.readString();
-			String artist = source.readString();
-			String album = source.readString();
-			String url = source.readString();
-			int trackno = source.readInt();
-			long duration = source.readInt();
-			TrackItem item = new TrackItem(title, artist, album, url, trackno, duration); 
-			return item;
-		}
-	};
+        @Override
+        public TrackItem[] newArray(int size) {
+            return new TrackItem[size];
+        }
+
+        @Override
+        public TrackItem createFromParcel(Parcel source) {
+            String title = source.readString();
+            String artist = source.readString();
+            String album = source.readString();
+            String url = source.readString();
+            int trackno = source.readInt();
+            long duration = source.readInt();
+            TrackItem item = new TrackItem(title, artist, album, url, trackno, duration);
+            return item;
+        }
+    };
 
 }

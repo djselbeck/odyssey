@@ -22,126 +22,125 @@ import android.widget.Toast;
 
 public class ArtistsAlbumsTabsFragment extends Fragment {
 
-	ViewPager mViewPager;
-	AppSectionsPagerAdapter mAppSectionsPagerAdapter;
-	
-	OnAboutSelectedListener mAboutSelectedCallback;
-	OnSettingsSelectedListener mSettingsSelectedCallback;
-	
-	// Listener for communication via container activity
-	public interface OnAboutSelectedListener {
-		public void onAboutSelected();
-	}
-	public interface OnSettingsSelectedListener {
-		public void onSettingsSelected();
-	}	
-	
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		
+    ViewPager mViewPager;
+    AppSectionsPagerAdapter mAppSectionsPagerAdapter;
+
+    OnAboutSelectedListener mAboutSelectedCallback;
+    OnSettingsSelectedListener mSettingsSelectedCallback;
+
+    // Listener for communication via container activity
+    public interface OnAboutSelectedListener {
+        public void onAboutSelected();
+    }
+
+    public interface OnSettingsSelectedListener {
+        public void onSettingsSelected();
+    }
+
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
         try {
-        	mAboutSelectedCallback = (OnAboutSelectedListener) activity;
+            mAboutSelectedCallback = (OnAboutSelectedListener) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnAlbumSelectedListener");
-        }          
-		
+            throw new ClassCastException(activity.toString() + " must implement OnAlbumSelectedListener");
+        }
+
         try {
-        	mSettingsSelectedCallback = (OnSettingsSelectedListener) activity;
+            mSettingsSelectedCallback = (OnSettingsSelectedListener) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnSettingsSelectedListener");
-        }         
-	}	
+            throw new ClassCastException(activity.toString() + " must implement OnSettingsSelectedListener");
+        }
+    }
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		super.onCreateView(inflater, container, savedInstanceState);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
 
-		((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
-		
-		// indicate this fragment has its own menu
-		setHasOptionsMenu(true);		
-		
-		View rootView = inflater.inflate(R.layout.fragment_artists_albums_tabs, container, false);
+        ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
-		// Create the adapter that will return a fragment for each of the three
-		// primary sections
-		// of the app.
-		mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getChildFragmentManager(), getActivity());
+        // indicate this fragment has its own menu
+        setHasOptionsMenu(true);
 
-		// Set up the ViewPager, attaching the adapter and setting up a listener
-		// for when the
-		// user swipes between sections.
-		mViewPager = (ViewPager) rootView.findViewById(R.id.pager);
-		mViewPager.setAdapter(mAppSectionsPagerAdapter);
+        View rootView = inflater.inflate(R.layout.fragment_artists_albums_tabs, container, false);
 
-		return rootView;
-	}
-	
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		inflater.inflate(R.menu.main, menu);
-		
-		super.onCreateOptionsMenu(menu, inflater);
-	}	
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections
+        // of the app.
+        mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getChildFragmentManager(), getActivity());
 
-	    switch (item.getItemId()) {
-	        case R.id.action_settings:
-	        	mSettingsSelectedCallback.onSettingsSelected();
-				return true;
-	        case R.id.action_about:
-	        	mAboutSelectedCallback.onAboutSelected();
-	        	return true;
-	    }
-	    return super.onOptionsItemSelected(item);
-	}	
+        // Set up the ViewPager, attaching the adapter and setting up a listener
+        // for when the
+        // user swipes between sections.
+        mViewPager = (ViewPager) rootView.findViewById(R.id.pager);
+        mViewPager.setAdapter(mAppSectionsPagerAdapter);
 
-	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-	 * one of the primary sections of the app.
-	 */
-	public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
-		Context mContext;
+        return rootView;
+    }
 
-		public AppSectionsPagerAdapter(FragmentManager fm, Context context) {
-			super(fm);
-			this.mContext = context;
-		}
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.main, menu);
 
-		@Override
-		public Fragment getItem(int i) {
-			switch (i) {
-			case 0:
-				return new ArtistsSectionFragment();
-			case 1:
-				return new AlbumsSectionFragment();
-			default:
-				return null;
-			}
-		}
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
-		@Override
-		public int getCount() {
-			return 2;
-		}
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
 
-		@Override
-		public CharSequence getPageTitle(int position) {
-			switch (position) {
-			case 0:
-				return mContext.getText(R.string.section_title_artists);
-			case 1:
-				return mContext.getText(R.string.section_title_albums);
-			}
-			return "";
-		}
-	}
+        switch (item.getItemId()) {
+        case R.id.action_settings:
+            mSettingsSelectedCallback.onSettingsSelected();
+            return true;
+        case R.id.action_about:
+            mAboutSelectedCallback.onAboutSelected();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
+     * one of the primary sections of the app.
+     */
+    public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
+        Context mContext;
+
+        public AppSectionsPagerAdapter(FragmentManager fm, Context context) {
+            super(fm);
+            this.mContext = context;
+        }
+
+        @Override
+        public Fragment getItem(int i) {
+            switch (i) {
+            case 0:
+                return new ArtistsSectionFragment();
+            case 1:
+                return new AlbumsSectionFragment();
+            default:
+                return null;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (position) {
+            case 0:
+                return mContext.getText(R.string.section_title_artists);
+            case 1:
+                return mContext.getText(R.string.section_title_albums);
+            }
+            return "";
+        }
+    }
 
 }

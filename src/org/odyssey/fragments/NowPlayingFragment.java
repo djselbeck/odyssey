@@ -32,346 +32,346 @@ import android.widget.TextView;
 
 public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListener, OdysseyApplication.NowPlayingListener {
 
-	private TextView mTitleTextView;
-	private TextView mMinDuration;
-	private TextView mMaxDuration;
-	private ImageView mCoverImageView;
-	private SeekBar mSeekBar;
-	private IOdysseyPlaybackService mPlayer;
-	private Timer mRefreshTimer = null;
-	private ImageButton mPlayPauseButton;
-	private ImageButton mRepeatButton;
-	private ImageButton mShuffleButton;
+    private TextView mTitleTextView;
+    private TextView mMinDuration;
+    private TextView mMaxDuration;
+    private ImageView mCoverImageView;
+    private SeekBar mSeekBar;
+    private IOdysseyPlaybackService mPlayer;
+    private Timer mRefreshTimer = null;
+    private ImageButton mPlayPauseButton;
+    private ImageButton mRepeatButton;
+    private ImageButton mShuffleButton;
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-		((MainActivity) getActivity()).getQuickControl().setVisibility(View.GONE);
-		
-		View rootView = inflater.inflate(R.layout.fragment_now_playing, container, false);
+        ((MainActivity) getActivity()).getQuickControl().setVisibility(View.GONE);
 
-		mTitleTextView = (TextView) rootView.findViewById(R.id.nowPlayingTitleView);
+        View rootView = inflater.inflate(R.layout.fragment_now_playing, container, false);
 
-		mCoverImageView = (ImageView) rootView.findViewById(R.id.nowPlayingAlbumImageView);
+        mTitleTextView = (TextView) rootView.findViewById(R.id.nowPlayingTitleView);
 
-		mMinDuration = (TextView) rootView.findViewById(R.id.nowPlayingMinValue);
+        mCoverImageView = (ImageView) rootView.findViewById(R.id.nowPlayingAlbumImageView);
 
-		mMinDuration.setText("0:00");
+        mMinDuration = (TextView) rootView.findViewById(R.id.nowPlayingMinValue);
 
-		mMaxDuration = (TextView) rootView.findViewById(R.id.nowPlayingMaxValue);
+        mMinDuration.setText("0:00");
 
-		mSeekBar = (SeekBar) rootView.findViewById(R.id.nowPlayingSeekBar);
+        mMaxDuration = (TextView) rootView.findViewById(R.id.nowPlayingMaxValue);
 
-		// set listener for seekbar
-		mSeekBar.setOnSeekBarChangeListener(this);
+        mSeekBar = (SeekBar) rootView.findViewById(R.id.nowPlayingSeekBar);
 
-		// get the playbackservice
-		mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+        // set listener for seekbar
+        mSeekBar.setOnSeekBarChangeListener(this);
 
-		// Set up button listeners
-		rootView.findViewById(R.id.nowPlayingNextButton).setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View arg0) {
-				try {
-					mPlayer.next();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
+        // get the playbackservice
+        mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
 
-		rootView.findViewById(R.id.nowPlayingPreviousButton).setOnClickListener(new OnClickListener() {
+        // Set up button listeners
+        rootView.findViewById(R.id.nowPlayingNextButton).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                try {
+                    mPlayer.next();
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
 
-			@Override
-			public void onClick(View arg0) {
-				try {
-					mPlayer.previous();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
+        rootView.findViewById(R.id.nowPlayingPreviousButton).setOnClickListener(new OnClickListener() {
 
-		mPlayPauseButton = (ImageButton) rootView.findViewById(R.id.nowPlayingPlaypauseButton);
-				
-		mPlayPauseButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                try {
+                    mPlayer.previous();
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
 
-			@Override
-			public void onClick(View arg0) {
-				try {
-					mPlayer.togglePause();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
+        mPlayPauseButton = (ImageButton) rootView.findViewById(R.id.nowPlayingPlaypauseButton);
 
-		rootView.findViewById(R.id.nowPlayingStopButton).setOnClickListener(new OnClickListener() {
+        mPlayPauseButton.setOnClickListener(new OnClickListener() {
 
-			@Override
-			public void onClick(View arg0) {
-				try {
-					mPlayer.stop();
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
+            @Override
+            public void onClick(View arg0) {
+                try {
+                    mPlayer.togglePause();
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
 
-		// TODO change repeat behavior to toggle track, playlist, nothing
-		mRepeatButton = (ImageButton) rootView.findViewById(R.id.nowPlayingRepeatButton);
-		
-		mRepeatButton.setOnClickListener(new OnClickListener() {
+        rootView.findViewById(R.id.nowPlayingStopButton).setOnClickListener(new OnClickListener() {
 
-			@Override
-			public void onClick(View arg0) {
-				try {
-					mPlayer.setRepeat(!mPlayer.getRepeat());
-					if(mPlayer.getRepeat()) {
-						mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
-					} else {
-						mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
-					}
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
+            @Override
+            public void onClick(View arg0) {
+                try {
+                    mPlayer.stop();
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
 
-		// TODO change shuffle behavior
-		mShuffleButton = (ImageButton) rootView.findViewById(R.id.nowPlayingShuffleButton);
-		
-		mShuffleButton.setOnClickListener(new OnClickListener() {
+        // TODO change repeat behavior to toggle track, playlist, nothing
+        mRepeatButton = (ImageButton) rootView.findViewById(R.id.nowPlayingRepeatButton);
 
-			@Override
-			public void onClick(View arg0) {
-				try {
-					mPlayer.setRandom(!mPlayer.getRandom());
-					if(mPlayer.getRandom()) {
-						mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
-					} else {
-						mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
-					}
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
+        mRepeatButton.setOnClickListener(new OnClickListener() {
 
-		// register for playback callbacks
-		OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
+            @Override
+            public void onClick(View arg0) {
+                try {
+                    mPlayer.setRepeat(!mPlayer.getRepeat());
+                    if (mPlayer.getRepeat()) {
+                        mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                    } else {
+                        mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
+                    }
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
 
-		mainApplication.registerNowPlayingListener(this);
+        // TODO change shuffle behavior
+        mShuffleButton = (ImageButton) rootView.findViewById(R.id.nowPlayingShuffleButton);
 
-		// Create timer for seekbar refresh
-		mRefreshTimer = new Timer();
+        mShuffleButton.setOnClickListener(new OnClickListener() {
 
-		return rootView;
-	}
+            @Override
+            public void onClick(View arg0) {
+                try {
+                    mPlayer.setRandom(!mPlayer.getRandom());
+                    if (mPlayer.getRandom()) {
+                        mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                    } else {
+                        mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
+                    }
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
 
-	@Override
-	public void onPause() {
-		super.onPause();
-		mRefreshTimer.cancel();
-		mRefreshTimer = null;
-	}
+        // register for playback callbacks
+        OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
 
-	@Override
-	public void onResume() {
-		super.onResume();
-		mRefreshTimer = new Timer();
-		mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
-	}
+        mainApplication.registerNowPlayingListener(this);
 
-	private void updateStatus() {
+        // Create timer for seekbar refresh
+        mRefreshTimer = new Timer();
 
-		// get current track
-		TrackItem currentTrack = null;
-		try {
-			currentTrack = mPlayer.getCurrentSong();
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        return rootView;
+    }
 
-		if (currentTrack == null) {
-			currentTrack = new TrackItem();
-		}
+    @Override
+    public void onPause() {
+        super.onPause();
+        mRefreshTimer.cancel();
+        mRefreshTimer = null;
+    }
 
-		// set tracktitle and albumcover
-		mTitleTextView.setText(currentTrack.getTrackTitle() + " - " + currentTrack.getTrackArtist());
+    @Override
+    public void onResume() {
+        super.onResume();
+        mRefreshTimer = new Timer();
+        mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
+    }
 
-		String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
+    private void updateStatus() {
 
-		String whereVal[] = { currentTrack.getTrackAlbum() };
+        // get current track
+        TrackItem currentTrack = null;
+        try {
+            currentTrack = mPlayer.getCurrentSong();
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-		Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
+        if (currentTrack == null) {
+            currentTrack = new TrackItem();
+        }
 
-		String coverPath = null;
-		if (cursor.moveToFirst()) {
-			coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-		}
-		
-		if (coverPath != null) {
-			// create and execute new asynctask
-			AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();
-			coverHolder.coverViewReference = new WeakReference<ImageView>(mCoverImageView);
-			coverHolder.imagePath = coverPath;
-			coverHolder.task = new AsyncLoader();
-			
-			coverHolder.task.execute(coverHolder);
-		} else {
-			mCoverImageView.setImageResource(R.drawable.coverplaceholder);
-		}
+        // set tracktitle and albumcover
+        mTitleTextView.setText(currentTrack.getTrackTitle() + " - " + currentTrack.getTrackArtist());
 
-		// calculate duration in minutes and seconds
-		String seconds = String.valueOf((currentTrack.getTrackDuration() % 60000) / 1000);
+        String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
 
-		String minutes = String.valueOf(currentTrack.getTrackDuration() / 60000);
+        String whereVal[] = { currentTrack.getTrackAlbum() };
 
-		if (seconds.length() == 1) {
-			mMaxDuration.setText(minutes + ":0" + seconds);
-		} else {
-			mMaxDuration.setText(minutes + ":" + seconds);
-		}
-		
-		// update repeat and random button
-		try {
-			if(mPlayer.getRepeat()) {
-				mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
-			} else {
-				mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
-			}
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	
-		try {
-			if(mPlayer.getRandom()) {
-				mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
-			} else {
-				mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
-			}
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
+        Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
 
-		// set up seekbar
-		mSeekBar.setMax((int) currentTrack.getTrackDuration());
+        String coverPath = null;
+        if (cursor.moveToFirst()) {
+            coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+        }
 
-		updateSeekBar();
+        if (coverPath != null) {
+            // create and execute new asynctask
+            AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();
+            coverHolder.coverViewReference = new WeakReference<ImageView>(mCoverImageView);
+            coverHolder.imagePath = coverPath;
+            coverHolder.task = new AsyncLoader();
 
-		updateDurationView();
-	}
+            coverHolder.task.execute(coverHolder);
+        } else {
+            mCoverImageView.setImageResource(R.drawable.coverplaceholder);
+        }
 
-	private void updateSeekBar() {
-		try {
-			mSeekBar.setProgress(mPlayer.getTrackPosition());
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+        // calculate duration in minutes and seconds
+        String seconds = String.valueOf((currentTrack.getTrackDuration() % 60000) / 1000);
 
-	private void updateDurationView() {
-		// calculate duration in minutes and seconds
-		String seconds = "";
-		String minutes = "";
-		try {
-			seconds = String.valueOf((mPlayer.getTrackPosition() % 60000) / 1000);
-			minutes = String.valueOf(mPlayer.getTrackPosition() / 60000);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        String minutes = String.valueOf(currentTrack.getTrackDuration() / 60000);
 
-		if (seconds.length() == 1) {
-			mMinDuration.setText(minutes + ":0" + seconds);
-		} else {
-			mMinDuration.setText(minutes + ":" + seconds);
-		}
-	}
+        if (seconds.length() == 1) {
+            mMaxDuration.setText(minutes + ":0" + seconds);
+        } else {
+            mMaxDuration.setText(minutes + ":" + seconds);
+        }
 
-	private class RefreshTask extends TimerTask {
+        // update repeat and random button
+        try {
+            if (mPlayer.getRepeat()) {
+                mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+            } else {
+                mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
+            }
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        try {
+            if (mPlayer.getRandom()) {
+                mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+            } else {
+                mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
+            }
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-		@Override
-		public void run() {
-			Activity activity = (Activity) getActivity();
-			if (activity != null) {
-				activity.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						updateDurationView();
-						updateSeekBar();
-					}
-				});
-			}
+        // set up seekbar
+        mSeekBar.setMax((int) currentTrack.getTrackDuration());
 
-		}
-	};
+        updateSeekBar();
 
-	@Override
-	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        updateDurationView();
+    }
 
-		if (fromUser) {
-			try {
-				mPlayer.seekTo(progress);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+    private void updateSeekBar() {
+        try {
+            mSeekBar.setProgress(mPlayer.getTrackPosition());
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
-	@Override
-	public void onStartTrackingTouch(SeekBar seekBar) {
-		// TODO Auto-generated method stub
+    private void updateDurationView() {
+        // calculate duration in minutes and seconds
+        String seconds = "";
+        String minutes = "";
+        try {
+            seconds = String.valueOf((mPlayer.getTrackPosition() % 60000) / 1000);
+            minutes = String.valueOf(mPlayer.getTrackPosition() / 60000);
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-	}
+        if (seconds.length() == 1) {
+            mMinDuration.setText(minutes + ":0" + seconds);
+        } else {
+            mMinDuration.setText(minutes + ":" + seconds);
+        }
+    }
 
-	@Override
-	public void onStopTrackingTouch(SeekBar seekBar) {
-		// TODO Auto-generated method stub
+    private class RefreshTask extends TimerTask {
 
-	}
+        @Override
+        public void run() {
+            Activity activity = (Activity) getActivity();
+            if (activity != null) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateDurationView();
+                        updateSeekBar();
+                    }
+                });
+            }
 
-	@Override
-	public void onNewInformation(NowPlayingInformation info) {
+        }
+    };
 
-		final boolean songPlaying = (info.getPlaying() == 1 ) ? true : false;
-		
-		new Thread() {
-			public void run() {
-				Activity activity = (Activity) getActivity();
-				if (activity != null) {
-					activity.runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							// update imagebuttons
-							if (songPlaying) {
-								mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
-							} else {
-								mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
-							}								
-							// update views
-							updateStatus();
-						}
-					});
-				}
-			}
-		}.start();
-	}
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+        if (fromUser) {
+            try {
+                mPlayer.seekTo(progress);
+            } catch (RemoteException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void onNewInformation(NowPlayingInformation info) {
+
+        final boolean songPlaying = (info.getPlaying() == 1) ? true : false;
+
+        new Thread() {
+            public void run() {
+                Activity activity = (Activity) getActivity();
+                if (activity != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // update imagebuttons
+                            if (songPlaying) {
+                                mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+                            } else {
+                                mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+                            }
+                            // update views
+                            updateStatus();
+                        }
+                    });
+                }
+            }
+        }.start();
+    }
 }

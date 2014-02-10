@@ -12,18 +12,18 @@ import android.widget.TextView;
 
 public class SettingsFragment extends Fragment {
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		
-		((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
-		
-		View rootView = inflater.inflate(R.layout.fragment_section_dummy, container, false);
-		
-		TextView text = (TextView) rootView.findViewById(android.R.id.text1);
-		
-		text.setText(R.string.dummy_section_text);
-		
-		return rootView;
-	}	
-	
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
+
+        View rootView = inflater.inflate(R.layout.fragment_section_dummy, container, false);
+
+        TextView text = (TextView) rootView.findViewById(android.R.id.text1);
+
+        text.setText(R.string.dummy_section_text);
+
+        return rootView;
+    }
+
 }
