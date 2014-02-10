@@ -197,6 +197,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (mCurrentPlayingIndex >= 0) {
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Log.v(TAG, "Send to SLS: " + item);
             Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
             bCast.putExtra("state", 3);
             bCast.putExtra("app-name", "Odyssey");
@@ -224,6 +225,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Log.v(TAG, "Send to SLS: " + item);
             Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
             bCast.putExtra("state", 2);
             bCast.putExtra("app-name", "Odyssey");
@@ -266,6 +268,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Log.v(TAG, "Send to SLS: " + item);
             Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
             bCast.putExtra("state", 1);
             bCast.putExtra("app-name", "Odyssey");
@@ -320,6 +323,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
                 try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+
+                    // Broadcast simple.last.fm.scrobble broadcast
+                    TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                    Log.v(TAG, "Send to SLS: " + item);
+                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                    bCast.putExtra("state", 0);
+                    bCast.putExtra("app-name", "Odyssey");
+                    bCast.putExtra("app-package", "org.odyssey");
+                    bCast.putExtra("artist", item.getTrackArtist());
+                    bCast.putExtra("album", item.getTrackAlbum());
+                    bCast.putExtra("track", item.getTrackTitle());
+                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                    sendBroadcast(bCast);
+
                     // Check if next song is availible (gapless)
                     if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
                         mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
@@ -371,6 +388,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 // Start playback of new song
                 try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+
+                    // Broadcast simple.last.fm.scrobble broadcast
+                    TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                    Log.v(TAG, "Send to SLS: " + item);
+                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                    bCast.putExtra("state", 0);
+                    bCast.putExtra("app-name", "Odyssey");
+                    bCast.putExtra("app-package", "org.odyssey");
+                    bCast.putExtra("artist", item.getTrackArtist());
+                    bCast.putExtra("album", item.getTrackAlbum());
+                    bCast.putExtra("track", item.getTrackTitle());
+                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                    sendBroadcast(bCast);
+
                     // Check if next song is availible (gapless)
                     if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
                         mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
@@ -596,6 +627,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     mServiceCancelTimer = null;
                 }
                 mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+
+                // Broadcast simple.last.fm.scrobble broadcast
+                TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                Log.v(TAG, "Send to SLS: " + item);
+                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                bCast.putExtra("state", 0);
+                bCast.putExtra("app-name", "Odyssey");
+                bCast.putExtra("app-package", "org.odyssey");
+                bCast.putExtra("artist", item.getTrackArtist());
+                bCast.putExtra("album", item.getTrackAlbum());
+                bCast.putExtra("track", item.getTrackTitle());
+                bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                sendBroadcast(bCast);
 
                 broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
 
@@ -1280,18 +1324,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         public void onTrackStarted(String URI) {
             Log.v(TAG, "track started: " + URI + " PL index: " + mCurrentPlayingIndex);
 
-            // Broadcast simple.last.fm.scrobble broadcast
-            TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-            Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-            bCast.putExtra("state", 0);
-            bCast.putExtra("app-name", "Odyssey");
-            bCast.putExtra("app-package", "org.odyssey");
-            bCast.putExtra("artist", item.getTrackArtist());
-            bCast.putExtra("album", item.getTrackAlbum());
-            bCast.putExtra("track", item.getTrackTitle());
-            bCast.putExtra("duration", item.getTrackDuration() / 1000);
-            sendBroadcast(bCast);
-
             broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
             updateNotification();
             if (mTempWakelock.isHeld()) {
@@ -1310,6 +1342,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            Log.v(TAG, "Send to SLS: " + item);
             Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
             bCast.putExtra("state", 3);
             bCast.putExtra("app-name", "Odyssey");
@@ -1335,6 +1368,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 }
                 broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
                 updateNotification();
+
+                // Broadcast simple.last.fm.scrobble broadcast
+                TrackItem newTrackitem = mCurrentList.get(mCurrentPlayingIndex);
+                Log.v(TAG, "Send to SLS: " + newTrackitem);
+                Intent newbCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                newbCast.putExtra("state", 0);
+                newbCast.putExtra("app-name", "Odyssey");
+                newbCast.putExtra("app-package", "org.odyssey");
+                newbCast.putExtra("artist", newTrackitem.getTrackArtist());
+                newbCast.putExtra("album", newTrackitem.getTrackAlbum());
+                newbCast.putExtra("track", newTrackitem.getTrackTitle());
+                newbCast.putExtra("duration", newTrackitem.getTrackDuration() / 1000);
+                sendBroadcast(newbCast);
 
                 // create new random nextindex
                 mNextPlayingIndex = rand.nextInt(mCurrentList.size());
@@ -1385,6 +1431,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     mCurrentPlayingIndex++;
                     broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
                     updateNotification();
+
+                    // Broadcast simple.last.fm.scrobble broadcast
+                    TrackItem newTrackitem = mCurrentList.get(mCurrentPlayingIndex);
+                    Log.v(TAG, "Send to SLS: " + newTrackitem);
+                    Intent newbCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                    newbCast.putExtra("state", 0);
+                    newbCast.putExtra("app-name", "Odyssey");
+                    newbCast.putExtra("app-package", "org.odyssey");
+                    newbCast.putExtra("artist", newTrackitem.getTrackArtist());
+                    newbCast.putExtra("album", newTrackitem.getTrackAlbum());
+                    newbCast.putExtra("track", newTrackitem.getTrackTitle());
+                    newbCast.putExtra("duration", newTrackitem.getTrackDuration() / 1000);
+                    sendBroadcast(newbCast);
 
                     /*
                      * Check if we even have one more song to play if it is the
