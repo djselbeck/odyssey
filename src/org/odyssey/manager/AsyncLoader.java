@@ -16,7 +16,8 @@ public class AsyncLoader extends
 		AsyncTask<AsyncLoader.CoverViewHolder, Void, Bitmap> {
 
 	private CoverViewHolder cover;
-
+	private static boolean mIsScaled;
+	
 	/*
 	 * Wrapperclass for covers
 	 */
@@ -53,7 +54,14 @@ public class AsyncLoader extends
         BitmapFactory.decodeFile(pathName, options);
 
         // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        if(reqWidth == 0 && reqHeight == 0) {
+        	// check if the layout of the view already set
+        	options.inSampleSize = 1;
+        	mIsScaled = false;
+        } else {
+        	options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        	mIsScaled = true;
+        }
 
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
@@ -89,7 +97,8 @@ public class AsyncLoader extends
 
 		// set cover if exists
 		if (cover.coverViewReference != null && result != null) {
-			if(cover.cache != null) {
+			if(cover.cache != null && mIsScaled) {
+				// only use cache if image was scaled
 				cover.cache.get().put(cover.imagePath, result);
 			}
 			cover.coverViewReference.get().setImageBitmap(result);
