@@ -499,6 +499,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
                 try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+
+                    // Broadcast simple.last.fm.scrobble broadcast
+                    TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                    Log.v(TAG, "Send to SLS: " + item);
+                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                    bCast.putExtra("state", 0);
+                    bCast.putExtra("app-name", "Odyssey");
+                    bCast.putExtra("app-package", "org.odyssey");
+                    bCast.putExtra("artist", item.getTrackArtist());
+                    bCast.putExtra("album", item.getTrackAlbum());
+                    bCast.putExtra("track", item.getTrackTitle());
+                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                    sendBroadcast(bCast);
+
                     // Check if next song is availible (gapless)
                     if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
                         mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
@@ -541,6 +555,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 // Start playback of new song
                 try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+
+                    // Broadcast simple.last.fm.scrobble broadcast
+                    TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                    Log.v(TAG, "Send to SLS: " + item);
+                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                    bCast.putExtra("state", 0);
+                    bCast.putExtra("app-name", "Odyssey");
+                    bCast.putExtra("app-package", "org.odyssey");
+                    bCast.putExtra("artist", item.getTrackArtist());
+                    bCast.putExtra("album", item.getTrackAlbum());
+                    bCast.putExtra("track", item.getTrackTitle());
+                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                    sendBroadcast(bCast);
+
                     // Check if next song is availible (gapless)
                     if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
                         mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
