@@ -179,7 +179,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     @Override
     public void onDestroy() {
+        Log.v(TAG, "Service destroyed");
         stopSelf();
+
     }
 
     // Directly plays uri

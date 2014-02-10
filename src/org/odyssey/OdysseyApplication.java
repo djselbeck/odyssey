@@ -28,7 +28,7 @@ public class OdysseyApplication extends Application {
 
     public OdysseyApplication() {
         mNowPlayingListeners = new ArrayList<OdysseyApplication.NowPlayingListener>();
-        // mPBServiceConnection = new PlaybackServiceConnection(this);
+        mPBServiceConnection = new PlaybackServiceConnection(this);
         Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
     }
 
@@ -42,19 +42,10 @@ public class OdysseyApplication extends Application {
         return mLibraryHelper;
     }
 
-    private void setPlaybackService(IOdysseyPlaybackService service) {
-        if (service != null) {
-            mPlaybackService = service;
-        }
-    }
-
     public IOdysseyPlaybackService getPlaybackService() {
         Log.v(TAG, "Playback service requested");
-
-        if (mPlaybackService == null && !mConnectionEstablishing) {
+        if (mPlaybackService == null) {
             Log.v(TAG, "Reopening service connection");
-            mPBServiceConnection = new PlaybackServiceConnection(this);
-            mConnectionEstablishing = true;
             // Create initial service connection here
             // create service connection
             Intent serviceStartIntent = new Intent(this, PlaybackService.class);
