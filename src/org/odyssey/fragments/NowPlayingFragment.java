@@ -186,8 +186,11 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         super.onResume();
         // get the playbackservice
         mPlayer = null;
-        while (mPlayer == null) {
+        int count = 0;
+        // Abort after 1000 connection trys
+        while (mPlayer == null && (count < 1000)) {
             mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+            count ++;
         }
         mRefreshTimer = new Timer();
         mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);

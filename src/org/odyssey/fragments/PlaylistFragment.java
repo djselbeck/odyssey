@@ -95,8 +95,11 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
     public void onResume() {
         super.onResume();
         mPBService = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
-        while (mPBService == null) {
+        int count = 0;
+        // Abort after 1000 connection trys
+        while (mPBService == null && (count < 1000)) {
             mPBService = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+            count++;
         }
         mPlayListAdapter = new PlaylistTracksAdapter(mPBService);
         mListView.setAdapter(mPlayListAdapter);
