@@ -26,6 +26,7 @@
     <string name="dummy_section_text">Dummy_Section</string>
     <string name="section_title_albums">Albums</string>
     <string name="section_title_artists">Artists</string>
+    <string name="section_title_alltracks">Tracks</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     

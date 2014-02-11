@@ -77,6 +77,9 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
         mViewPager = (ViewPager) rootView.findViewById(R.id.pager);
         mViewPager.setAdapter(mAppSectionsPagerAdapter);
 
+        // set start page to albumsection
+        mViewPager.setCurrentItem(1);
+
         return rootView;
     }
 
@@ -108,6 +111,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
      */
     public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
         Context mContext;
+        static final int mNumberOfPages = 3;
 
         public AppSectionsPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
@@ -121,6 +125,8 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
                 return new ArtistsSectionFragment();
             case 1:
                 return new AlbumsSectionFragment();
+            case 2:
+                return new AllTracksFragment();
             default:
                 return null;
             }
@@ -128,7 +134,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return 2;
+            return mNumberOfPages;
         }
 
         @Override
@@ -138,6 +144,8 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
                 return mContext.getText(R.string.section_title_artists);
             case 1:
                 return mContext.getText(R.string.section_title_albums);
+            case 2:
+                return mContext.getText(R.string.section_title_alltracks);
             }
             return "";
         }

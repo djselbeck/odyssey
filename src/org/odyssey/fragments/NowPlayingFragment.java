@@ -40,7 +40,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     private Timer mRefreshTimer = null;
     private ImageButton mPlayPauseButton;
     private ImageButton mRepeatButton;
-    private ImageButton mShuffleButton;
+    private ImageButton mRandomButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -142,19 +142,19 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             }
         });
 
-        // TODO change shuffle behavior
-        mShuffleButton = (ImageButton) rootView.findViewById(R.id.nowPlayingShuffleButton);
+        // TODO change random behavior
+        mRandomButton = (ImageButton) rootView.findViewById(R.id.nowPlayingRandomButton);
 
-        mShuffleButton.setOnClickListener(new OnClickListener() {
+        mRandomButton.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
                 try {
                     mPlayer.setRandom(!mPlayer.getRandom());
                     if (mPlayer.getRandom()) {
-                        mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                        mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
                     } else {
-                        mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
+                        mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
                     }
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
@@ -190,7 +190,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         // Abort after 1000 connection trys
         while (mPlayer == null && (count < 1000)) {
             mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
-            count ++;
+            count++;
         }
         mRefreshTimer = new Timer();
         mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
@@ -264,9 +264,9 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         }
         try {
             if (mPlayer.getRandom()) {
-                mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
             } else {
-                mShuffleButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
+                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
             }
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
