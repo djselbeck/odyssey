@@ -6,5 +6,11 @@
         android:orderInCategory="100"
         android:showAsAction="never"
         android:title="@string/playlist_context_menu_action_remove"/>    
+        
+        <item
+        android:id="@+id/playlist_context_menu_action_playnext"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/playlist_context_menu_action_playnext"/>  
 
 </menu>

@@ -97,7 +97,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
         mPBService = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
         int count = 0;
         // Abort after 1000 connection trys
-        while (mPBService == null && (count < 1000)) {
+        while (mPBService == null || (count < 1000)) {
             mPBService = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
             count++;
         }
@@ -307,10 +307,19 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
         switch (item.getItemId()) {
         case R.id.playlist_context_menu_action_remove:
-            OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
             mPlayListAdapter.remove(info.position);
-
             return true;
+        case R.id.playlist_context_menu_action_playnext:
+        	OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+        	TrackItem track = (TrackItem) mListView.getAdapter().getItem(info.position);
+            mPlayListAdapter.remove(info.position);
+            try {
+				app.getPlaybackService().enqueueTrackAsNext(track);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	return true;
         default:
             return super.onContextItemSelected(item);
         }

@@ -9,19 +9,20 @@
     <string name="action_addalbum">Add album to playlist</string>
     <string name="action_playalbum">Play album</string>
     
-    <string name="album_context_menu_action_enqueue"> add to playlist </string>
-    <string name="album_context_menu_action_play"> play album </string>
-    <string name="album_context_menu_action_artist"> show artist </string>
+    <string name="album_context_menu_action_enqueue">add to playlist</string>
+    <string name="album_context_menu_action_play">play album</string>
+    <string name="album_context_menu_action_artist">show artist</string>
     
-    <string name="album_tracks_context_menu_action_enqueue">add to playlist </string>
+    <string name="album_tracks_context_menu_action_enqueue">add to playlist</string>
     <string name="album_tracks_context_menu_action_enqueueasnext">play after current song</string>
-    <string name="album_tracks_context_menu_action_play"> play album </string>
-    <string name="album_tracks_context_menu_action_artist"> show artist </string> 
+    <string name="album_tracks_context_menu_action_play">play album</string>
+    <string name="album_tracks_context_menu_action_artist">show artist</string> 
        
-    <string name="artist_context_menu_action_enqueue"> add to playlist </string>
-    <string name="artist_context_menu_action_play"> play albums </string>
+    <string name="artist_context_menu_action_enqueue">add to playlist</string>
+    <string name="artist_context_menu_action_play">play albums</string>
     
-     <string name="playlist_context_menu_action_remove"> remove track </string>
+     <string name="playlist_context_menu_action_remove">remove track</string>
+     <string name="playlist_context_menu_action_playnext">play as next song</string>
     
     <string name="dummy_section_text">Dummy_Section</string>
     <string name="section_title_albums">Albums</string>
