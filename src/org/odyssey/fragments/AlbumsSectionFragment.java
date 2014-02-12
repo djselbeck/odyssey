@@ -89,6 +89,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
+        // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
         View rootView = inflater.inflate(R.layout.fragment_albums, container, false);

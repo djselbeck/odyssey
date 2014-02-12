@@ -45,6 +45,15 @@ import android.widget.Toast;
 
 public class PlaybackService extends Service implements AudioManager.OnAudioFocusChangeListener {
 
+    // enums for random, repeat state
+    public static enum RANDOMSTATE {
+        RANDOM_OFF, RANDOM_ON;
+    }
+
+    public static enum REPEATSTATE {
+        REPEAT_OFF, REPEAT_ALL, REPEAT_TRACK;
+    }
+
     public static final String TAG = "OdysseyPlaybackService";
     public static final int NOTIFICATION_ID = 42;
 
@@ -82,8 +91,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     private boolean mIsPaused = false;
     private int mLastPosition = 0;
 
-    private boolean mRandom = false;
-    private boolean mRepeat = false;
+    private int mRandom = 0;
+    private int mRepeat = 0;
 
     // Remote control
     private RemoteController mRemoteControlClient = null;
@@ -214,7 +223,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mLastCoverURL = "";
 
         // Send empty NowPlaying
-        broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
+        broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat, mRandom));
         stopService();
     }
 
@@ -239,7 +248,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mIsPaused = true;
         }
 
-        broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+        broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
         updateNotification();
         mServiceCancelTimer = new Timer();
         // Set timeout to 10 minutes for now
@@ -251,7 +260,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Songs existing so start playback of playlist begin
             jumpToIndex(0);
         } else if (mCurrentPlayingIndex < 0 && mCurrentList.size() == 0) {
-            broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
+            broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat, mRandom));
         } else {
             /*
              * Make sure service is "started" so android doesn't handle it as a
@@ -281,7 +290,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             mIsPaused = false;
             mLastPosition = 0;
-            broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+            broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
             updateNotification();
         }
     }
@@ -303,7 +312,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Keep device at least for 5 seconds turned on
         mTempWakelock.acquire(5000);
         mPlayer.stop();
-        if (mRandom) {
+        if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
 
             // save lastindex for previous
             mLastPlayingIndex = mCurrentPlayingIndex;
@@ -373,7 +382,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
                 mCurrentPlayingIndex++;
             } else if ((mCurrentPlayingIndex + 1) == mCurrentList.size()) {
-                if (mRepeat) {
+                if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
                     // Last track so set index = 0 and repeat playlist
                     mCurrentPlayingIndex = 0;
                 } else {
@@ -480,7 +489,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mTempWakelock.acquire(5000);
 
         mPlayer.stop();
-        if (mRandom) {
+        if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
 
             if (mLastPlayingIndex == -1) {
                 // if no lastindex reuse currentindex
@@ -545,7 +554,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             if (mCurrentPlayingIndex - 1 >= 0) {
                 mCurrentPlayingIndex--;
-            } else if (mRepeat) {
+            } else if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
                 // In repeat mode next track is last track of playlist
                 mCurrentPlayingIndex = mCurrentList.size() - 1;
             }
@@ -669,7 +678,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 bCast.putExtra("duration", item.getTrackDuration() / 1000);
                 sendBroadcast(bCast);
 
-                broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+                broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
 
                 // Check if another song follows current one for gapless
                 // playback
@@ -830,20 +839,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         stopSelf();
     }
 
-    public boolean getRandom() {
+    public int getRandom() {
         return mRandom;
     }
 
-    public boolean getRepeat() {
+    public int getRepeat() {
         return mRepeat;
     }
 
-    public void setRepeat(boolean repeat) {
+    public void setRepeat(int repeat) {
         // TODO SET LOOPING FOR MP
         mRepeat = repeat;
     }
 
-    public void setRandom(boolean random) {
+    public void setRandom(int random) {
         // TODO set next mp to random one,too
         mRandom = random;
     }
@@ -863,7 +872,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             String playingURL = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
             int playing = mPlayer.isRunning() ? 1 : 0;
             try {
-                callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL, mCurrentPlayingIndex));
+                callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL, mCurrentPlayingIndex, mRepeat, mRandom));
             } catch (RemoteException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -969,10 +978,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     private void sendUpdateBroadcast() {
         if (mPlayer.isRunning()) {
-            broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+            broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
 
         } else {
-            broadcastNowPlaying(new NowPlayingInformation(0, "", -1));
+            broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat, mRandom));
 
         }
     }
@@ -1168,7 +1177,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
 
         @Override
-        public void setRandom(boolean random) throws RemoteException {
+        public void setRandom(int random) throws RemoteException {
             // Create random control object
             ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_RANDOM, random);
             Message msg = mService.get().getHandler().obtainMessage();
@@ -1177,7 +1186,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
 
         @Override
-        public void setRepeat(boolean repeat) throws RemoteException {
+        public void setRepeat(int repeat) throws RemoteException {
             // Create repeat control object
             ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_REPEAT, repeat);
             Message msg = mService.get().getHandler().obtainMessage();
@@ -1299,12 +1308,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
 
         @Override
-        public boolean getRandom() throws RemoteException {
+        public int getRandom() throws RemoteException {
             return mService.get().getRandom();
         }
 
         @Override
-        public boolean getRepeat() throws RemoteException {
+        public int getRepeat() throws RemoteException {
             return mService.get().getRepeat();
         }
 
@@ -1352,7 +1361,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         public void onTrackStarted(String URI) {
             Log.v(TAG, "track started: " + URI + " PL index: " + mCurrentPlayingIndex);
 
-            broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+            broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
             updateNotification();
             if (mTempWakelock.isHeld()) {
                 // we could release wakelock here already
@@ -1381,7 +1390,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             bCast.putExtra("duration", item.getTrackDuration() / 1000);
             sendBroadcast(bCast);
 
-            if (mRandom) {
+            if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
                 Random rand = new Random();
 
                 // save lastindex for previous
@@ -1394,7 +1403,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 } else {
                     mCurrentPlayingIndex = mNextPlayingIndex;
                 }
-                broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+                broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
                 updateNotification();
 
                 // Broadcast simple.last.fm.scrobble broadcast
@@ -1446,7 +1455,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
                 // Check if this song was the last one in the playlist
                 if ((mCurrentPlayingIndex + 1) == mCurrentList.size()) {
-                    if (mRepeat) {
+                    if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
                         // Was last song in list so repeat playlist
                         jumpToIndex(0);
                     } else {
@@ -1457,7 +1466,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 } else {
                     // At least one song to go
                     mCurrentPlayingIndex++;
-                    broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex));
+                    broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
                     updateNotification();
 
                     // Broadcast simple.last.fm.scrobble broadcast

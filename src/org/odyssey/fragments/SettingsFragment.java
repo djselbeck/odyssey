@@ -15,6 +15,7 @@ public class SettingsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+        // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
         View rootView = inflater.inflate(R.layout.fragment_section_dummy, container, false);
@@ -25,5 +26,4 @@ public class SettingsFragment extends Fragment {
 
         return rootView;
     }
-
 }

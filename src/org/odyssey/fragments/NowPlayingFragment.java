@@ -11,6 +11,8 @@ import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.playbackservice.TrackItem;
+import org.odyssey.playbackservice.PlaybackService.RANDOMSTATE;
+import org.odyssey.playbackservice.PlaybackService.REPEATSTATE;
 
 import android.app.Activity;
 import android.content.res.Resources.NotFoundException;
@@ -47,6 +49,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+        // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.GONE);
 
         View rootView = inflater.inflate(R.layout.fragment_now_playing, container, false);
@@ -135,8 +138,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             @Override
             public void onClick(View arg0) {
                 try {
-                    mPlayer.setRepeat(!mPlayer.getRepeat());
-                    if (mPlayer.getRepeat()) {
+                    int repeat = (mPlayer.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? REPEATSTATE.REPEAT_OFF.ordinal() : REPEATSTATE.REPEAT_ALL.ordinal();
+
+                    mPlayer.setRepeat(repeat);
+                    if (mPlayer.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
                     } else {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
@@ -156,8 +161,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             @Override
             public void onClick(View arg0) {
                 try {
-                    mPlayer.setRandom(!mPlayer.getRandom());
-                    if (mPlayer.getRandom()) {
+                    int random = (mPlayer.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? RANDOMSTATE.RANDOM_OFF.ordinal() : RANDOMSTATE.RANDOM_ON.ordinal();
+
+                    mPlayer.setRandom(random);
+                    if (mPlayer.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
                     } else {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
@@ -258,34 +265,6 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             mMaxDuration.setText(minutes + ":" + seconds);
         }
 
-        // update repeat and random button
-        try {
-            if (mPlayer.getRepeat()) {
-                mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
-            } else {
-                mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
-            }
-        } catch (RemoteException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        try {
-            if (mPlayer.getRandom()) {
-                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
-            } else {
-                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
-            }
-        } catch (RemoteException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
         // set up seekbar
         mSeekBar.setMax((int) currentTrack.getTrackDuration());
 
@@ -369,6 +348,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     public void onNewInformation(NowPlayingInformation info) {
 
         final boolean songPlaying = (info.getPlaying() == 1) ? true : false;
+        final boolean isRepeat = (info.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? true : false;
+        final boolean isRandom = (info.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? true : false;
 
         new Thread() {
             public void run() {
@@ -382,6 +363,16 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                                 mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
                             } else {
                                 mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+                            }
+                            if (isRepeat) {
+                                mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                            } else {
+                                mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
+                            }
+                            if (isRandom) {
+                                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                            } else {
+                                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
                             }
                             // update views
                             updateStatus();

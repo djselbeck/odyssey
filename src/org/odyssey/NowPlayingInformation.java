@@ -17,6 +17,8 @@ public final class NowPlayingInformation implements Parcelable {
     private int mPlaying;
     private String mPlayingURL;
     private int mPlayingIndex;
+    private int mRepeat;
+    private int mRandom;
 
     public static Parcelable.Creator<NowPlayingInformation> CREATOR = new Parcelable.Creator<NowPlayingInformation>() {
 
@@ -25,7 +27,10 @@ public final class NowPlayingInformation implements Parcelable {
             int playing = source.readInt();
             String playingURL = source.readString();
             int playingIndex = source.readInt();
-            return new NowPlayingInformation(playing, playingURL, playingIndex);
+            int repeat = source.readInt();
+            int random = source.readInt();
+
+            return new NowPlayingInformation(playing, playingURL, playingIndex, repeat, random);
         }
 
         @Override
@@ -40,10 +45,12 @@ public final class NowPlayingInformation implements Parcelable {
         return 0;
     }
 
-    public NowPlayingInformation(int playing, String playingURL, int playingIndex) {
+    public NowPlayingInformation(int playing, String playingURL, int playingIndex, int repeat, int random) {
         mPlaying = playing;
         mPlayingURL = playingURL;
         mPlayingIndex = playingIndex;
+        mRepeat = repeat;
+        mRandom = random;
     }
 
     @Override
@@ -51,6 +58,8 @@ public final class NowPlayingInformation implements Parcelable {
         dest.writeInt(mPlaying);
         dest.writeString(mPlayingURL);
         dest.writeInt(mPlayingIndex);
+        dest.writeInt(mRepeat);
+        dest.writeInt(mRandom);
     }
 
     public int getPlaying() {
@@ -62,11 +71,19 @@ public final class NowPlayingInformation implements Parcelable {
     }
 
     public String toString() {
-        return "Playing: " + mPlaying + " URL: " + mPlayingURL + " index: " + mPlayingIndex;
+        return "Playing: " + mPlaying + " URL: " + mPlayingURL + " index: " + mPlayingIndex + "repeat: " + mRepeat + "random: " + mRandom;
     }
 
     public int getPlayingIndex() {
         return mPlayingIndex;
+    }
+
+    public int getRepeat() {
+        return mRepeat;
+    }
+
+    public int getRandom() {
+        return mRandom;
     }
 
 }

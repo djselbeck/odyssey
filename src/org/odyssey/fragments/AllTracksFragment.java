@@ -45,6 +45,7 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+        // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
         View rootView = inflater.inflate(R.layout.fragment_alltracks, container, false);

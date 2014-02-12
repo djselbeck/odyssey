@@ -33,11 +33,11 @@ interface IOdysseyPlaybackService {
 	 */
 	void jumpTo(int position);
 	
-	void setRandom(boolean random);
-	void setRepeat(boolean repeat);
+	void setRandom(int random);
+	void setRepeat(int repeat);
 	
-	boolean getRandom();
-	boolean getRepeat();
+	int getRandom();
+	int getRepeat();
 	
 	// track is the full uri with "file://" !
 	void setNextTrack(String track);

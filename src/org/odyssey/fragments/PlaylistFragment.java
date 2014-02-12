@@ -41,6 +41,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+        // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
         // indicate this fragment has its own menu
@@ -310,16 +311,16 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
             mPlayListAdapter.remove(info.position);
             return true;
         case R.id.playlist_context_menu_action_playnext:
-        	OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-        	TrackItem track = (TrackItem) mListView.getAdapter().getItem(info.position);
+            OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+            TrackItem track = (TrackItem) mListView.getAdapter().getItem(info.position);
             mPlayListAdapter.remove(info.position);
             try {
-				app.getPlaybackService().enqueueTrackAsNext(track);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        	return true;
+                app.getPlaybackService().enqueueTrackAsNext(track);
+            } catch (RemoteException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return true;
         default:
             return super.onContextItemSelected(item);
         }

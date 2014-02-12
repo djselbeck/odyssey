@@ -70,8 +70,6 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
-        ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
-
         // indicate this fragment has its own menu
         setHasOptionsMenu(true);
 
