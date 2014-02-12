@@ -8,6 +8,7 @@
     <string name="action_jumpcurrent">Springe zum spielenden Lied</string>
     <string name="action_addalbum">In Wiedergabeliste einreihen</string>
     <string name="action_playalbum">Album abspielen</string>
+    <string name="action_playall">Alle Lieder abspielen</string>
     
     <string name="album_context_menu_action_enqueue">In Wiedergabeliste einreihen</string>
     <string name="album_context_menu_action_play">Album abspielen</string>
@@ -17,6 +18,10 @@
     <string name="album_tracks_context_menu_action_enqueueasnext">Lied als nächstes abspielen</string>
     <string name="album_tracks_context_menu_action_play">Album abspielen</string>
     <string name="album_tracks_context_menu_action_artist">Interpret anzeigen</string> 
+    
+    <string name="all_tracks_context_menu_action_enqueue">In Wiedergabeliste einreihen</string>
+    <string name="all_tracks_context_menu_action_enqueueasnext">Lied als nächstes abspielen</string>
+    <string name="all_tracks_context_menu_action_play">Lied abspielen</string>    
        
     <string name="artist_context_menu_action_enqueue">In Wiedergabeliste einreihen</string>
     <string name="artist_context_menu_action_play">Alben abspielen</string>

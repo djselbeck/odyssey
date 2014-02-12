@@ -8,6 +8,7 @@
     <string name="action_jumpcurrent">Jump to current song</string>
     <string name="action_addalbum">Add album to playlist</string>
     <string name="action_playalbum">Play album</string>
+    <string name="action_playall">Play all tracks</string>
     
     <string name="album_context_menu_action_enqueue">add to playlist</string>
     <string name="album_context_menu_action_play">play album</string>
@@ -17,6 +18,10 @@
     <string name="album_tracks_context_menu_action_enqueueasnext">play after current song</string>
     <string name="album_tracks_context_menu_action_play">play album</string>
     <string name="album_tracks_context_menu_action_artist">show artist</string> 
+    
+    <string name="all_tracks_context_menu_action_enqueue">add to playlist</string>
+    <string name="all_tracks_context_menu_action_enqueueasnext">play after current song</string>
+    <string name="all_tracks_context_menu_action_play">play song</string>     
        
     <string name="artist_context_menu_action_enqueue">add to playlist</string>
     <string name="artist_context_menu_action_play">play albums</string>

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
+import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.playbackservice.TrackItem;
 
@@ -19,15 +20,20 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class AllTracksFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
@@ -51,6 +57,9 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
         mListView.setAdapter(mCursorAdapter);
 
         mListView.setOnItemClickListener((OnItemClickListener) this);
+
+        // register context menu
+        registerForContextMenu(mListView);
 
         return rootView;
     }
@@ -255,10 +264,83 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
         }
     }
 
+    private void playTrack(int position) {
+        // clear playlist and play current track
+        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+
+        try {
+            app.getPlaybackService().clearPlaylist();
+            enqueueTrack(position);
+            app.getPlaybackService().jumpTo(0);
+        } catch (RemoteException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
+
+    private void enqueueTrack(int position) {
+        // Enqueue single track
+        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+
+        try {
+            app.getPlaybackService().enqueueTrack((TrackItem) mCursorAdapter.getItem(position));
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    private void enqueueTrackAsNext(int position) {
+        // Enqueue single track
+        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+
+        try {
+            app.getPlaybackService().enqueueTrackAsNext((TrackItem) mCursorAdapter.getItem(position));
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        // TODO Auto-generated method stub
 
+        playTrack(position);
+
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.all_tracks_context_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+
+        if (info == null) {
+            return super.onContextItemSelected(item);
+        }
+
+        switch (item.getItemId()) {
+        case R.id.all_tracks_context_menu_action_enqueue:
+            if (info.position >= 0) {
+                enqueueTrack(info.position);
+            }
+            return true;
+        case R.id.all_tracks_context_menu_action_enqueueasnext:
+            if (info.position > 0) {
+                enqueueTrackAsNext(info.position);
+            }
+            return true;
+        case R.id.all_tracks_context_menu_action_play:
+            playTrack(info.position);
+            return true;
+        default:
+            return super.onContextItemSelected(item);
+        }
     }
 
     @Override

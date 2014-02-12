@@ -27,6 +27,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 
     OnAboutSelectedListener mAboutSelectedCallback;
     OnSettingsSelectedListener mSettingsSelectedCallback;
+    OnPlayAllSelectedListener mPlayAllSelectedCallback;
 
     // Listener for communication via container activity
     public interface OnAboutSelectedListener {
@@ -35,6 +36,10 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 
     public interface OnSettingsSelectedListener {
         public void onSettingsSelected();
+    }
+
+    public interface OnPlayAllSelectedListener {
+        public void OnPlayAllSelected();
     }
 
     public void onAttach(Activity activity) {
@@ -52,6 +57,12 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
             mSettingsSelectedCallback = (OnSettingsSelectedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnSettingsSelectedListener");
+        }
+
+        try {
+            mPlayAllSelectedCallback = (OnPlayAllSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnPlayAllSelectedListener");
         }
     }
 
@@ -100,6 +111,9 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
             return true;
         case R.id.action_about:
             mAboutSelectedCallback.onAboutSelected();
+            return true;
+        case R.id.action_playall:
+            mPlayAllSelectedCallback.OnPlayAllSelected();
             return true;
         }
         return super.onOptionsItemSelected(item);

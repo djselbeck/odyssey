@@ -7,6 +7,7 @@ import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.NowPlayingFragment;
@@ -31,8 +32,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener, OnSettingsSelectedListener {
+public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener, OnSettingsSelectedListener, OnPlayAllSelectedListener {
 
     private static final String TAG = "OdysseyMainActivity";
 
@@ -334,7 +336,17 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
     }
 
+    @Override
+    public void OnPlayAllSelected() {
+
+        // TODO play all tracks random
+
+        Toast.makeText(this, "Play all random", Toast.LENGTH_SHORT).show();
+
+    }
+
     public QuickControl getQuickControl() {
         return mQuickControl;
     }
+
 }
