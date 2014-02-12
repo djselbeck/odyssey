@@ -50,7 +50,7 @@
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
 		    android:textSize="20sp"
-		    android:text="Authors: "
+		    android:text="@string/authors_title"
 		/>         
         
 		<TextView
@@ -73,7 +73,7 @@
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
 		    android:textSize="20sp"
-		    android:text="Source: "
+		    android:text="@string/source_title"
 		/> 
 	    	    
 		<TextView

@@ -31,7 +31,9 @@
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     
+    <string name="authors_title">Authors: </string>
     <string name="authors">Hendrik Borghorst \nFrederik Lütkes</string>
+    <string name="source_title">Sourcecode: </string>
     
     <string name="easterEgg1">Yeah. Sir, we can´t call it the Enterprise. \nWhy not?</string>
     <string name="easterEgg2">Weapons to maximum. \nSir? \nIt´s a joke Marks.</string>

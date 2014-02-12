@@ -31,7 +31,9 @@
     <string name="drawer_open">Navigationsleiste öffnen</string>
     <string name="drawer_close">Navigationsleiste schließen</string>
     
+    <string name="authors_title">Autoren: </string>
     <string name="authors">Hendrik Borghorst \nFrederik Lütkes</string>
+    <string name="source_title">Quellcode: </string>
     
     <string name="easterEgg1">Yeah. Sir, we can´t call it the Enterprise. \nWhy not?</string>
     <string name="easterEgg2">Weapons to maximum. \nSir? \nIt´s a joke Marks.</string>

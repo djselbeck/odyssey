@@ -5,22 +5,26 @@ import java.util.ArrayList;
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.R;
+import org.odyssey.playbackservice.TrackItem;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
@@ -44,7 +48,7 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
         // create listview for tracklist
         mListView = (ListView) rootView.findViewById(R.id.listViewAllTracks);
 
-        // mListView.setAdapter(mCursorAdapter);
+        mListView.setAdapter(mCursorAdapter);
 
         mListView.setOnItemClickListener((OnItemClickListener) this);
 
@@ -56,7 +60,7 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
         super.onStart();
 
         // Prepare loader ( start new one or reuse old)
-        // getLoaderManager().initLoader(0, getArguments(), this);
+        getLoaderManager().initLoader(0, getArguments(), this);
     }
 
     @Override
@@ -69,60 +73,181 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
         private LayoutInflater mInflater;
         private Cursor mCursor;
+        ArrayList<String> mSectionList;
+        ArrayList<Integer> mSectionPositions;
 
         public AllTracksCursorAdapter(Context context, Cursor c, int flags) {
 
             super();
 
-            this.mInflater = LayoutInflater.from(context);
-            this.mCursor = c;
+            mInflater = LayoutInflater.from(context);
+            mCursor = c;
+            mSectionList = new ArrayList<String>();
         }
 
         @Override
         public int getPositionForSection(int sectionIndex) {
-            // TODO Auto-generated method stub
+            if (sectionIndex >= 0 && sectionIndex < mSectionPositions.size()) {
+                return mSectionPositions.get(sectionIndex);
+            }
             return 0;
         }
 
         @Override
         public int getSectionForPosition(int pos) {
-            // TODO Auto-generated method stub
+
+            this.mCursor.moveToPosition(pos);
+
+            String trackName = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+
+            char trackSection = trackName.toUpperCase().charAt(0);
+
+            for (int i = 0; i < mSectionList.size(); i++) {
+
+                if (trackSection == mSectionList.get(i).toUpperCase().charAt(0)) {
+                    Log.v(TAG, "Section for position: " + pos + " = " + i);
+                    return i;
+                }
+
+            }
+
             return 0;
         }
 
         @Override
         public Object[] getSections() {
-            // TODO Auto-generated method stub
-            return null;
+
+            return mSectionList.toArray();
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
 
-            if (convertView == null) {
+            TextView trackTitleView;
+            TextView trackDurationView;
+            TextView trackNumberView;
+            TextView trackArtistView;
 
+            if (convertView == null) {
                 convertView = mInflater.inflate(R.layout.listview_alltracks_item, null);
             }
+
+            trackTitleView = (TextView) convertView.findViewById(R.id.textViewAllTracksTitleItem);
+            trackDurationView = (TextView) convertView.findViewById(R.id.textViewAllTracksDurationItem);
+            trackNumberView = (TextView) convertView.findViewById(R.id.textViewAllTracksNumberItem);
+            trackArtistView = (TextView) convertView.findViewById(R.id.textViewAllTracksArtistItem);
+
+            // set tracktitle
+            TrackItem trackItem = (TrackItem) getItem(position);
+
+            trackTitleView.setText(trackItem.getTrackTitle());
+
+            // calculate duration in minutes and seconds
+            String seconds = String.valueOf((trackItem.getTrackDuration() % 60000) / 1000);
+
+            String minutes = String.valueOf(trackItem.getTrackDuration() / 60000);
+
+            if (seconds.length() == 1) {
+                trackDurationView.setText(minutes + ":0" + seconds);
+            } else {
+                trackDurationView.setText(minutes + ":" + seconds);
+            }
+
+            // calculate track and discnumber
+            if (("" + trackItem.getTrackNumber()).length() < 4) {
+                trackNumberView.setText("" + trackItem.getTrackNumber());
+            } else {
+
+                // TODO shall we use discnumber?
+                String discNumber = ("" + trackItem.getTrackNumber()).substring(0, 2);
+                String trackNumber = ("" + trackItem.getTrackNumber()).substring(2);
+
+                trackNumberView.setText(trackNumber);
+            }
+
+            // set artist
+            trackArtistView.setText(trackItem.getTrackArtist() + " - " + trackItem.getTrackAlbum());
 
             return convertView;
         }
 
         @Override
         public int getCount() {
-            // TODO Auto-generated method stub
-            return 0;
+
+            if (mCursor == null) {
+                return 0;
+            } else {
+                return mCursor.getCount();
+            }
         }
 
         @Override
-        public Object getItem(int arg0) {
-            // TODO Auto-generated method stub
-            return null;
+        public Object getItem(int position) {
+
+            // return trackitem
+
+            mCursor.moveToPosition(position);
+
+            String title = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+            long duration = mCursor.getLong(mCursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+            int no = mCursor.getInt(mCursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+            String artist = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+            String album = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+            String url = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+
+            TrackItem item = new TrackItem(title, artist, album, url, no, duration);
+
+            return item;
+
         }
 
         @Override
-        public long getItemId(int arg0) {
-            // TODO Auto-generated method stub
-            return 0;
+        public long getItemId(int position) {
+            // FIXME for now just return positon as id
+            return position;
+        }
+
+        public Cursor swapCursor(Cursor c) {
+
+            mCursor = c;
+
+            // create sectionlist for fastscrolling
+
+            mSectionList = new ArrayList<String>();
+            mSectionPositions = new ArrayList<Integer>();
+
+            this.mCursor.moveToPosition(0);
+
+            int index = this.mCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+            char lastSection = 0;
+
+            if (index > 0) {
+                lastSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Media.TITLE)).toUpperCase().charAt(0);
+            }
+
+            mSectionList.add("" + lastSection);
+            mSectionPositions.add(0);
+
+            for (int i = 1; i < this.mCursor.getCount(); i++) {
+
+                this.mCursor.moveToPosition(i);
+
+                char currentSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Media.TITLE)).toUpperCase().charAt(0);
+
+                if (lastSection != currentSection) {
+                    mSectionList.add("" + currentSection);
+
+                    lastSection = currentSection;
+                    mSectionPositions.add(i);
+                }
+
+            }
+
+            // notify for screen update
+            notifyDataSetChanged();
+
+            return c;
+
         }
 
     }
@@ -135,19 +260,16 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-        return null;// new CursorLoader(getActivity(),
-                    // MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    // MusicLibraryHelper.projectionTracks, "", null,
-                    // MediaStore.Audio.Media.TITLE + " COLLATE NOCASE");
+        return new CursorLoader(getActivity(), MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionTracks, "", null, MediaStore.Audio.Media.TITLE + " COLLATE NOCASE");
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        // mCursorAdapter.swapCursor(cursor);
+        mCursorAdapter.swapCursor(cursor);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        // mCursorAdapter.swapCursor(null);
+        mCursorAdapter.swapCursor(null);
     }
 }
