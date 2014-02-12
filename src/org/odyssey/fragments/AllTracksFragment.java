@@ -211,6 +211,10 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
             mCursor = c;
 
+            if (mCursor == null) {
+                return c;
+            }
+
             // create sectionlist for fastscrolling
 
             mSectionList = new ArrayList<String>();
@@ -249,7 +253,6 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
             return c;
 
         }
-
     }
 
     @Override
