@@ -32,6 +32,8 @@ import android.widget.TextView;
 public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListener, OdysseyApplication.NowPlayingListener {
 
     private TextView mTitleTextView;
+    private TextView mAlbumTextView;
+    private TextView mArtistTextView;
     private TextView mMinDuration;
     private TextView mMaxDuration;
     private ImageView mCoverImageView;
@@ -50,6 +52,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         View rootView = inflater.inflate(R.layout.fragment_now_playing, container, false);
 
         mTitleTextView = (TextView) rootView.findViewById(R.id.nowPlayingTitleView);
+
+        mAlbumTextView = (TextView) rootView.findViewById(R.id.nowPlayingAlbumView);
+
+        mArtistTextView = (TextView) rootView.findViewById(R.id.nowPlayingArtistView);
 
         mCoverImageView = (ImageView) rootView.findViewById(R.id.nowPlayingAlbumImageView);
 
@@ -211,8 +217,12 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             currentTrack = new TrackItem();
         }
 
-        // set tracktitle and albumcover
-        mTitleTextView.setText(currentTrack.getTrackTitle() + " - " + currentTrack.getTrackArtist());
+        // set tracktitle, album, artist and albumcover
+        mTitleTextView.setText(currentTrack.getTrackTitle());
+
+        mAlbumTextView.setText(currentTrack.getTrackAlbum());
+
+        mArtistTextView.setText(currentTrack.getTrackArtist());
 
         String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
 
