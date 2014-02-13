@@ -27,6 +27,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class PlaylistFragment extends Fragment implements OdysseyApplication.NowPlayingListener {
 
@@ -120,13 +121,23 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
         switch (item.getItemId()) {
         case R.id.action_clearplaylist:
-            OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
             mPlayListAdapter.clear();
 
             mPlayListAdapter.notifyDataSetChanged();
             return true;
         case R.id.action_jumpcurrent:
             mListView.setSelection(mPlayingIndex);
+            return true;
+        case R.id.action_shuffleplaylist:
+            OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+            try {
+                app.getPlaybackService().shufflePlaylist();
+                mPlayListAdapter.notifyDataSetChanged();
+            } catch (RemoteException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

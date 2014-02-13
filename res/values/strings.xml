@@ -9,6 +9,7 @@
     <string name="action_addalbum">Add album to playlist</string>
     <string name="action_playalbum">Play album</string>
     <string name="action_playall">Play all tracks</string>
+    <string name="action_shuffleplaylist">Shuffle playlist</string>
     
     <string name="album_context_menu_action_enqueue">add to playlist</string>
     <string name="album_context_menu_action_play">play album</string>

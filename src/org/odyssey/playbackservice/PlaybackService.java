@@ -3,6 +3,8 @@ package org.odyssey.playbackservice;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Currency;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -301,6 +303,53 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             pause();
         } else {
             resume();
+        }
+    }
+
+    // shuffle the current playlist
+    public void shufflePlaylist() {
+
+        // save currentindex
+        int index = mCurrentPlayingIndex;
+
+        if (mCurrentList.size() > 0 && index >= 0) {
+            // get the current trackitem and remove it from playlist
+            TrackItem currentItem = mCurrentList.get(index);
+            mCurrentList.remove(index);
+
+            // shuffle playlist and set currentitem as first element
+            Collections.shuffle(mCurrentList);
+            mCurrentList.add(0, currentItem);
+
+            // reset index
+            mCurrentPlayingIndex = 0;
+
+            // sent broadcast
+            sendUpdateBroadcast();
+            updateNotification();
+
+            // set next track for gapless
+            try {
+                mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+            } catch (IllegalArgumentException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (SecurityException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else if (mCurrentList.size() > 0 && index < 0) {
+            // service stopped just shuffle playlist
+            Collections.shuffle(mCurrentList);
+
+            // sent broadcast
+            sendUpdateBroadcast();
         }
     }
 
@@ -1344,6 +1393,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         public void enqueueTrackAsNext(TrackItem track) throws RemoteException {
             // Create nexttrack control object
             ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAYNEXT, track);
+            Message msg = mService.get().getHandler().obtainMessage();
+            msg.obj = obj;
+            mService.get().getHandler().sendMessage(msg);
+        }
+
+        @Override
+        public void shufflePlaylist() throws RemoteException {
+            ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_SHUFFLEPLAYLIST);
             Message msg = mService.get().getHandler().obtainMessage();
             msg.obj = obj;
             mService.get().getHandler().sendMessage(msg);

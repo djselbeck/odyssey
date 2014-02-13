@@ -9,6 +9,7 @@
     <string name="action_addalbum">In Wiedergabeliste einreihen</string>
     <string name="action_playalbum">Album abspielen</string>
     <string name="action_playall">Alle Lieder abspielen</string>
+    <string name="action_shuffleplaylist">Wiedergabeliste mischen</string>
     
     <string name="album_context_menu_action_enqueue">In Wiedergabeliste einreihen</string>
     <string name="album_context_menu_action_play">Album abspielen</string>
