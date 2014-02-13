@@ -205,6 +205,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // Stops all playback
     public void stop() {
+
+        // TODO save playlist
+
         if (mCurrentPlayingIndex >= 0) {
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -1067,6 +1070,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    public int getCurrentIndex() {
+        return mCurrentPlayingIndex;
+    }
+
     public TrackItem getCurrentTrack() {
         if (mCurrentPlayingIndex >= 0 && mCurrentList.size() > mCurrentPlayingIndex) {
             return mCurrentList.get(mCurrentPlayingIndex);
@@ -1462,6 +1469,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             msg.obj = obj;
             mService.get().getHandler().sendMessage(msg);
         }
+
+        @Override
+        public int getCurrentIndex() throws RemoteException {
+            return mService.get().getCurrentIndex();
+        }
     }
 
     private class PlaybackStartListener implements GaplessPlayer.OnTrackStartedListener {
@@ -1647,8 +1659,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             break;
         case AudioManager.AUDIOFOCUS_LOSS:
             Log.v(TAG, "Lost audiofocus");
-            // Stop playback completely and release resources
-            stopService();
+            // Stop playback service
+            // TODO save playlist position
+            stop();
             break;
         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
             Log.v(TAG, "Lost audiofocus temporarily");

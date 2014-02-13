@@ -27,6 +27,9 @@ interface IOdysseyPlaybackService {
 	// If currently playing return this song otherwise null
 	TrackItem getCurrentSong();
 	
+	// return the current index
+	int getCurrentIndex();
+	
 	TrackItem getPlaylistSong(int index);
 	int getPlaylistSize();
 	

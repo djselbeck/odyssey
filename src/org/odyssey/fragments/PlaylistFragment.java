@@ -105,7 +105,16 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
         }
         mPlayListAdapter = new PlaylistTracksAdapter(mPBService);
         mListView.setAdapter(mPlayListAdapter);
+
+        try {
+            mPlayingIndex = mPBService.getCurrentIndex();
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         mListView.setSelection(mPlayingIndex);
+        mPlayListAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -145,7 +154,6 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
     private class PlaylistTracksAdapter extends BaseAdapter {
 
         private LayoutInflater mInflater;
-        private int mAdapterPlayingIndex = 0;
         private IOdysseyPlaybackService mPlaybackService;
 
         public PlaylistTracksAdapter(IOdysseyPlaybackService iOdysseyPlaybackService) {
@@ -208,7 +216,7 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
             // set artist
             trackArtistView.setText(trackItem.getTrackArtist() + " - " + trackItem.getTrackAlbum());
 
-            if (position == mAdapterPlayingIndex) {
+            if (position == mPlayingIndex) {
                 ImageView playImage = (ImageView) convertView.findViewById(R.id.imageViewPlaylistPlay);
 
                 playImage.setVisibility(ImageView.VISIBLE);
@@ -220,12 +228,6 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
 
             return convertView;
 
-        }
-
-        public void setPlayingIndex(int index) {
-            Log.v(TAG, "Set adapter index to: " + index);
-            mAdapterPlayingIndex = index;
-            notifyDataSetChanged();
         }
 
         @Override
@@ -292,8 +294,8 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mPlayListAdapter.setPlayingIndex(mPlayingIndex);
                             mListView.setSelection(mPlayingIndex);
+                            mPlayListAdapter.notifyDataSetChanged();
                         }
                     });
                 }
