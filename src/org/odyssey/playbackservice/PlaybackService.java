@@ -306,6 +306,55 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    // add all tracks to playlist, shuffle and play
+    public void playAllTracks() {
+
+        // clear playlist
+        clearPlaylist();
+
+        // stop service
+        stop();
+
+        // get all tracks
+        Cursor cursor = getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionTracks, "", null, MediaStore.Audio.Media.TITLE + " COLLATE NOCASE");
+
+        // add all tracks to playlist
+        if (cursor.moveToFirst()) {
+
+            String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+            long duration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+            int no = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+            String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+            String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+            String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+
+            TrackItem item = new TrackItem(title, artist, album, url, no, duration);
+
+            mCurrentList.add(item);
+
+            // start playing
+            jumpToIndex(0);
+
+            while (cursor.moveToNext()) {
+
+                title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+                duration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+                no = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
+                artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+                url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+
+                item = new TrackItem(title, artist, album, url, no, duration);
+
+                mCurrentList.add(item);
+
+            }
+        }
+
+        // shuffle playlist
+        shufflePlaylist();
+    }
+
     // shuffle the current playlist
     public void shufflePlaylist() {
 
@@ -1401,6 +1450,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         @Override
         public void shufflePlaylist() throws RemoteException {
             ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_SHUFFLEPLAYLIST);
+            Message msg = mService.get().getHandler().obtainMessage();
+            msg.obj = obj;
+            mService.get().getHandler().sendMessage(msg);
+        }
+
+        @Override
+        public void playAllTracks() throws RemoteException {
+            ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAYALLTRACKS);
             Message msg = mService.get().getHandler().obtainMessage();
             msg.obj = obj;
             mService.get().getHandler().sendMessage(msg);

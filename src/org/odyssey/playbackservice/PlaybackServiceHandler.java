@@ -70,6 +70,8 @@ public class PlaybackServiceHandler extends Handler {
                 mService.get().clearPlaylist();
             } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_SHUFFLEPLAYLIST) {
                 mService.get().shufflePlaylist();
+            } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAYALLTRACKS) {
+                mService.get().playAllTracks();
             }
 
         }

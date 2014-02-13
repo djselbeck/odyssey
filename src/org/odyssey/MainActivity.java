@@ -339,10 +339,13 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
     @Override
     public void OnPlayAllSelected() {
 
-        // TODO play all tracks random
-
-        Toast.makeText(this, "Play all random", Toast.LENGTH_SHORT).show();
-
+        // play all tracks on device
+        try {
+            ((OdysseyApplication) getApplication()).getPlaybackService().playAllTracks();
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public QuickControl getQuickControl() {
