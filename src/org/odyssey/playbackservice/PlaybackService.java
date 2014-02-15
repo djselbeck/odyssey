@@ -91,6 +91,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     private boolean mIsDucked = false;
     private boolean mIsPaused = false;
     private int mLastPosition = 0;
+    private Random mRandomGenerator;
 
     private int mRandom = 0;
     private int mRepeat = 0;
@@ -178,6 +179,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mTempWakelock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+
+        // set up random generator
+        mRandomGenerator = new Random();
     }
 
     @Override
@@ -420,15 +424,31 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mLastPlayingIndex = mCurrentPlayingIndex;
 
             // set currentindex to nextindex if exists
-            Random rand = new Random();
+
             if (mNextPlayingIndex == -1) {
-                mCurrentPlayingIndex = rand.nextInt(mCurrentList.size());
+                mCurrentPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+
+                // if current index dont change create a new random index
+                // but just trying 20 times
+                int counter = 0;
+                while (mLastPlayingIndex == mCurrentPlayingIndex && counter > 20) {
+                    mCurrentPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+                    counter++;
+                }
             } else {
                 mCurrentPlayingIndex = mNextPlayingIndex;
             }
 
             // set new random nextindex
-            mNextPlayingIndex = rand.nextInt(mCurrentList.size());
+            mNextPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+
+            // if next index equal to current index create a new random index
+            // but just trying 20 times
+            int counter = 0;
+            while (mNextPlayingIndex == mCurrentPlayingIndex && counter > 20) {
+                mNextPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+                counter++;
+            }
 
             // Next track is availible
             if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
@@ -604,8 +624,15 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mCurrentPlayingIndex = mLastPlayingIndex;
 
             // create new random nextindex
-            Random rand = new Random();
-            mNextPlayingIndex = rand.nextInt(mCurrentList.size());
+            mNextPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+
+            // if next index equal to current index create a new random index
+            // but just trying 20 times
+            int counter = 0;
+            while (mNextPlayingIndex == mCurrentPlayingIndex && counter > 20) {
+                mNextPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+                counter++;
+            }
 
             // Next track is availible
             if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
@@ -1520,15 +1547,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             sendBroadcast(bCast);
 
             if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
-                Random rand = new Random();
-
                 // save lastindex for previous
                 mLastPlayingIndex = mCurrentPlayingIndex;
 
                 // set currentindex to nextindex if exists
                 if (mNextPlayingIndex == -1) {
                     // create new random index
-                    mCurrentPlayingIndex = rand.nextInt(mCurrentList.size());
+                    mCurrentPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+                    // if next index equal to current index create a new random
+                    // index but just trying 20 times
+                    int counter = 0;
+                    while (mLastPlayingIndex == mCurrentPlayingIndex && counter > 20) {
+                        mCurrentPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+                        counter++;
+                    }
                 } else {
                     mCurrentPlayingIndex = mNextPlayingIndex;
                 }
@@ -1549,7 +1581,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 sendBroadcast(newbCast);
 
                 // create new random nextindex
-                mNextPlayingIndex = rand.nextInt(mCurrentList.size());
+                mNextPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+                // if next index equal to current index create a new random
+                // index but just trying 20 times
+                int counter = 0;
+                while (mNextPlayingIndex == mCurrentPlayingIndex && counter > 20) {
+                    mNextPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+                    counter++;
+                }
 
                 // set next track for gapless playback
                 if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
