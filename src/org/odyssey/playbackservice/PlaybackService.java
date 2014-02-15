@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Currency;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -768,7 +767,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     mServiceCancelTimer = null;
                 }
                 mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
-
+                mIsPaused = false;
                 // Broadcast simple.last.fm.scrobble broadcast
                 TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
                 Log.v(TAG, "Send to SLS: " + item);
