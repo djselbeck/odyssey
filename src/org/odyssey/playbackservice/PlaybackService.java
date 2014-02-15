@@ -1021,7 +1021,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNowPlayingCallbacks.remove(callback);
     }
 
-    private void broadcastNowPlaying(NowPlayingInformation info) {
+    private synchronized void broadcastNowPlaying(NowPlayingInformation info) {
         /*
          * Sends a new NowPlaying object on its way to connected callbacks
          * PlaybackService --> OdysseyApplication |-> Homescreen-widget
