@@ -230,6 +230,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mCurrentPlayingIndex = -1;
         mLastCoverURL = "";
 
+        mNextPlayingIndex = -1;
+        mLastPlayingIndex = -1;
+
         // Send empty NowPlaying
         broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat, mRandom));
         stopService();
