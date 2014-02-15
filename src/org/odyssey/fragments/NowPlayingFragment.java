@@ -10,12 +10,11 @@ import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
-import org.odyssey.playbackservice.TrackItem;
 import org.odyssey.playbackservice.PlaybackService.RANDOMSTATE;
 import org.odyssey.playbackservice.PlaybackService.REPEATSTATE;
+import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
-import android.content.res.Resources.NotFoundException;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -198,18 +197,13 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     public void onResume() {
         super.onResume();
         // get the playbackservice
-        mPlayer = null;
-        int count = 0;
-        // Abort after 1000 connection trys
-        while (mPlayer == null && (count < 1000)) {
-            mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
-            count++;
-        }
+        mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
         mRefreshTimer = new Timer();
         mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
     }
 
     private void updateStatus() {
+        mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
 
         // get current track
         TrackItem currentTrack = null;
@@ -274,8 +268,9 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     }
 
     private void updateSeekBar() {
+        IOdysseyPlaybackService service = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
         try {
-            mSeekBar.setProgress(mPlayer.getTrackPosition());
+            mSeekBar.setProgress(service.getTrackPosition());
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -286,9 +281,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         // calculate duration in minutes and seconds
         String seconds = "";
         String minutes = "";
+        IOdysseyPlaybackService service = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
         try {
-            seconds = String.valueOf((mPlayer.getTrackPosition() % 60000) / 1000);
-            minutes = String.valueOf(mPlayer.getTrackPosition() / 60000);
+            seconds = String.valueOf((service.getTrackPosition() % 60000) / 1000);
+            minutes = String.valueOf(service.getTrackPosition() / 60000);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

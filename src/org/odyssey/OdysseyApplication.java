@@ -20,7 +20,7 @@ public class OdysseyApplication extends Application {
     private IOdysseyPlaybackService mPlaybackService = null;
     private PlaybackServiceConnection mPBServiceConnection = null;
     private IOdysseyNowPlayingCallback mPBCallback = null;
-    private boolean mConnectionEstablishing = false;
+    private boolean mConnectionEstablished = false;
 
     private static final String TAG = "OdysseyApplication";
 
@@ -38,19 +38,30 @@ public class OdysseyApplication extends Application {
         }
     }
 
+    @Override
+    public void onCreate() {
+        openConnection();
+    }
+
     public MusicLibraryHelper getLibraryHelper() {
         return mLibraryHelper;
     }
 
-    public IOdysseyPlaybackService getPlaybackService() {
-        Log.v(TAG, "Playback service requested");
-        if (mPlaybackService == null) {
-            Log.v(TAG, "Reopening service connection");
+    public void openConnection() {
+        if (!mConnectionEstablished) {
+            Log.v(TAG, "Opening service connection");
             // Create initial service connection here
             // create service connection
             Intent serviceStartIntent = new Intent(this, PlaybackService.class);
             // startService(serviceStartIntent);
             bindService(serviceStartIntent, mPBServiceConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    public IOdysseyPlaybackService getPlaybackService() {
+        Log.v(TAG, "Playback service requested");
+        if (!mConnectionEstablished) {
+            openConnection();
         }
         return mPlaybackService;
     }
@@ -66,9 +77,7 @@ public class OdysseyApplication extends Application {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.v(TAG, "Service connection created");
-            if (mPlaybackService == null) {
-                mPlaybackService = IOdysseyPlaybackService.Stub.asInterface(service);
-            }
+            mPlaybackService = IOdysseyPlaybackService.Stub.asInterface(service);
             // Create callback connection
             // PlaybackService -> OdysseyApplication
             try {
@@ -80,14 +89,14 @@ public class OdysseyApplication extends Application {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            mConnectionEstablishing = false;
+            mConnectionEstablished = true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             // TODO Auto-generated method stub
             Log.v(TAG, "Service connection lost");
-            mPlaybackService = null;
+            mConnectionEstablished = false;
             Intent serviceStartIntent = new Intent(mApplication, PlaybackService.class);
             // startService(serviceStartIntent);
             bindService(serviceStartIntent, mPBServiceConnection, Context.BIND_AUTO_CREATE);

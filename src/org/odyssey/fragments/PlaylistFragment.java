@@ -11,7 +11,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -27,7 +26,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class PlaylistFragment extends Fragment implements OdysseyApplication.NowPlayingListener {
 
@@ -97,12 +95,6 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
     public void onResume() {
         super.onResume();
         mPBService = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
-        int count = 0;
-        // Abort after 1000 connection trys
-        while (mPBService == null || (count < 1000)) {
-            mPBService = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
-            count++;
-        }
         mPlayListAdapter = new PlaylistTracksAdapter(mPBService);
         mListView.setAdapter(mPlayListAdapter);
 
