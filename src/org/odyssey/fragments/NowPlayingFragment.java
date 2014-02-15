@@ -231,9 +231,9 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 
         mArtistTextView.setText(currentTrack.getTrackArtist());
 
-        String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
+        String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
 
-        String whereVal[] = { currentTrack.getTrackAlbum() };
+        String whereVal[] = { currentTrack.getTrackAlbumKey() };
 
         Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
 

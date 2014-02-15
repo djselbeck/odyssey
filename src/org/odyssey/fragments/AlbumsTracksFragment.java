@@ -175,7 +175,7 @@ public class AlbumsTracksFragment extends Fragment {
                 String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                 String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
-                TrackItem item = new TrackItem(title, artist, album, url, no, duration);
+                TrackItem item = new TrackItem(title, artist, album, url, no, duration, mAlbumKey);
                 if (!item.getTrackArtist().equals(mAlbumArtist)) {
 
                     // trackartist not albumartist -> sampler

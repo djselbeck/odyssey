@@ -33,6 +33,7 @@ public class MusicLibraryHelper {
         String album = "";
         int trackno = 0;
         long duration = 0;
+        String albumKey = "";
 
         if (trackCursor != null && trackCursor.getCount() > 0) {
             trackCursor.moveToFirst();
@@ -41,7 +42,8 @@ public class MusicLibraryHelper {
             album = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
             trackno = trackCursor.getInt(trackCursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
             duration = trackCursor.getLong(trackCursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+            albumKey = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
         }
-        return new TrackItem(title, artist, album, url, trackno, duration);
+        return new TrackItem(title, artist, album, url, trackno, duration, albumKey);
     }
 }

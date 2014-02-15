@@ -89,9 +89,9 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
                 views.setTextViewText(R.id.odysseyWidgetTextViewTrack, item.getTrackTitle());
                 views.setTextViewText(R.id.odysseyWidgetTextViewArtist, item.getTrackArtist());
 
-                String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
+                String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
 
-                String whereVal[] = { item.getTrackAlbum() };
+                String whereVal[] = { item.getTrackAlbumKey() };
 
                 Cursor cursor = context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
 

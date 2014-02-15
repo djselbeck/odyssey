@@ -12,6 +12,7 @@ public class TrackItem implements Parcelable {
     private int mTrackNumber = 0;
     private String mTrackArtist = null;
     private String mTrackURL = null;
+    private String mTrackAlbumKey = null;
 
     public String getTrackTitle() {
         return mTrackTitle;
@@ -37,13 +38,18 @@ public class TrackItem implements Parcelable {
         return mTrackURL;
     }
 
-    public TrackItem(String title, String artist, String album, String url, int trackNo, long trackDuration) {
+    public String getTrackAlbumKey() {
+        return mTrackAlbumKey;
+    }
+
+    public TrackItem(String title, String artist, String album, String url, int trackNo, long trackDuration, String albumKey) {
         mTrackTitle = title;
         mTrackArtist = artist;
         mTrackAlbum = album;
         mTrackURL = url;
         mTrackNumber = trackNo;
         mTrackDuration = trackDuration;
+        mTrackAlbumKey = albumKey;
     }
 
     public TrackItem() {
@@ -53,6 +59,7 @@ public class TrackItem implements Parcelable {
         mTrackURL = "";
         mTrackNumber = 0;
         mTrackDuration = 0;
+        mTrackAlbumKey = "";
     }
 
     @Override
@@ -72,6 +79,7 @@ public class TrackItem implements Parcelable {
         dest.writeString(mTrackURL);
         dest.writeInt(mTrackNumber);
         dest.writeLong(mTrackDuration);
+        dest.writeString(mTrackAlbumKey);
     }
 
     public static Parcelable.Creator<TrackItem> CREATOR = new Creator<TrackItem>() {
@@ -88,8 +96,10 @@ public class TrackItem implements Parcelable {
             String album = source.readString();
             String url = source.readString();
             int trackno = source.readInt();
-            long duration = source.readInt();
-            TrackItem item = new TrackItem(title, artist, album, url, trackno, duration);
+            long duration = source.readLong();
+            String albumKey = source.readString();
+
+            TrackItem item = new TrackItem(title, artist, album, url, trackno, duration, albumKey);
             return item;
         }
     };

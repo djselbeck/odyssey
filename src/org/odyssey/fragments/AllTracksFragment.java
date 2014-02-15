@@ -204,8 +204,9 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
             String artist = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
             String album = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
             String url = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+            String albumKey = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
 
-            TrackItem item = new TrackItem(title, artist, album, url, no, duration);
+            TrackItem item = new TrackItem(title, artist, album, url, no, duration, albumKey);
 
             return item;
 

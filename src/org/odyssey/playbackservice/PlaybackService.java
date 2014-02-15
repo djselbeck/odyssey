@@ -330,8 +330,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
             String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
             String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+            String albumKey = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
 
-            TrackItem item = new TrackItem(title, artist, album, url, no, duration);
+            TrackItem item = new TrackItem(title, artist, album, url, no, duration, albumKey);
 
             mCurrentList.add(item);
 
@@ -346,8 +347,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
                 album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                 url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                albumKey = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
 
-                item = new TrackItem(title, artist, album, url, no, duration);
+                item = new TrackItem(title, artist, album, url, no, duration, albumKey);
 
                 mCurrentList.add(item);
 
@@ -542,6 +544,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     public void enqueueAsNextTrack(TrackItem track) {
+
         // Check if currently playing, than enqueue after current song
         if (mCurrentPlayingIndex >= 0) {
             // Enqueue in list structure
@@ -833,6 +836,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     public void enqueueTrack(TrackItem track) {
+
         // Check if current song is old last one, if so set next song to MP for
         // gapless playback
         int oldSize = mCurrentList.size();
@@ -1015,9 +1019,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME, extraNPList);
             sendBroadcast(broadcastIntent);
 
-            String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
+            String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
 
-            String whereVal[] = { mCurrentList.get(mCurrentPlayingIndex).getTrackAlbum() };
+            String whereVal[] = { mCurrentList.get(mCurrentPlayingIndex).getTrackAlbumKey() };
 
             Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
 

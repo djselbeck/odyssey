@@ -394,8 +394,9 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
                         String artistTitle = cursorTracks.getString(cursorTracks.getColumnIndex(MediaStore.Audio.Media.ARTIST));
                         String album = cursorTracks.getString(cursorTracks.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                         String url = cursorTracks.getString(cursorTracks.getColumnIndex(MediaStore.Audio.Media.DATA));
+                        String albumKey = cursorTracks.getString(cursorTracks.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
 
-                        TrackItem item = new TrackItem(title, artistTitle, album, url, no, duration);
+                        TrackItem item = new TrackItem(title, artistTitle, album, url, no, duration, albumKey);
 
                         // enqueue current track
                         try {
