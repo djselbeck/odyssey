@@ -244,26 +244,30 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mPlayer.pause();
 
             // Broadcast simple.last.fm.scrobble broadcast
-            TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-            Log.v(TAG, "Send to SLS: " + item);
-            Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-            bCast.putExtra("state", 2);
-            bCast.putExtra("app-name", "Odyssey");
-            bCast.putExtra("app-package", "org.odyssey");
-            bCast.putExtra("artist", item.getTrackArtist());
-            bCast.putExtra("album", item.getTrackAlbum());
-            bCast.putExtra("track", item.getTrackTitle());
-            bCast.putExtra("duration", item.getTrackDuration() / 1000);
-            sendBroadcast(bCast);
+            if (mCurrentPlayingIndex >= 0) {
+                TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                Log.v(TAG, "Send to SLS: " + item);
+                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                bCast.putExtra("state", 2);
+                bCast.putExtra("app-name", "Odyssey");
+                bCast.putExtra("app-package", "org.odyssey");
+                bCast.putExtra("artist", item.getTrackArtist());
+                bCast.putExtra("album", item.getTrackAlbum());
+                bCast.putExtra("track", item.getTrackTitle());
+                bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                sendBroadcast(bCast);
+            }
 
             mIsPaused = true;
         }
 
-        broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
+        if (mCurrentPlayingIndex >= 0) {
+            broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
+        }
         updateNotification();
         mServiceCancelTimer = new Timer();
         // Set timeout to 10 minutes for now
-        mServiceCancelTimer.schedule(new ServiceCancelTask(), (long) ((60 * 1000) * 5));
+        mServiceCancelTimer.schedule(new ServiceCancelTask(), (long) ((60 * 1000) * 10));
     }
 
     public void resume() {
