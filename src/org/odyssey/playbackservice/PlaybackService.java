@@ -263,8 +263,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         if (mCurrentPlayingIndex >= 0) {
             broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
+            updateNotification();
         }
-        updateNotification();
         mServiceCancelTimer = new Timer();
         // Set timeout to 10 minutes for now
         mServiceCancelTimer.schedule(new ServiceCancelTask(), (long) ((60 * 1000) * 10));
