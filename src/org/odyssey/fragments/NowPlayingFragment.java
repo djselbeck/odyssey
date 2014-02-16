@@ -236,6 +236,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
         }
 
+        cursor.close();
+
         if (coverPath != null) {
             // create and execute new asynctask
             AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();

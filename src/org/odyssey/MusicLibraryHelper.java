@@ -44,6 +44,9 @@ public class MusicLibraryHelper {
             duration = trackCursor.getLong(trackCursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
             albumKey = trackCursor.getString(trackCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_KEY));
         }
+
+        trackCursor.close();
+
         return new TrackItem(title, artist, album, url, trackno, duration, albumKey);
     }
 }

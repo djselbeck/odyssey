@@ -185,6 +185,8 @@ public class AlbumsTracksFragment extends Fragment {
             } while (cursor.moveToNext());
         }
 
+        cursor.close();
+
         mTrackListAdapter.setIsSampler(isSampler);
 
         mTrackListAdapter.addAll(trackList);
@@ -363,6 +365,8 @@ public class AlbumsTracksFragment extends Fragment {
         artistCursor.moveToFirst();
 
         long artistID = artistCursor.getLong(artistCursor.getColumnIndex(MediaStore.Audio.Artists._ID));
+
+        artistCursor.close();
 
         // Send the event to the host activity
         mArtistSelectedCallback.onArtistSelected(mAlbumArtist, artistID);

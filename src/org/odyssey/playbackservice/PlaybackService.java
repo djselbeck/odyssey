@@ -366,6 +366,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             }
         }
 
+        cursor.close();
+
         // shuffle playlist
         shufflePlaylist();
     }
@@ -1062,6 +1064,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (cursor.moveToFirst()) {
                 coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
             }
+
+            cursor.close();
 
             BitmapDrawable cover;
 
