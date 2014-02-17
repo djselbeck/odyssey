@@ -19,7 +19,7 @@ public class PlaylistManager {
     private String[] projectionTrackItems = { TrackItemTable.COLUMN_TRACKNUMBER, TrackItemTable.COLUMN_TRACKTITLE, TrackItemTable.COLUMN_TRACKALBUM, TrackItemTable.COLUMN_TRACKALBUMKEY, TrackItemTable.COLUMN_TRACKDURATION,
             TrackItemTable.COLUMN_TRACKARTIST, TrackItemTable.COLUMN_TRACKURL };
 
-    PlaylistManager(Context context) {
+    public PlaylistManager(Context context) {
         mPlaylistDBHelper = new PlaylistDBHelper(context);
         mPlaylistDB = null;
     }
@@ -66,12 +66,12 @@ public class PlaylistManager {
 
         if (cursor.moveToFirst()) {
             do {
-                String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-                long duration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-                int no = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK));
-                String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                String title = cursor.getString(cursor.getColumnIndex(TrackItemTable.COLUMN_TRACKTITLE));
+                long duration = cursor.getLong(cursor.getColumnIndex(TrackItemTable.COLUMN_TRACKDURATION));
+                int no = cursor.getInt(cursor.getColumnIndex(TrackItemTable.COLUMN_TRACKNUMBER));
+                String artist = cursor.getString(cursor.getColumnIndex(TrackItemTable.COLUMN_TRACKARTIST));
+                String album = cursor.getString(cursor.getColumnIndex(TrackItemTable.COLUMN_TRACKALBUM));
+                String url = cursor.getString(cursor.getColumnIndex(TrackItemTable.COLUMN_TRACKURL));
                 String albumKey = cursor.getString(cursor.getColumnIndex(TrackItemTable.COLUMN_TRACKALBUMKEY));
 
                 TrackItem item = new TrackItem(title, artist, album, url, no, duration, albumKey);
