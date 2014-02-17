@@ -14,6 +14,7 @@ import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
+import org.odyssey.manager.PlaylistManager;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -24,6 +25,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -108,6 +110,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     // List holding registered callback clients
     private ArrayList<IOdysseyNowPlayingCallback> mNowPlayingCallbacks;
 
+    // Playlistmanager for saving and reading playlist
+    private PlaylistManager mPlaylistManager = null;
+
     @Override
     public IBinder onBind(Intent intent) {
         Log.v(TAG, "Bind:" + intent.getType());
@@ -141,7 +146,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
-        // Create playlist
+        // FIXME causing delays so disabled for the moment
+        // set up playlistmanager
+        // mPlaylistManager = new PlaylistManager(getApplicationContext());
+        //
+        // // read playlist from database
+        // mCurrentList = mPlaylistManager.readPlaylist();
+
         mCurrentList = new ArrayList<TrackItem>();
         mCurrentPlayingIndex = -1;
         mLastPlayingIndex = -1;
@@ -211,7 +222,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         // TODO save playlist
 
-        if (mCurrentPlayingIndex >= 0) {
+        if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0) {
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
             Log.v(TAG, "Send to SLS: " + item);
@@ -770,7 +781,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         stop();
         // Clear the list and reset index
         mCurrentList.clear();
-
+        mCurrentPlayingIndex = -1;
         // TODO notify connected listeners
     }
 
@@ -972,6 +983,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      * any ongoing notification.
      */
     public void stopService() {
+        // FIXME causing delays so disabled for the moment
+        // save currentlist to database
+        // mPlaylistManager.savePlaylist(mCurrentList);
+
         mPlayer.stop();
         stopForeground(true);
         mNotificationBuilder.setOngoing(false);
@@ -1008,7 +1023,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNowPlayingCallbacks.add(callback);
 
         // Notify about current status right away
-        if (mCurrentList.size() > 0) {
+        if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0) {
             String playingURL = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
             int playing = mPlayer.isRunning() ? 1 : 0;
             try {

@@ -120,17 +120,23 @@ public class PlaylistFragment extends Fragment implements OdysseyApplication.Now
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
+        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+
         switch (item.getItemId()) {
         case R.id.action_clearplaylist:
-            mPlayListAdapter.clear();
-
-            mPlayListAdapter.notifyDataSetChanged();
+            try {
+                app.getPlaybackService().clearPlaylist();
+                mPlayListAdapter.clear();
+                mPlayListAdapter.notifyDataSetChanged();
+            } catch (RemoteException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
             return true;
         case R.id.action_jumpcurrent:
             mListView.setSelection(mPlayingIndex);
             return true;
         case R.id.action_shuffleplaylist:
-            OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
             try {
                 app.getPlaybackService().shufflePlaylist();
                 mPlayListAdapter.notifyDataSetChanged();
