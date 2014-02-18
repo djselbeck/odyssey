@@ -146,14 +146,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
-        // FIXME causing delays so disabled for the moment
         // set up playlistmanager
-        // mPlaylistManager = new PlaylistManager(getApplicationContext());
-        //
-        // // read playlist from database
-        // mCurrentList = mPlaylistManager.readPlaylist();
+        mPlaylistManager = new PlaylistManager(getApplicationContext());
 
-        mCurrentList = new ArrayList<TrackItem>();
+        // read playlist from database
+        mCurrentList = mPlaylistManager.readPlaylist();
+
+        // mCurrentList = new ArrayList<TrackItem>();
         mCurrentPlayingIndex = -1;
         mLastPlayingIndex = -1;
         mNextPlayingIndex = -1;
@@ -473,7 +472,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Next track is availible
             if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
                 try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -538,7 +537,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
                 // Start playback of new song
                 try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -657,7 +656,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Next track is availible
             if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
                 try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -713,7 +712,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
                 // Start playback of new song
                 try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -813,7 +812,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     mServiceCancelTimer.cancel();
                     mServiceCancelTimer = null;
                 }
-                mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
                 mIsPaused = false;
                 // Broadcast simple.last.fm.scrobble broadcast
                 TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -983,9 +982,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      * any ongoing notification.
      */
     public void stopService() {
-        // FIXME causing delays so disabled for the moment
         // save currentlist to database
-        // mPlaylistManager.savePlaylist(mCurrentList);
+        mPlaylistManager.savePlaylist(mCurrentList);
 
         mPlayer.stop();
         stopForeground(true);

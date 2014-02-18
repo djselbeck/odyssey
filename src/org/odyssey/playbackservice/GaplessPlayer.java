@@ -16,6 +16,7 @@ public class GaplessPlayer {
     private MediaPlayer mCurrentMediaPlayer = null;
     private boolean mCurrentPrepared = false;
     private boolean mSecondPrepared = false;
+    private boolean mPlayOnPrepared = true;
     private MediaPlayer mNextMediaPlayer = null;
 
     private String mPrimarySource = null;
@@ -36,12 +37,16 @@ public class GaplessPlayer {
      * 
      * @param uri
      *            - Path to media file
+     * @param play
+     *            - should play file when prepared
      * @throws IllegalArgumentException
      * @throws SecurityException
      * @throws IllegalStateException
      * @throws IOException
      */
-    public void play(String uri) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+    public void play(String uri, boolean play) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+        // save play decision
+        mPlayOnPrepared = play;
         // Another player currently exists try reusing
         if (mCurrentMediaPlayer != null) {
             mCurrentMediaPlayer.reset();
@@ -184,9 +189,13 @@ public class GaplessPlayer {
             Log.v(TAG, "Primary MP prepared: " + mp);
             // If mp equals currentMediaPlayback it should start playing
             mCurrentPrepared = true;
-            mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
-            mp.start();
+            // only start playing if its desired
+            if (mPlayOnPrepared) {
+                mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+
+                mp.start();
+            }
 
             // Notify connected listeners
             for (OnTrackStartedListener listener : mTrackStartListeners) {
