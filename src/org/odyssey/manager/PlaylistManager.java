@@ -35,6 +35,8 @@ public class PlaylistManager {
 
         ContentValues values = new ContentValues();
 
+        mPlaylistDB.beginTransaction();
+
         for (TrackItem item : playList) {
 
             values.clear();
@@ -50,6 +52,9 @@ public class PlaylistManager {
 
             mPlaylistDB.insert(TrackItemTable.TABLE_NAME, null, values);
         }
+
+        mPlaylistDB.setTransactionSuccessful();
+        mPlaylistDB.endTransaction();
 
         mPlaylistDBHelper.close();
     }
