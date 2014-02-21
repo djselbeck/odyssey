@@ -25,10 +25,6 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
     ViewPager mViewPager;
     AppSectionsPagerAdapter mAppSectionsPagerAdapter;
 
-    OnAboutSelectedListener mAboutSelectedCallback;
-    OnSettingsSelectedListener mSettingsSelectedCallback;
-    OnPlayAllSelectedListener mPlayAllSelectedCallback;
-
     // Listener for communication via container activity
     public interface OnAboutSelectedListener {
         public void onAboutSelected();
@@ -42,36 +38,12 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
         public void OnPlayAllSelected();
     }
 
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        // This makes sure that the container activity has implemented
-        // the callback interface. If not, it throws an exception
-        try {
-            mAboutSelectedCallback = (OnAboutSelectedListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement OnAlbumSelectedListener");
-        }
-
-        try {
-            mSettingsSelectedCallback = (OnSettingsSelectedListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement OnSettingsSelectedListener");
-        }
-
-        try {
-            mPlayAllSelectedCallback = (OnPlayAllSelectedListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement OnPlayAllSelectedListener");
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
         // indicate this fragment has its own menu
-        setHasOptionsMenu(true);
+//        setHasOptionsMenu(true);
 
         View rootView = inflater.inflate(R.layout.fragment_artists_albums_tabs, container, false);
 
@@ -90,31 +62,6 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
         mViewPager.setCurrentItem(1);
 
         return rootView;
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        inflater.inflate(R.menu.main, menu);
-
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-        case R.id.action_settings:
-            mSettingsSelectedCallback.onSettingsSelected();
-            return true;
-        case R.id.action_about:
-            mAboutSelectedCallback.onAboutSelected();
-            return true;
-        case R.id.action_playall:
-            mPlayAllSelectedCallback.OnPlayAllSelected();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     /**

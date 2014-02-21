@@ -7,6 +7,9 @@ import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListener;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 import org.odyssey.playbackservice.TrackItem;
@@ -28,6 +31,7 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,6 +48,9 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
     ArtistsCursorAdapter mCursorAdapter;
     OnArtistSelectedListener mArtistSelectedCallback;
+    OnAboutSelectedListener mAboutSelectedCallback;
+    OnSettingsSelectedListener mSettingsSelectedCallback;
+    OnPlayAllSelectedListener mPlayAllSelectedCallback;    
 
     private static final String TAG = "ArtistsSectionFragment";
 
@@ -67,12 +74,32 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
             throw new ClassCastException(activity.toString() + " must implement OnArtistSelectedListener");
         }
 
+        try {
+            mAboutSelectedCallback = (OnAboutSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnAlbumSelectedListener");
+        }
+
+        try {
+            mSettingsSelectedCallback = (OnSettingsSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnSettingsSelectedListener");
+        }
+
+        try {
+            mPlayAllSelectedCallback = (OnPlayAllSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnPlayAllSelectedListener");
+        }        
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
+        // indicate this fragment has its own menu
+        setHasOptionsMenu(true);        
+        
         // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
@@ -96,6 +123,31 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
         return rootView;
     }
+    
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.main, menu);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+        case R.id.action_settings:
+            mSettingsSelectedCallback.onSettingsSelected();
+            return true;
+        case R.id.action_about:
+            mAboutSelectedCallback.onAboutSelected();
+            return true;
+        case R.id.action_playall:
+            mPlayAllSelectedCallback.OnPlayAllSelected();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }     
 
     @Override
     public void onResume() {

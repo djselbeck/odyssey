@@ -7,6 +7,9 @@ import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
+import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
@@ -30,6 +33,7 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -49,6 +53,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     // FIXME listener in new file?
     OnAlbumSelectedListener mAlbumSelectedCallback;
     OnArtistSelectedListener mArtistSelectedCallback;
+    OnAboutSelectedListener mAboutSelectedCallback;
+    OnSettingsSelectedListener mSettingsSelectedCallback;
+    OnPlayAllSelectedListener mPlayAllSelectedCallback;    
 
     private String mArtist = "";
     private long mArtistID = -1;
@@ -82,12 +89,32 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnArtistSelectedListener");
         }
+        
+        try {
+            mAboutSelectedCallback = (OnAboutSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnAlbumSelectedListener");
+        }
 
+        try {
+            mSettingsSelectedCallback = (OnSettingsSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnSettingsSelectedListener");
+        }
+
+        try {
+            mPlayAllSelectedCallback = (OnPlayAllSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnPlayAllSelectedListener");
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
+        
+        // indicate this fragment has its own menu
+        setHasOptionsMenu(true);
 
         // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
@@ -121,6 +148,36 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         return rootView;
     }
+    
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.main, menu);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+        case R.id.action_settings:
+            mSettingsSelectedCallback.onSettingsSelected();
+            return true;
+        case R.id.action_about:
+            mAboutSelectedCallback.onAboutSelected();
+            return true;
+        case R.id.action_playall:
+        	if(mArtistID == -1) {
+        		mPlayAllSelectedCallback.OnPlayAllSelected();
+        	} else {
+        		// if artistID exists only play album of current artist
+        		playAllAlbums();
+        	}
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }    
 
     @Override
     public void onStart() {
@@ -481,6 +538,34 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+    
+    private void playAllAlbums() {
+    	
+    	// play all album of current artist if exists
+    	
+        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
+
+        // Remove old tracks
+        try {
+            app.getPlaybackService().clearPlaylist();
+        } catch (RemoteException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+
+        // get and enqueue albumtracks
+        for(int i = 0; i < mCursorAdapter.getCount(); i++) {
+        	enqueueAlbum(i);
+        }
+        
+        // play album
+        try {
+            app.getPlaybackService().jumpTo(0);
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }  	
     }
 
     private void showArtist(int position) {
