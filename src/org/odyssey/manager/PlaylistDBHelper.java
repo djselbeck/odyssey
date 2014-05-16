@@ -16,10 +16,10 @@ public class PlaylistDBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         TrackItemTable.onCreate(db);
+        SettingsTable.onCreate(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        TrackItemTable.onUpgrade(db, oldVersion, newVersion);
     }
 }

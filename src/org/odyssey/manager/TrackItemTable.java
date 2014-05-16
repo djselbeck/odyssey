@@ -16,7 +16,7 @@ public class TrackItemTable {
     public static final String COLUMN_TRACKURL = "url";
 
     // Database creation SQL statement
-    private static final String DATABASE_CREATE = "create table " + TABLE_NAME + "(" + COLUMN_ID + " integer primary key autoincrement, " + COLUMN_TRACKNUMBER + " int, " + COLUMN_TRACKTITLE + " text," + COLUMN_TRACKALBUM + " text,"
+    private static final String DATABASE_CREATE = "create table if not exists " + TABLE_NAME + "(" + COLUMN_ID + " integer primary key autoincrement, " + COLUMN_TRACKNUMBER + " int, " + COLUMN_TRACKTITLE + " text," + COLUMN_TRACKALBUM + " text,"
             + COLUMN_TRACKALBUMKEY + " text," + COLUMN_TRACKDURATION + " int," + COLUMN_TRACKARTIST + " text," + COLUMN_TRACKURL + " text" + ");";
 
     public static void onCreate(SQLiteDatabase database) {
@@ -24,10 +24,10 @@ public class TrackItemTable {
         database.execSQL(DATABASE_CREATE);
     }
 
-    public static void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
-        // replace old table
-        database.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-        onCreate(database);
-    }
+//    public static void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
+//        // replace old table
+//        database.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+//        onCreate(database);
+//    }
 
 }

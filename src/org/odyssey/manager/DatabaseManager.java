@@ -12,7 +12,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 
-public class PlaylistManager {
+public class DatabaseManager {
 
     private PlaylistDBHelper mPlaylistDBHelper;
     private SQLiteDatabase mPlaylistDB;
@@ -20,17 +20,12 @@ public class PlaylistManager {
     private String[] projectionTrackItems = { TrackItemTable.COLUMN_TRACKNUMBER, TrackItemTable.COLUMN_TRACKTITLE, TrackItemTable.COLUMN_TRACKALBUM, TrackItemTable.COLUMN_TRACKALBUMKEY, TrackItemTable.COLUMN_TRACKDURATION,
             TrackItemTable.COLUMN_TRACKARTIST, TrackItemTable.COLUMN_TRACKURL };
 
-    public PlaylistManager(Context context) {
+    public DatabaseManager(Context context) {
         mPlaylistDBHelper = new PlaylistDBHelper(context);
-        mPlaylistDB = null;
+        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
     }
 
     public void savePlaylist(ArrayList<TrackItem> playList) {
-
-        // save trackitems to database
-
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
-
         // clear the database
         mPlaylistDB.delete(TrackItemTable.TABLE_NAME, null, null);
 
@@ -57,14 +52,12 @@ public class PlaylistManager {
         mPlaylistDB.setTransactionSuccessful();
         mPlaylistDB.endTransaction();
 
-        mPlaylistDBHelper.close();
     }
 
     public ArrayList<TrackItem> readPlaylist() {
 
         // get all trackitems from database and return them
 
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
 
         ArrayList<TrackItem> playList = new ArrayList<TrackItem>();
 
@@ -89,14 +82,11 @@ public class PlaylistManager {
 
         cursor.close();
 
-        mPlaylistDBHelper.close();
 
         return playList;
     }
 
     public void clearPlaylist() {
-
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
 
         // clear the database
         mPlaylistDB.delete(TrackItemTable.TABLE_NAME, null, null);
@@ -106,7 +96,6 @@ public class PlaylistManager {
 
         // get row id and return the trackitem
 
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
 
         String whereVal[] = { "" + id };
 
@@ -128,7 +117,6 @@ public class PlaylistManager {
 
         cursor.close();
 
-        mPlaylistDBHelper.close();
 
         return item;
     }
@@ -137,7 +125,6 @@ public class PlaylistManager {
 
         // get number of rows in the database
 
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
 
         String[] projection = { TrackItemTable.COLUMN_ID };
 
@@ -147,7 +134,6 @@ public class PlaylistManager {
 
         cursor.close();
 
-        mPlaylistDBHelper.close();
 
         return size;
     }
@@ -156,7 +142,6 @@ public class PlaylistManager {
 
         // save trackitem to database
 
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
 
@@ -176,14 +161,12 @@ public class PlaylistManager {
         mPlaylistDB.setTransactionSuccessful();
         mPlaylistDB.endTransaction();
 
-        mPlaylistDBHelper.close();
     }
 
     public void enqueueTrackList(ArrayList<TrackItem> list) {
 
         // save trackitems to database
 
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
 
@@ -208,7 +191,6 @@ public class PlaylistManager {
         mPlaylistDB.setTransactionSuccessful();
         mPlaylistDB.endTransaction();
 
-        mPlaylistDBHelper.close();
     }
 
     public void dequeueTrackItem(int id) {
@@ -217,20 +199,17 @@ public class PlaylistManager {
 
         // delete current row
 
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
 
         String whereVal[] = { "" + id };
 
         mPlaylistDB.delete(TrackItemTable.TABLE_NAME, TrackItemTable.COLUMN_ID + "=?", whereVal);
 
-        mPlaylistDBHelper.close();
     }
 
     public void shufflePlaylist() {
 
         // TODO not very efficient
 
-        mPlaylistDB = mPlaylistDBHelper.getWritableDatabase();
 
         // get all Tracks
         ArrayList<TrackItem> playList = new ArrayList<TrackItem>();
@@ -283,10 +262,49 @@ public class PlaylistManager {
         mPlaylistDB.setTransactionSuccessful();
         mPlaylistDB.endTransaction();
 
-        mPlaylistDBHelper.close();
     }
 
     public void playAllTracks() {
         // TODO
+    }
+    
+    public void saveCurrentPlayState(long position, long trackNR) {
+    	// Delete old settings rows
+    	String whereStmt = SettingsTable.COLUMN_SETTINGSNAME + "=? OR " + SettingsTable.COLUMN_SETTINGSNAME + "=?";
+    	String[] whereArgs = {SettingsTable.TRACKNUMBER_ROW,SettingsTable.TRACKPOSITION_ROW};
+    	mPlaylistDB.delete(SettingsTable.TABLE_NAME, whereStmt, whereArgs);
+    	
+    	// Insert new values into table
+    	String positionStmt = "INSERT INTO " + SettingsTable.TABLE_NAME + " values ( \"" + SettingsTable.TRACKPOSITION_ROW  + "\","
+    			+ "\"" + position + "\");";
+    	mPlaylistDB.execSQL(positionStmt);
+    	
+    	String nrStmt = "INSERT INTO " + SettingsTable.TABLE_NAME + " values ( \"" + SettingsTable.TRACKNUMBER_ROW  + "\","
+    			+ "\"" + trackNR + "\");";
+    	mPlaylistDB.execSQL(nrStmt);
+    }
+    
+    public long getLastTrackPosition() {
+    	String[] columns = {SettingsTable.COLUMN_SETTINGSVALUE};
+    	String selection = SettingsTable.COLUMN_SETTINGSNAME + "=?";
+    	String[] selectionArgs = {SettingsTable.TRACKPOSITION_ROW};
+    	Cursor resultCursor = mPlaylistDB.query(SettingsTable.TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
+    	if ( resultCursor.moveToFirst() ) {
+    		long value = resultCursor.getLong(resultCursor.getColumnIndex(SettingsTable.COLUMN_SETTINGSVALUE));
+    		return value;
+    	}
+    	return 0;
+    }
+    
+    public long getLastTrackNumber() {
+    	String[] columns = {SettingsTable.COLUMN_SETTINGSVALUE};
+    	String selection = SettingsTable.COLUMN_SETTINGSNAME + "=?";
+    	String[] selectionArgs = {SettingsTable.TRACKNUMBER_ROW};
+    	Cursor resultCursor = mPlaylistDB.query(SettingsTable.TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
+    	if ( resultCursor.moveToFirst() ) {
+    		long value = resultCursor.getLong(resultCursor.getColumnIndex(SettingsTable.COLUMN_SETTINGSVALUE));
+    		return value;
+    	}
+    	return 0;
     }
 }

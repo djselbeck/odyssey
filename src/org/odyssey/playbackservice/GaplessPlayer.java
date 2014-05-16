@@ -21,6 +21,8 @@ public class GaplessPlayer {
 
     private String mPrimarySource = null;
     private String mSecondarySource = null;
+    
+    private int mPrepareTime = 0;
 
     private PlaybackService mPlaybackService;
 
@@ -31,6 +33,10 @@ public class GaplessPlayer {
         Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
     }
 
+    public void play(String uri, boolean play) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+    	play(uri,play,0);
+    }
+    
     /**
      * Initializes the first mediaplayers with uri and prepares it so it can get
      * started
@@ -44,7 +50,8 @@ public class GaplessPlayer {
      * @throws IllegalStateException
      * @throws IOException
      */
-    public void play(String uri, boolean play) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+    public void play(String uri, boolean play, int jumpTime) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+    	Log.v(TAG,"play(): " + jumpTime);
         // save play decision
         mPlayOnPrepared = play;
         // Another player currently exists try reusing
@@ -67,6 +74,7 @@ public class GaplessPlayer {
         mPrimarySource = uri;
         mCurrentMediaPlayer.setOnCompletionListener(new TrackCompletionListener());
         mCurrentMediaPlayer.setOnPreparedListener(mPrimaryPreparedListener);
+        mPrepareTime = jumpTime;
         mCurrentMediaPlayer.prepareAsync();
     }
 
@@ -132,8 +140,11 @@ public class GaplessPlayer {
 
     public void seekTo(int position) {
         try {
-            if (mCurrentMediaPlayer != null && mCurrentMediaPlayer.isPlaying() && position < mCurrentMediaPlayer.getDuration()) {
+            if (mCurrentMediaPlayer != null && mCurrentPrepared && position < mCurrentMediaPlayer.getDuration()) {
+            	Log.v(TAG,"Seeking to: " + position);
                 mCurrentMediaPlayer.seekTo(position);
+            } else {
+            	Log.v(TAG,"Not seeking to: " + position);
             }
         } catch (IllegalStateException exception) {
             Log.v(TAG, "Illegal state during seekTo");
@@ -195,6 +206,9 @@ public class GaplessPlayer {
                 mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
                 mp.start();
+            } else {
+            	Log.v(TAG,"Recover old position to: " + mPrepareTime);
+            	mp.seekTo(mPrepareTime);
             }
 
             // Notify connected listeners
