@@ -47,7 +47,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
-public class PlaybackService extends IntentService implements AudioManager.OnAudioFocusChangeListener {
+public class PlaybackService extends Service implements AudioManager.OnAudioFocusChangeListener {
 
 	// enums for random, repeat state
     public static enum RANDOMSTATE {
@@ -75,8 +75,6 @@ public class PlaybackService extends IntentService implements AudioManager.OnAud
     public static final String INTENT_TRACKITEMNAME = "OdysseyTrackItem";
     public static final String INTENT_NOWPLAYINGNAME = "OdysseyNowPlaying";
     
-    public static final String WORKER_THREAD_NAME = "RDA";
-
     private HandlerThread mHandlerThread;
     private PlaybackServiceHandler mHandler;
 
@@ -115,10 +113,6 @@ public class PlaybackService extends IntentService implements AudioManager.OnAud
 
     // Playlistmanager for saving and reading playlist
     private DatabaseManager mPlaylistManager = null;
-    
-	public PlaybackService() {
-		super(WORKER_THREAD_NAME);
-	}
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -1814,29 +1808,5 @@ public class PlaybackService extends IntentService implements AudioManager.OnAud
         }
 
     }
-
-	@Override
-	protected void onHandleIntent(Intent intent) {
-		Log.v(TAG,"Got intent");
-		if ( intent == null || intent.getAction() == null ) {
-			return;
-		}
-        if (intent.getAction().equals(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
-            Log.v(TAG, "NOISY AUDIO! CANCEL MUSIC");
-            pause();
-        } else if (intent.getAction().equals(ACTION_PLAY)) {
-            resume();
-        } else if (intent.getAction().equals(ACTION_PAUSE)) {
-            pause();
-        } else if (intent.getAction().equals(ACTION_NEXT)) {
-            setNextTrack();
-        } else if (intent.getAction().equals(ACTION_PREVIOUS)) {
-            setPreviousTrack();
-        } else if (intent.getAction().equals(ACTION_STOP)) {
-            stop();
-        } else if (intent.getAction().equals(ACTION_TOGGLEPAUSE)) {
-            togglePause();
-        }
-	}
 
 }

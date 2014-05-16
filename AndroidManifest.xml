@@ -38,7 +38,6 @@
             <intent-filter>
                 <action android:name="org.odyssey.playbackservice.IOdysseyPlaybackService" />
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />
-				<action android:name="org.odyssey.togglepause" />
             </intent-filter>
         </service>
         
