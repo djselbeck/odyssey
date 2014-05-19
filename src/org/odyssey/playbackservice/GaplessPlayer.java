@@ -21,7 +21,7 @@ public class GaplessPlayer {
 
     private String mPrimarySource = null;
     private String mSecondarySource = null;
-    
+
     private int mPrepareTime = 0;
 
     private PlaybackService mPlaybackService;
@@ -34,9 +34,9 @@ public class GaplessPlayer {
     }
 
     public void play(String uri, boolean play) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
-    	play(uri,play,0);
+        play(uri, play, 0);
     }
-    
+
     /**
      * Initializes the first mediaplayers with uri and prepares it so it can get
      * started
@@ -51,7 +51,7 @@ public class GaplessPlayer {
      * @throws IOException
      */
     public void play(String uri, boolean play, int jumpTime) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
-    	Log.v(TAG,"play(): " + jumpTime);
+        Log.v(TAG, "play(): " + jumpTime);
         // save play decision
         mPlayOnPrepared = play;
         // Another player currently exists try reusing
@@ -141,10 +141,10 @@ public class GaplessPlayer {
     public void seekTo(int position) {
         try {
             if (mCurrentMediaPlayer != null && mCurrentPrepared && position < mCurrentMediaPlayer.getDuration()) {
-            	Log.v(TAG,"Seeking to: " + position);
+                Log.v(TAG, "Seeking to: " + position);
                 mCurrentMediaPlayer.seekTo(position);
             } else {
-            	Log.v(TAG,"Not seeking to: " + position);
+                Log.v(TAG, "Not seeking to: " + position);
             }
         } catch (IllegalStateException exception) {
             Log.v(TAG, "Illegal state during seekTo");
@@ -206,18 +206,18 @@ public class GaplessPlayer {
                 mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
                 mp.start();
-            } else {
-            	Log.v(TAG,"Recover old position to: " + mPrepareTime);
-            	mp.seekTo(mPrepareTime);
-            }
+                // Notify connected listeners
+                for (OnTrackStartedListener listener : mTrackStartListeners) {
+                    listener.onTrackStarted(mPrimarySource);
+                }
+                if (mSecondPrepared == false && mNextMediaPlayer != null) {
+                    // Delayed initialization second mediaplayer
+                    mNextMediaPlayer.prepareAsync();
+                }
 
-            // Notify connected listeners
-            for (OnTrackStartedListener listener : mTrackStartListeners) {
-                listener.onTrackStarted(mPrimarySource);
-            }
-            if (mSecondPrepared == false && mNextMediaPlayer != null) {
-                // Delayed initialization second mediaplayer
-                mNextMediaPlayer.prepareAsync();
+            } else {
+                Log.v(TAG, "Recover old position to: " + mPrepareTime);
+                mp.seekTo(mPrepareTime);
             }
         }
     };
@@ -227,7 +227,6 @@ public class GaplessPlayer {
         @Override
         public void onPrepared(MediaPlayer mp) {
             Log.v(TAG, "Second MP prepared: " + mp);
-
             // If it is nextMediaPlayer it should be set for currentMP
             mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
             mSecondPrepared = true;

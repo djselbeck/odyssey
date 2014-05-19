@@ -49,7 +49,7 @@ import android.widget.Toast;
 
 public class PlaybackService extends Service implements AudioManager.OnAudioFocusChangeListener {
 
-	// enums for random, repeat state
+    // enums for random, repeat state
     public static enum RANDOMSTATE {
         RANDOM_OFF, RANDOM_ON;
     }
@@ -74,7 +74,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     public static final String INTENT_TRACKITEMNAME = "OdysseyTrackItem";
     public static final String INTENT_NOWPLAYINGNAME = "OdysseyNowPlaying";
-    
+
     private HandlerThread mHandlerThread;
     private PlaybackServiceHandler mHandler;
 
@@ -157,10 +157,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mCurrentPlayingIndex = (int) mPlaylistManager.getLastTrackNumber();
         mLastPlayingIndex = -1;
         mNextPlayingIndex = -1;
-        
+
         // NowPlaying
         mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
-        
+
         mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -193,12 +193,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         // set up random generator
         mRandomGenerator = new Random();
-        
+
         // Check if mediaplayer needs preparing
         long lastPosition = mPlaylistManager.getLastTrackPosition();
-        if ( (lastPosition != 0) && (mCurrentPlayingIndex != -1) && (mCurrentPlayingIndex < mCurrentList.size()) ) {
-        	jumpToIndex(mCurrentPlayingIndex, false,(int) lastPosition);
-        	Log.v(TAG,"Resuming position to: " + lastPosition);
+        if ((lastPosition != 0) && (mCurrentPlayingIndex != -1) && (mCurrentPlayingIndex < mCurrentList.size())) {
+            jumpToIndex(mCurrentPlayingIndex, false, (int) lastPosition);
+            Log.v(TAG, "Resuming position to: " + lastPosition);
         }
     }
 
@@ -221,7 +221,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Clear playlist, enqueue uri, jumpto 0
         clearPlaylist();
         enqueueTrack(track);
-        jumpToIndex(0,true);
+        jumpToIndex(0, true);
     }
 
     // Stops all playback
@@ -290,7 +290,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public void resume() {
         if (mCurrentPlayingIndex < 0 && mCurrentList.size() > 0) {
             // Songs existing so start playback of playlist begin
-            jumpToIndex(0,true);
+            jumpToIndex(0, true);
         } else if (mCurrentPlayingIndex < 0 && mCurrentList.size() == 0) {
             broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat, mRandom));
         } else {
@@ -364,7 +364,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mCurrentList.add(item);
 
             // start playing
-            jumpToIndex(0,true);
+            jumpToIndex(0, true);
 
             while (cursor.moveToNext()) {
 
@@ -622,7 +622,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // If not playing just add it to the beginning of the playlist
             mCurrentList.add(0, track);
             // Start playback which is probably intended
-            jumpToIndex(0,true);
+            jumpToIndex(0, true);
         }
     }
 
@@ -792,58 +792,62 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     public void jumpToIndex(int index, boolean startPlayback) {
-    	jumpToIndex(index, startPlayback, 0);
+        jumpToIndex(index, startPlayback, 0);
     }
-    
-    public void jumpToIndex(int index, boolean startPlayback, int jumpTime ) {
+
+    public void jumpToIndex(int index, boolean startPlayback, int jumpTime) {
         Log.v(TAG, "Playback of index: " + index + " requested");
         Log.v(TAG, "Playlist size: " + mCurrentList.size());
         // Stop playback
         mPlayer.stop();
         // Set currentindex to new song
-        if (index < mCurrentList.size() && index >=  0 ) {
+        if (index < mCurrentList.size() && index >= 0) {
             mCurrentPlayingIndex = index;
             try {
                 Log.v(TAG, "Start playback of: " + mCurrentList.get(mCurrentPlayingIndex));
-                // Request audio focus before doing anything
-                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-                if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                    // Abort command
-                    return;
-                }
-                /*
-                 * Make sure service is "started" so android doesn't handle it
-                 * as a "bound service"
-                 */
-                Intent serviceStartIntent = new Intent(this, PlaybackService.class);
-                serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-                startService(serviceStartIntent);
-                if (mServiceCancelTimer != null) {
-                    mServiceCancelTimer.cancel();
-                    mServiceCancelTimer = null;
-                }
-                mIsPaused = false;
+
                 // Broadcast simple.last.fm.scrobble broadcast
                 TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-                if ( startPlayback ) {
-                	mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), startPlayback);
-	                Log.v(TAG, "Send to SLS: " + item);
-	                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-	                bCast.putExtra("state", 0);
-	                bCast.putExtra("app-name", "Odyssey");
-	                bCast.putExtra("app-package", "org.odyssey");
-	                bCast.putExtra("artist", item.getTrackArtist());
-	                bCast.putExtra("album", item.getTrackAlbum());
-	                bCast.putExtra("track", item.getTrackTitle());
-	                bCast.putExtra("duration", item.getTrackDuration() / 1000);
-	                sendBroadcast(bCast);
-	                broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
-                } else {
-                	mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), startPlayback, jumpTime);
-                	broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
-                }
+                if (startPlayback) {
 
+                    // Request audio focus before doing anything
+                    AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                    int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+                    if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                        // Abort command
+                        return;
+                    }
+                    /*
+                     * Make sure service is "started" so android doesn't handle
+                     * it as a "bound service"
+                     */
+                    Intent serviceStartIntent = new Intent(this, PlaybackService.class);
+                    serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+                    startService(serviceStartIntent);
+                    if (mServiceCancelTimer != null) {
+                        mServiceCancelTimer.cancel();
+                        mServiceCancelTimer = null;
+                    }
+                    mIsPaused = false;
+
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), startPlayback);
+                    Log.v(TAG, "Send to SLS: " + item);
+                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                    bCast.putExtra("state", 0);
+                    bCast.putExtra("app-name", "Odyssey");
+                    bCast.putExtra("app-package", "org.odyssey");
+                    bCast.putExtra("artist", item.getTrackArtist());
+                    bCast.putExtra("album", item.getTrackAlbum());
+                    bCast.putExtra("track", item.getTrackTitle());
+                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                    sendBroadcast(bCast);
+                    broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
+                } else {
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), startPlayback, jumpTime);
+                    // broadcastNowPlaying(new NowPlayingInformation(0,
+                    // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
+                    // mCurrentPlayingIndex, mRepeat, mRandom));
+                }
 
                 // Check if another song follows current one for gapless
                 // playback
@@ -954,7 +958,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mCurrentList.remove(index);
             // Jump to next song which should be at index now
             // Jump is safe about playlist length so no need for extra safety
-            jumpToIndex(index,true);
+            jumpToIndex(index, true);
         } else if ((mCurrentPlayingIndex + 1) == index) {
             // Deletion of next song which requires extra handling
             // because of gapless playback, set next song to next on
@@ -1666,7 +1670,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 if ((mCurrentPlayingIndex + 1) == mCurrentList.size()) {
                     if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
                         // Was last song in list so repeat playlist
-                        jumpToIndex(0,true);
+                        jumpToIndex(0, true);
                     } else {
                         // Was last song in list stop everything
                         Log.v(TAG, "Last song played");

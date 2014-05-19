@@ -17,6 +17,7 @@ import org.odyssey.playbackservice.TrackItem;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -50,7 +51,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     OnArtistSelectedListener mArtistSelectedCallback;
     OnAboutSelectedListener mAboutSelectedCallback;
     OnSettingsSelectedListener mSettingsSelectedCallback;
-    OnPlayAllSelectedListener mPlayAllSelectedCallback;    
+    OnPlayAllSelectedListener mPlayAllSelectedCallback;
 
     private static final String TAG = "ArtistsSectionFragment";
 
@@ -90,7 +91,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
             mPlayAllSelectedCallback = (OnPlayAllSelectedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnPlayAllSelectedListener");
-        }        
+        }
     }
 
     @Override
@@ -98,8 +99,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
         super.onCreateView(inflater, container, savedInstanceState);
 
         // indicate this fragment has its own menu
-        setHasOptionsMenu(true);        
-        
+        setHasOptionsMenu(true);
+
         // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
@@ -123,7 +124,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
         return rootView;
     }
-    
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -147,7 +148,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }     
+    }
 
     @Override
     public void onResume() {
@@ -163,7 +164,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
         private LayoutInflater mInflater;
         private Cursor mCursor;
-        private LruCache<String, Drawable> mCache;
+        private LruCache<String, Bitmap> mCache;
         ArrayList<String> mSectionList;
         ArrayList<Integer> mSectionPositions;
 
@@ -172,7 +173,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
             this.mInflater = LayoutInflater.from(context);
             this.mCursor = c;
-            mCache = new LruCache<String, Drawable>(24);
+            this.mCache = new LruCache<String, Bitmap>(24);
             mSectionList = new ArrayList<String>();
         }
 
@@ -191,10 +192,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
 
-            Log.v(TAG, "Index: " + position);
-
-            // int coverIndex = 0;
-            int labelIndex = 0;
+            int coverIndex = -1;
+            int labelIndex = -1;
 
             AsyncLoader.CoverViewHolder coverHolder = null;
 
@@ -217,8 +216,6 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
                     coverHolder.task.cancel(true);
             }
 
-            // set default cover
-
             // get imagepath and labeltext
             if (this.mCursor == null) {
                 return convertView;
@@ -226,8 +223,6 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
             this.mCursor.moveToPosition(position);
 
-            // coverIndex = mCursor
-            // .getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
             labelIndex = mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST);
 
             if (labelIndex >= 0) {
@@ -241,36 +236,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
                 coverHolder.labelView.setText("");
             }
 
-            // Check for valid column
-            // if (coverIndex >= 0) {
-            // // Get column value (Image-URL)
-            // coverHolder.imagePath = mCursor.getString(coverIndex);
-            // if (coverHolder.imagePath != null) {
-            // // Check cache first
-            // Drawable cacheImage = mCache.get(coverHolder.imagePath);
-            // if (cacheImage == null) {
-            // // Cache miss
-            // // create and execute new asynctask
-            // coverHolder.task = new AsyncLoader();
-            // coverHolder.cache = new WeakReference<LruCache<String,
-            // Drawable>>(
-            // mCache);
-            // coverHolder.task.execute(coverHolder);
-            // } else {
-            // // Cache hit
-            // coverHolder.coverView.setImageDrawable(cacheImage);
-            // }
-            // } else {
-            // // Cover entry has no album art
-            // coverHolder.coverView
-            // .setImageResource(R.drawable.coverplaceholder);
-            // }
-            // } else {
-            // coverHolder.coverView
-            // .setImageResource(R.drawable.coverplaceholder);
-            // coverHolder.imagePath = null;
-            // }
-
+            // set default cover
             coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
             coverHolder.imagePath = null;
 

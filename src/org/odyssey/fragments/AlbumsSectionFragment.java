@@ -55,7 +55,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     OnArtistSelectedListener mArtistSelectedCallback;
     OnAboutSelectedListener mAboutSelectedCallback;
     OnSettingsSelectedListener mSettingsSelectedCallback;
-    OnPlayAllSelectedListener mPlayAllSelectedCallback;    
+    OnPlayAllSelectedListener mPlayAllSelectedCallback;
 
     private String mArtist = "";
     private long mArtistID = -1;
@@ -89,7 +89,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnArtistSelectedListener");
         }
-        
+
         try {
             mAboutSelectedCallback = (OnAboutSelectedListener) activity;
         } catch (ClassCastException e) {
@@ -112,7 +112,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        
+
         // indicate this fragment has its own menu
         setHasOptionsMenu(true);
 
@@ -148,7 +148,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         return rootView;
     }
-    
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -168,16 +168,16 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             mAboutSelectedCallback.onAboutSelected();
             return true;
         case R.id.action_playall:
-        	if(mArtistID == -1) {
-        		mPlayAllSelectedCallback.OnPlayAllSelected();
-        	} else {
-        		// if artistID exists only play album of current artist
-        		playAllAlbums();
-        	}
+            if (mArtistID == -1) {
+                mPlayAllSelectedCallback.OnPlayAllSelected();
+            } else {
+                // if artistID exists only play album of current artist
+                playAllAlbums();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }    
+    }
 
     @Override
     public void onStart() {
@@ -227,8 +227,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-
-            Log.v(TAG, "Index: " + position);
 
             int coverIndex = 0;
             int labelIndex = 0;
@@ -371,7 +369,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             for (int i = 0; i < mSectionList.size(); i++) {
 
                 if (albumSection == mSectionList.get(i).toUpperCase().charAt(0)) {
-                    Log.v(TAG, "Section for position: " + pos + " = " + i);
                     return i;
                 }
 
@@ -539,11 +536,11 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             e.printStackTrace();
         }
     }
-    
+
     private void playAllAlbums() {
-    	
-    	// play all album of current artist if exists
-    	
+
+        // play all album of current artist if exists
+
         OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
         // Remove old tracks
@@ -555,17 +552,17 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         }
 
         // get and enqueue albumtracks
-        for(int i = 0; i < mCursorAdapter.getCount(); i++) {
-        	enqueueAlbum(i);
+        for (int i = 0; i < mCursorAdapter.getCount(); i++) {
+            enqueueAlbum(i);
         }
-        
+
         // play album
         try {
             app.getPlaybackService().jumpTo(0);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }  	
+        }
     }
 
     private void showArtist(int position) {

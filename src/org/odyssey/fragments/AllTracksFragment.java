@@ -47,10 +47,10 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
     private static final String TAG = "AllTracksFragment";
     private ListView mListView = null;
     AllTracksCursorAdapter mCursorAdapter;
-    
+
     OnAboutSelectedListener mAboutSelectedCallback;
     OnSettingsSelectedListener mSettingsSelectedCallback;
-    OnPlayAllSelectedListener mPlayAllSelectedCallback;    
+    OnPlayAllSelectedListener mPlayAllSelectedCallback;
 
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -73,15 +73,15 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
             mPlayAllSelectedCallback = (OnPlayAllSelectedListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnPlayAllSelectedListener");
-        }        
-    }    
-    
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         // indicate this fragment has its own menu
-        setHasOptionsMenu(true);       	
-    	
+        setHasOptionsMenu(true);
+
         // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
@@ -101,7 +101,7 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
         return rootView;
     }
-    
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -177,7 +177,6 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
             for (int i = 0; i < mSectionList.size(); i++) {
 
                 if (trackSection == mSectionList.get(i).toUpperCase().charAt(0)) {
-                    Log.v(TAG, "Section for position: " + pos + " = " + i);
                     return i;
                 }
 
