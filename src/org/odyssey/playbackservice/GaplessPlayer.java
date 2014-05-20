@@ -279,6 +279,10 @@ public class GaplessPlayer {
         return false;
     }
 
+    public boolean isPaused() {
+        return mCurrentMediaPlayer != null && !mCurrentMediaPlayer.isPlaying() && mCurrentPrepared;
+    }
+
     public void setVolume(float leftChannel, float rightChannel) {
         if (mCurrentMediaPlayer != null) {
             mCurrentMediaPlayer.setVolume(leftChannel, rightChannel);
