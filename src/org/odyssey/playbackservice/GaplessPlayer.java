@@ -218,6 +218,11 @@ public class GaplessPlayer {
             } else {
                 Log.v(TAG, "Recover old position to: " + mPrepareTime);
                 mp.seekTo(mPrepareTime);
+
+                if (mSecondPrepared == false && mNextMediaPlayer != null) {
+                    // Delayed initialization second mediaplayer
+                    mNextMediaPlayer.prepareAsync();
+                }
             }
         }
     };

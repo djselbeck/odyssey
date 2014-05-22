@@ -29,7 +29,7 @@ public class ArtistCoverLoader extends CursorLoader {
         Log.v(TAG, "load ArtistCovers");
 
         // get all album covers with corresponding artist
-        Cursor albumArtCursor = mContext.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART, android.provider.MediaStore.Audio.Albums.ARTIST }, "", null,
+        Cursor albumArtCursor = mContext.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART, MediaStore.Audio.Albums.ARTIST }, "", null,
                 MediaStore.Audio.Albums.ARTIST + " COLLATE NOCASE");
 
         // get all artists
