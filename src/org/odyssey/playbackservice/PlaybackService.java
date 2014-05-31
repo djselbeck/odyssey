@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Semaphore;
 
 import org.odyssey.IOdysseyNowPlayingCallback;
 import org.odyssey.MainActivity;
@@ -113,6 +115,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // Playlistmanager for saving and reading playlist
     private DatabaseManager mPlaylistManager = null;
+    
+    // Mutex for NowPlaying callbacks
+    private final Semaphore mCallbackMutex = new Semaphore(1, true);
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -1042,10 +1048,18 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      * 
      * @param callback
      */
-    public void registerNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
+    public synchronized void registerNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
         Log.v(TAG, "Added NowPlaying callback");
+        // mutex lock
+        try {
+			mCallbackMutex.acquire();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
         mNowPlayingCallbacks.add(callback);
-
+        // mutex unlock
+        mCallbackMutex.release();
         // Notify about current status right away
         if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             String playingURL = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
@@ -1064,9 +1078,18 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      * 
      * @param callback
      */
-    public void unregisterNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
+    public synchronized void unregisterNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
         Log.v(TAG, "Unregistering callback");
+        // mutex lock
+        try {
+			mCallbackMutex.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         mNowPlayingCallbacks.remove(callback);
+        // mutex unlock
+        mCallbackMutex.release();
     }
 
     private synchronized void broadcastNowPlaying(NowPlayingInformation info) {
@@ -1074,6 +1097,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
          * Sends a new NowPlaying object on its way to connected callbacks
          * PlaybackService --> OdysseyApplication |-> Homescreen-widget
          */
+    	// mutex lock
+    	try {
+			mCallbackMutex.acquire();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
         for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
             Log.v(TAG, "Sending now playing information to receiver");
             try {
@@ -1082,6 +1112,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 e.printStackTrace();
             }
         }
+        // mutex unlock
+        mCallbackMutex.release();
 
         if (mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
