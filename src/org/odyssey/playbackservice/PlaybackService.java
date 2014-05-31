@@ -155,6 +155,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         // mCurrentList = new ArrayList<TrackItem>();
         mCurrentPlayingIndex = (int) mPlaylistManager.getLastTrackNumber();
+        
+        if(mCurrentPlayingIndex < 0 || mCurrentPlayingIndex > mCurrentList.size()) {
+        	mCurrentPlayingIndex = -1;
+        }
+        
         mLastPlayingIndex = -1;
         mNextPlayingIndex = -1;
 
@@ -226,7 +231,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // Stops all playback
     public void stop() {
-        if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0) {
+        if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
             Log.v(TAG, "Send to SLS: " + item);
@@ -261,7 +266,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mPlaylistManager.saveCurrentPlayState(mLastPosition, mCurrentPlayingIndex);
 
             // Broadcast simple.last.fm.scrobble broadcast
-            if (mCurrentPlayingIndex >= 0) {
+            if (mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
                 TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
                 Log.v(TAG, "Send to SLS: " + item);
                 Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
@@ -278,7 +283,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mIsPaused = true;
         }
 
-        if (mCurrentPlayingIndex >= 0) {
+        if (mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             broadcastNowPlaying(new NowPlayingInformation(0, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
             updateNotification();
         }
@@ -293,7 +298,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             jumpToIndex(0, true);
         } else if (mCurrentPlayingIndex < 0 && mCurrentList.size() == 0) {
             broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat, mRandom));
-        } else {
+        } else if (mCurrentPlayingIndex < mCurrentList.size()){
             /*
              * Make sure service is "started" so android doesn't handle it as a
              * "bound service"
@@ -395,7 +400,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // save currentindex
         int index = mCurrentPlayingIndex;
 
-        if (mCurrentList.size() > 0 && index >= 0) {
+        if (mCurrentList.size() > 0 && index >= 0 && (index < mCurrentList.size())) {
             // get the current trackitem and remove it from playlist
             TrackItem currentItem = mCurrentList.get(index);
             mCurrentList.remove(index);
@@ -477,7 +482,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             }
 
             // Next track is availible
-            if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
+            if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0) ) {
                 try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
 
@@ -1042,7 +1047,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNowPlayingCallbacks.add(callback);
 
         // Notify about current status right away
-        if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0) {
+        if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             String playingURL = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
             int playing = mPlayer.isRunning() ? 1 : 0;
             try {
@@ -1078,7 +1083,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             }
         }
 
-        if (mCurrentPlayingIndex >= 0) {
+        if (mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
             ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
             extraTrackItemList.add(mCurrentList.get(mCurrentPlayingIndex));
@@ -1799,6 +1804,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         @Override
         public void run() {
+        	Log.v(TAG, "Cancel odyssey playbackservice");
             stop();
         }
 
