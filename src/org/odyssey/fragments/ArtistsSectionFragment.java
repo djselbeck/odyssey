@@ -10,6 +10,7 @@ import org.odyssey.R;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListener;
+import org.odyssey.manager.ArtistCoverLoader;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 import org.odyssey.playbackservice.TrackItem;
@@ -223,7 +224,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
             this.mCursor.moveToPosition(position);
 
-            labelIndex = mCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST);
+            coverIndex = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
+            labelIndex = mCursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST);
 
             if (labelIndex >= 0) {
                 // coverHolder.labelText = mCursor.getString(labelIndex);
@@ -236,9 +238,31 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
                 coverHolder.labelView.setText("");
             }
 
-            // set default cover
-            coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
-            coverHolder.imagePath = null;
+            // Check for valid column
+            if (coverIndex >= 0) {
+                // Get column value (Image-URL)
+                coverHolder.imagePath = mCursor.getString(coverIndex);
+                if (coverHolder.imagePath != null) {
+                    // Check cache first
+                    Bitmap cacheImage = mCache.get(coverHolder.imagePath);
+                    if (cacheImage == null) {
+                        // Cache miss
+                        // create and execute new asynctask
+                        coverHolder.task = new AsyncLoader();
+                        coverHolder.cache = new WeakReference<LruCache<String, Bitmap>>(mCache);
+                        coverHolder.task.execute(coverHolder);
+                    } else {
+                        // Cache hit
+                        coverHolder.coverViewReference.get().setImageBitmap(cacheImage);
+                    }
+                } else {
+                    // Cover entry has no album art
+                    coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
+                }
+            } else {
+                coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
+                coverHolder.imagePath = null;
+            }
 
             return convertView;
         }
@@ -321,7 +345,11 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     // New loader needed
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-        return new CursorLoader(getActivity(), MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionArtists, "", null, MediaStore.Audio.Artists.ARTIST + " COLLATE NOCASE");
+        return new ArtistCoverLoader(getActivity());
+        // return new CursorLoader(getActivity(),
+        // MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
+        // MusicLibraryHelper.projectionArtists, "", null,
+        // MediaStore.Audio.Artists.ARTIST + " COLLATE NOCASE");
     }
 
     @Override
