@@ -33,8 +33,8 @@ public class GaplessPlayer {
         Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
     }
 
-    public void play(String uri, boolean play) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
-        play(uri, play, 0);
+    public void play(String uri) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+        play(uri, 0);
     }
 
     /**
@@ -50,10 +50,10 @@ public class GaplessPlayer {
      * @throws IllegalStateException
      * @throws IOException
      */
-    public void play(String uri, boolean play, int jumpTime) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+    public void play(String uri, int jumpTime) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
         Log.v(TAG, "play(): " + jumpTime);
         // save play decision
-        mPlayOnPrepared = play;
+
         // Another player currently exists try reusing
         if (mCurrentMediaPlayer != null) {
             mCurrentMediaPlayer.reset();
@@ -202,27 +202,23 @@ public class GaplessPlayer {
             mCurrentPrepared = true;
 
             // only start playing if its desired
-            if (mPlayOnPrepared) {
-                mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
-                mp.start();
-                // Notify connected listeners
-                for (OnTrackStartedListener listener : mTrackStartListeners) {
-                    listener.onTrackStarted(mPrimarySource);
-                }
-                if (mSecondPrepared == false && mNextMediaPlayer != null) {
-                    // Delayed initialization second mediaplayer
-                    mNextMediaPlayer.prepareAsync();
-                }
-
-            } else {
-                Log.v(TAG, "Recover old position to: " + mPrepareTime);
+            // Check if an immedieate jump is requested
+            if (mPrepareTime > 0) {
+                Log.v(TAG,"Jumping to requested time before playing");
                 mp.seekTo(mPrepareTime);
+                mPrepareTime = 0;
+            }
+            mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
-                if (mSecondPrepared == false && mNextMediaPlayer != null) {
-                    // Delayed initialization second mediaplayer
-                    mNextMediaPlayer.prepareAsync();
-                }
+            mp.start();
+            // Notify connected listeners
+            for (OnTrackStartedListener listener : mTrackStartListeners) {
+                listener.onTrackStarted(mPrimarySource);
+            }
+            if (mSecondPrepared == false && mNextMediaPlayer != null) {
+                // Delayed initialization second mediaplayer
+                mNextMediaPlayer.prepareAsync();
             }
         }
     };
@@ -280,6 +276,13 @@ public class GaplessPlayer {
     public boolean isRunning() {
         if (mCurrentMediaPlayer != null) {
             return mCurrentMediaPlayer.isPlaying();
+        }
+        return false;
+    }
+
+    public boolean isPrepared() {
+        if (mCurrentMediaPlayer != null && mCurrentPrepared) {
+            return true;
         }
         return false;
     }

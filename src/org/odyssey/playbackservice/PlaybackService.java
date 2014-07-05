@@ -205,12 +205,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // set up random generator
         mRandomGenerator = new Random();
 
-        // Check if mediaplayer needs preparing
-        long lastPosition = mPlaylistManager.getLastTrackPosition();
-        if ((lastPosition != 0) && (mCurrentPlayingIndex != -1) && (mCurrentPlayingIndex < mCurrentList.size())) {
-            jumpToIndex(mCurrentPlayingIndex, false, (int) lastPosition);
-            Log.v(TAG, "Resuming position to: " + lastPosition);
-        }
     }
 
     @Override
@@ -299,6 +293,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     public void resume() {
+        // Check if mediaplayer needs preparing
+        long lastPosition = mPlaylistManager.getLastTrackPosition();
+        if (!mPlayer.isPrepared() && (lastPosition != 0) && (mCurrentPlayingIndex != -1) && (mCurrentPlayingIndex < mCurrentList.size())) {
+            jumpToIndex(mCurrentPlayingIndex, false, (int) lastPosition);
+            Log.v(TAG, "Resuming position before playback to: " + lastPosition);
+            return;
+        }
+    	
         if (mCurrentPlayingIndex < 0 && mCurrentList.size() > 0) {
             // Songs existing so start playback of playlist begin
             jumpToIndex(0, true);
@@ -490,7 +492,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Next track is availible
             if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0) ) {
                 try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -555,7 +557,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
                 // Start playback of new song
                 try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -674,7 +676,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Next track is availible
             if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
                 try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -730,7 +732,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
                 // Start playback of new song
                 try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), true);
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -841,7 +843,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     }
                     mIsPaused = false;
 
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), startPlayback);
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
                     Log.v(TAG, "Send to SLS: " + item);
                     Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
                     bCast.putExtra("state", 0);
@@ -854,7 +856,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     sendBroadcast(bCast);
                     broadcastNowPlaying(new NowPlayingInformation(1, mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), mCurrentPlayingIndex, mRepeat, mRandom));
                 } else {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), startPlayback, jumpTime);
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), jumpTime);
                     // broadcastNowPlaying(new NowPlayingInformation(0,
                     // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
                     // mCurrentPlayingIndex, mRepeat, mRandom));
