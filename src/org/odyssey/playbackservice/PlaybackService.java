@@ -28,11 +28,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.RemoteControlClient;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.Process;
@@ -52,6 +55,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     public static enum REPEATSTATE {
         REPEAT_OFF, REPEAT_ALL, REPEAT_TRACK;
+    }
+
+    public static enum PLAYSTATE {
+        PLAYING, PAUSE, STOPPED;
     }
 
     public static final String TAG = "OdysseyPlaybackService";
@@ -246,10 +253,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNextPlayingIndex = -1;
         mLastPlayingIndex = -1;
 
-        // Send empty NowPlaying
         updateStatus();
-        // broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat,
-        // mRandom));
+
         stopService();
     }
 
@@ -279,12 +284,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
 
         if (mCurrentPlayingIndex >= 0) {
-            // TODO Simplyfi
             updateStatus();
-            // broadcastNowPlaying(new NowPlayingInformation(0,
-            // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
-            // mCurrentPlayingIndex, mRepeat, mRandom));
-            // updateNotification();
         }
         mServiceCancelTimer = new Timer();
         // Set timeout to 10 minutes for now
@@ -304,11 +304,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Songs existing so start playback of playlist begin
             jumpToIndex(0, true);
         } else if (mCurrentPlayingIndex < 0 && mCurrentList.size() == 0) {
-
-            // FIXME simplyfi
             updateStatus();
-            // broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat,
-            // mRandom));
         } else if (mCurrentPlayingIndex < mCurrentList.size()) {
             /*
              * Make sure service is "started" so android doesn't handle it as a
@@ -338,12 +334,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             mIsPaused = false;
             mLastPosition = 0;
-            // TODO simplify
+
             updateStatus();
-            // broadcastNowPlaying(new NowPlayingInformation(1,
-            // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
-            // mCurrentPlayingIndex, mRepeat, mRandom));
-            // updateNotification();
         }
     }
 
@@ -811,7 +803,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Clear the list and reset index
         mCurrentList.clear();
         mCurrentPlayingIndex = -1;
-        // TODO notify connected listeners
     }
 
     public void jumpToIndex(int index, boolean startPlayback) {
@@ -863,11 +854,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     bCast.putExtra("album", item.getTrackAlbum());
                     bCast.putExtra("track", item.getTrackTitle());
                     bCast.putExtra("duration", item.getTrackDuration() / 1000);
-                    // sendBroadcast(bCast);
-                    // broadcastNowPlaying(new NowPlayingInformation(1,
-                    // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
-                    // mCurrentPlayingIndex, mRepeat, mRandom));
-                    // FIXME
+
                     updateStatus();
                 } else {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), jumpTime);
@@ -1050,7 +1037,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     public void setRepeat(int repeat) {
-        // TODO SET LOOPING FOR MP
         mRepeat = repeat;
     }
 
@@ -1071,8 +1057,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         try {
             mCallbackMutex.acquire();
         } catch (InterruptedException e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
+            // Cancel (not safe)
+            return;
         }
         mNowPlayingCallbacks.add(callback);
         // mutex unlock
@@ -1082,8 +1069,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             String playingURL = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
             int playing = mPlayer.isRunning() ? 1 : 0;
             try {
-                // FIXME
-                callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL, mCurrentPlayingIndex, mRepeat, mRandom, mCurrentList.size(), mCurrentPlayingIndex));
+                // FIXME nicer
+                callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL, mCurrentPlayingIndex, mRepeat, mRandom, mCurrentList.size()));
             } catch (RemoteException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -1102,122 +1089,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         try {
             mCallbackMutex.acquire();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
+            // Cancel here
+            return;
         }
         mNowPlayingCallbacks.remove(callback);
         // mutex unlock
         mCallbackMutex.release();
     }
-
-    // private synchronized void broadcastNowPlaying(NowPlayingInformation info)
-    // {
-    // /*
-    // * Sends a new NowPlaying object on its way to connected callbacks
-    // * PlaybackService --> OdysseyApplication |-> Homescreen-widget
-    // */
-    // // mutex lock
-    // try {
-    // mCallbackMutex.acquire();
-    // } catch (InterruptedException e1) {
-    // // TODO Auto-generated catch block
-    // e1.printStackTrace();
-    // }
-    // for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
-    // Log.v(TAG, "Sending now playing information to receiver");
-    // try {
-    // callback.receiveNewNowPlayingInformation(info);
-    // } catch (RemoteException e) {
-    // e.printStackTrace();
-    // }
-    // }
-    // // mutex unlock
-    // mCallbackMutex.release();
-    //
-    // if (mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex <
-    // mCurrentList.size())) {
-    // Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
-    // ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
-    // extraTrackItemList.add(mCurrentList.get(mCurrentPlayingIndex));
-    // ArrayList<Parcelable> extraNPList = new ArrayList<Parcelable>();
-    // extraNPList.add(info);
-    // broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,
-    // extraTrackItemList);
-    // broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME,
-    // extraNPList);
-    // sendBroadcast(broadcastIntent);
-    //
-    // String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
-    //
-    // String whereVal[] = {
-    // mCurrentList.get(mCurrentPlayingIndex).getTrackAlbumKey() };
-    //
-    // Cursor cursor =
-    // getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-    // new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
-    //
-    // String coverPath = null;
-    // if (cursor.moveToFirst()) {
-    // coverPath =
-    // cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-    // }
-    //
-    // cursor.close();
-    //
-    // BitmapDrawable cover;
-    //
-    // RemoteControlClient.MetadataEditor editor =
-    // mRemoteControlClient.editMetadata(false);
-    //
-    // if (coverPath != null) {
-    // if (coverPath != mLastCoverURL) {
-    // mLastCoverURL = coverPath;
-    // cover = (BitmapDrawable) BitmapDrawable.createFromPath(mLastCoverURL);
-    // editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK,
-    // cover.getBitmap());
-    // }
-    //
-    // } else {
-    // editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK,
-    // null);
-    // }
-    //
-    // // Set remote control
-    // TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-    //
-    // editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM,
-    // item.getTrackAlbum());
-    // editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST,
-    // item.getTrackArtist());
-    // editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST,
-    // item.getTrackArtist());
-    // editor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE,
-    // item.getTrackTitle());
-    // editor.apply();
-    // if (mPlayer.isRunning()) {
-    // mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
-    //
-    // } else {
-    // mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
-    // }
-    // mRemoteControlClient.setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE
-    // | RemoteControlClient.FLAG_KEY_MEDIA_NEXT |
-    // RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS);
-    // } else {
-    // Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
-    // ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
-    // extraTrackItemList.add(new TrackItem());
-    // ArrayList<Parcelable> extraNPList = new ArrayList<Parcelable>();
-    // extraNPList.add(info);
-    // broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME,
-    // extraTrackItemList);
-    // broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME,
-    // extraNPList);
-    // sendBroadcast(broadcastIntent);
-    // mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
-    //
-    // }
-    // }
 
     public int getCurrentIndex() {
         return mCurrentPlayingIndex;
@@ -1229,19 +1108,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
         return null;
     }
-
-    // private void sendUpdateBroadcast() {
-    // if (mPlayer.isRunning()) {
-    // broadcastNowPlaying(new NowPlayingInformation(1,
-    // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
-    // mCurrentPlayingIndex, mRepeat, mRandom));
-    //
-    // } else {
-    // broadcastNowPlaying(new NowPlayingInformation(0, "", -1, mRepeat,
-    // mRandom));
-    //
-    // }
-    // }
 
     /*
      * This method should be safe to call at any time. So it should check the
@@ -1256,119 +1122,32 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mPlayer.isRunning() && (mCurrentPlayingIndex >= 0)) {
                 // Get the actual trackitem and distribute the information
                 TrackItem trackItem = mCurrentList.get(mCurrentPlayingIndex);
-                setLockscreenPicture(trackItem, 1);
-                setNotification(trackItem, 1);
+                setLockscreenPicture(trackItem, PLAYSTATE.PLAYING);
+                setNotification(trackItem, PLAYSTATE.PLAYING);
+                notifyNowPlayingListeners(trackItem, PLAYSTATE.PLAYING);
+                broadcastPlaybackInformation(trackItem, PLAYSTATE.PLAYING);
             } else if (mPlayer.isPaused() && (mCurrentPlayingIndex >= 0)) {
                 TrackItem trackItem = mCurrentList.get(mCurrentPlayingIndex);
-                setLockscreenPicture(trackItem, 0);
-                setNotification(trackItem, 0);
+                setLockscreenPicture(trackItem, PLAYSTATE.PAUSE);
+                setNotification(trackItem, PLAYSTATE.PAUSE);
+                notifyNowPlayingListeners(trackItem, PLAYSTATE.PAUSE);
+                broadcastPlaybackInformation(trackItem, PLAYSTATE.PAUSE);
             } else {
                 // Remove notification if shown
                 clearNotification();
-                setLockscreenPicture(null, 0);
+                setLockscreenPicture(null, PLAYSTATE.STOPPED);
+                notifyNowPlayingListeners(null, PLAYSTATE.STOPPED);
+                broadcastPlaybackInformation(null, PLAYSTATE.STOPPED);
             }
         } else {
             // No playback, check if notification is set and remove it then
             clearNotification();
-            setLockscreenPicture(null, 0);
+            setLockscreenPicture(null, PLAYSTATE.STOPPED);
             // Notify all listeners with broadcast about playing situation
-
+            notifyNowPlayingListeners(null, PLAYSTATE.STOPPED);
+            broadcastPlaybackInformation(null, PLAYSTATE.STOPPED);
         }
 
-        Intent resultIntent = new Intent(this, MainActivity.class);
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
-
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
-
-        // TODO secure
-        String url = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
-        TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(url, getContentResolver());
-        mNotificationBuilder.setContentTitle(trackItem.getTrackTitle());
-        mNotificationBuilder.setContentText(trackItem.getTrackArtist());
-        mNotificationBuilder.setSubText(trackItem.getTrackAlbum());
-
-        // Set Notification image to cover if existing
-        // if ((mCurrentPlayingIndex >= 0) && (mCurrentPlayingIndex <
-        // mCurrentList.size())) {
-        // String where = android.provider.MediaStore.Audio.Albums.ALBUM + "=?";
-        //
-        // String whereVal[] = {
-        // mCurrentList.get(mCurrentPlayingIndex).getTrackAlbum() };
-        //
-        // Cursor cursor =
-        // getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-        // new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal,
-        // "");
-        //
-        // String coverPath = null;
-        // if (cursor.moveToFirst()) {
-        // coverPath =
-        // cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-        // }
-        //
-        // if (coverPath != null) {
-        // BitmapDrawable cover = (BitmapDrawable)
-        // BitmapDrawable.createFromPath(coverPath);
-        // Bitmap coverBitmap =
-        // Bitmap.createBitmap(cover.getBitmap(),0,0,120,120);
-        //
-        // mNotificationBuilder.setLargeIcon(coverBitmap);
-        // } else {
-        // mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(),
-        // R.drawable.ic_launcher));
-        // }
-        // } else {
-        // mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(),
-        // R.drawable.ic_launcher));
-        // }
-        mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-        // NotificationCompat.BigTextStyle notificationStyle = new
-        // NotificationCompat.BigTextStyle();
-        // notificationStyle.setBigContentTitle(trackItem.getTrackTitle());
-        // notificationStyle.bigText(trackItem.getTrackAlbum() + "\n" +
-        // trackItem.getTrackArtist());
-        // mNotificationBuilder.setStyle(notificationStyle);
-
-        // Previous song action
-        Intent prevIntent = new Intent(ACTION_PREVIOUS);
-        PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this, 42, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mNotificationBuilder.addAction(android.R.drawable.ic_media_previous, "", prevPendingIntent);
-
-        // Pause/Play action
-        if (mPlayer.isRunning()) {
-            Intent pauseIntent = new Intent(ACTION_PAUSE);
-            PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this, 42, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mNotificationBuilder.addAction(android.R.drawable.ic_media_pause, "", pausePendingIntent);
-        } else {
-            Intent playIntent = new Intent(ACTION_PLAY);
-            PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, 42, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mNotificationBuilder.addAction(android.R.drawable.ic_media_play, "", playPendingIntent);
-        }
-
-        // Previous song action
-        Intent nextIntent = new Intent(ACTION_NEXT);
-        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this, 42, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mNotificationBuilder.addAction(android.R.drawable.ic_media_next, "", nextPendingIntent);
-
-        mNotificationBuilder.setContentIntent(resultPendingIntent);
-
-        // Quit action
-        Intent stopIntent = new Intent(ACTION_STOP);
-        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(this, 42, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        mNotificationBuilder.setDeleteIntent(stopPendingIntent);
-        // Make notification persistent
-        mNotificationBuilder.setOngoing(true);
-
-        mNotification = mNotificationBuilder.build();
-        mNotificationManager.notify(NOTIFICATION_ID, mNotification);
-        startForeground(NOTIFICATION_ID, mNotification);
     }
 
     private void clearNotification() {
@@ -1377,14 +1156,207 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
-    private void setLockscreenPicture(TrackItem track, int playbackState) {
-        // FIXME STUB
+    private void setLockscreenPicture(TrackItem track, PLAYSTATE playbackState) {
         // Clear if track == null
+        if (track != null) {
+            // Retrieve image url from androids database
+            String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
+
+            String whereVal[] = { mCurrentList.get(mCurrentPlayingIndex).getTrackAlbumKey() };
+
+            Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
+
+            String coverPath = null;
+            if (cursor.moveToFirst()) {
+                coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+            }
+
+            cursor.close();
+
+            // Create drawable from url
+            BitmapDrawable cover;
+
+            RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
+
+            /*
+             * Check if picture exists, otherwise set null picture which should
+             * clear the last one but seems to be broken for android 4.4
+             */
+
+            if (coverPath != null) {
+                if (coverPath != mLastCoverURL) {
+                    mLastCoverURL = coverPath;
+                    cover = (BitmapDrawable) BitmapDrawable.createFromPath(mLastCoverURL);
+                    editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, cover.getBitmap());
+                }
+
+            } else {
+                editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, null);
+            }
+            // Set other information
+            editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, track.getTrackAlbum());
+            editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, track.getTrackArtist());
+            editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST, track.getTrackArtist());
+            editor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, track.getTrackTitle());
+            editor.apply();
+
+            // Check playstate for buttons
+            if (playbackState == PLAYSTATE.PLAYING) {
+                mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+            } else if (playbackState == PLAYSTATE.PAUSE) {
+                mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
+            }
+            // Apply some flags, ex. which buttons to show
+            mRemoteControlClient.setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE | RemoteControlClient.FLAG_KEY_MEDIA_NEXT | RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS);
+        } else {
+            // Clear lockscreen
+            mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+        }
     }
 
-    private void setNotification(TrackItem track, int playbackState) {
-        // FIXME STUB
+    private void setNotification(TrackItem track, PLAYSTATE playbackState) {
+        if (track != null) {
+            Intent resultIntent = new Intent(this, MainActivity.class);
 
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+
+            stackBuilder.addParentStack(MainActivity.class);
+            stackBuilder.addNextIntent(resultIntent);
+
+            PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
+
+            mNotificationBuilder.setContentTitle(track.getTrackTitle());
+            mNotificationBuilder.setContentText(track.getTrackArtist());
+            mNotificationBuilder.setSubText(track.getTrackAlbum());
+
+            // Previous song action
+            Intent prevIntent = new Intent(ACTION_PREVIOUS);
+            PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this, 42, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            mNotificationBuilder.addAction(android.R.drawable.ic_media_previous, "", prevPendingIntent);
+
+            // Pause/Play action
+            if (mPlayer.isRunning()) {
+                Intent pauseIntent = new Intent(ACTION_PAUSE);
+                PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this, 42, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                mNotificationBuilder.addAction(android.R.drawable.ic_media_pause, "", pausePendingIntent);
+            } else {
+                Intent playIntent = new Intent(ACTION_PLAY);
+                PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, 42, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                mNotificationBuilder.addAction(android.R.drawable.ic_media_play, "", playPendingIntent);
+            }
+
+            // Previous song action
+            Intent nextIntent = new Intent(ACTION_NEXT);
+            PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this, 42, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            mNotificationBuilder.addAction(android.R.drawable.ic_media_next, "", nextPendingIntent);
+
+            mNotificationBuilder.setContentIntent(resultPendingIntent);
+
+            // Quit action
+            Intent stopIntent = new Intent(ACTION_STOP);
+            PendingIntent stopPendingIntent = PendingIntent.getBroadcast(this, 42, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            mNotificationBuilder.setDeleteIntent(stopPendingIntent);
+            // Make notification persistent
+            mNotificationBuilder.setOngoing(true);
+            mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+
+            mNotification = mNotificationBuilder.build();
+            mNotificationManager.notify(NOTIFICATION_ID, mNotification);
+            startForeground(NOTIFICATION_ID, mNotification);
+        } else {
+            clearNotification();
+        }
+    }
+
+    private void broadcastPlaybackInformation(TrackItem track, PLAYSTATE state) {
+        if (track != null) {
+            // Create the broadcast intent
+            Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
+
+            // TODO check if extra list is neccessary
+            // Add currentTrack to parcel
+            ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
+            extraTrackItemList.add(mCurrentList.get(mCurrentPlayingIndex));
+
+            // Create NowPlayingInfo for parcel
+            int playing = (state == PLAYSTATE.PLAYING ? 1 : 0);
+            String playingURL = track.getTrackURL();
+            int playingIndex = mCurrentPlayingIndex;
+            int repeat = mRepeat;
+            int random = mRandom;
+            int playlistlength = mCurrentList.size();
+            NowPlayingInformation info = new NowPlayingInformation(playing, playingURL, playingIndex, repeat, random, playlistlength);
+
+            // Add nowplayingInfo to parcel
+            ArrayList<Parcelable> extraNPList = new ArrayList<Parcelable>();
+            extraNPList.add(info);
+
+            // Add this stuff to the parcel
+            broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME, extraTrackItemList);
+            broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME, extraNPList);
+
+            // We're good to go, send it away
+            sendBroadcast(broadcastIntent);
+        }
+    }
+
+    private void notifyNowPlayingListeners(TrackItem item, PLAYSTATE state) {
+        if (item != null) {
+            /*
+             * Sends a new NowPlaying object on its way to connected callbacks
+             * PlaybackService --> OdysseyApplication |-> Homescreen-widget
+             */
+
+            // Create data package for distribution
+            int playing = (state == PLAYSTATE.PLAYING ? 1 : 0);
+            String playingURL = item.getTrackURL();
+            int playingIndex = mCurrentPlayingIndex;
+            int repeat = mRepeat;
+            int random = mRandom;
+            int playlistlength = mCurrentList.size();
+
+            NowPlayingInformation info = new NowPlayingInformation(playing, playingURL, playingIndex, repeat, random, playlistlength);
+
+            try {
+                mCallbackMutex.acquire();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+                // Cancel here, because it isn't safe
+                return;
+            }
+
+            for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
+                Log.v(TAG, "Sending now playing information to receiver");
+                try {
+                    callback.receiveNewNowPlayingInformation(info);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+            mCallbackMutex.release();
+        } else {
+            NowPlayingInformation info = new NowPlayingInformation(0, "", -1, mRepeat, mRandom, mCurrentList.size());
+
+            try {
+                mCallbackMutex.acquire();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+                // Cancel here, because it isn't safe
+                return;
+            }
+            for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
+                Log.v(TAG, "Sending now playing information to receiver");
+                try {
+                    callback.receiveNewNowPlayingInformation(info);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+            mCallbackMutex.release();
+        }
     }
 
     private final static class PlaybackServiceStub extends IOdysseyPlaybackService.Stub {

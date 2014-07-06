@@ -20,7 +20,6 @@ public final class NowPlayingInformation implements Parcelable {
     private int mRepeat;
     private int mRandom;
     private int mPlaylistLength;
-    private int mPlaylistPosition;
 
     public static Parcelable.Creator<NowPlayingInformation> CREATOR = new Parcelable.Creator<NowPlayingInformation>() {
 
@@ -32,9 +31,8 @@ public final class NowPlayingInformation implements Parcelable {
             int repeat = source.readInt();
             int random = source.readInt();
             int playlistlength = source.readInt();
-            int playlistposition = source.readInt();
 
-            return new NowPlayingInformation(playing, playingURL, playingIndex, repeat, random, playlistlength, playlistposition);
+            return new NowPlayingInformation(playing, playingURL, playingIndex, repeat, random, playlistlength);
         }
 
         @Override
@@ -49,14 +47,13 @@ public final class NowPlayingInformation implements Parcelable {
         return 0;
     }
 
-    public NowPlayingInformation(int playing, String playingURL, int playingIndex, int repeat, int random, int playlistlength, int playlistposition) {
+    public NowPlayingInformation(int playing, String playingURL, int playingIndex, int repeat, int random, int playlistlength) {
         mPlaying = playing;
         mPlayingURL = playingURL;
         mPlayingIndex = playingIndex;
         mRepeat = repeat;
         mRandom = random;
         mPlaylistLength = playlistlength;
-        mPlaylistPosition = playlistposition;
     }
 
     @Override
@@ -67,7 +64,6 @@ public final class NowPlayingInformation implements Parcelable {
         dest.writeInt(mRepeat);
         dest.writeInt(mRandom);
         dest.writeInt(mPlaylistLength);
-        dest.writeInt(mPlaylistPosition);
     }
 
     public int getPlaying() {
@@ -96,10 +92,6 @@ public final class NowPlayingInformation implements Parcelable {
 
     public int getPlaylistLength() {
         return mPlaylistLength;
-    }
-
-    public int getPlaylistPosition() {
-        return mPlaylistPosition;
     }
 
 }
