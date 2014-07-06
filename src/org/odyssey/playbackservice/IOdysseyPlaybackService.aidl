@@ -1,6 +1,5 @@
 package org.odyssey.playbackservice;
 
-import org.odyssey.IOdysseyNowPlayingCallback;
 import org.odyssey.playbackservice.TrackItem;
 
 interface IOdysseyPlaybackService {
@@ -66,8 +65,5 @@ interface IOdysseyPlaybackService {
 	int getTrackNo();
 	int getBitrate();
 	int getSamplerate();
-	
-	
-	void registerNowPlayingReceiver(IOdysseyNowPlayingCallback receiver);
-	void unregisterNowPlayingReceiver(IOdysseyNowPlayingCallback receiver);
+
 }

@@ -81,11 +81,6 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         // set listener for seekbar
         mSeekBar.setOnSeekBarChangeListener(this);
 
-        // get the playbackservice
-        mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
-        mServiceConnection.setNotifier(new ServiceConnectionListener());
-        mServiceConnection.openConnection();
-
         // Set up button listeners
         rootView.findViewById(R.id.nowPlayingNextButton).setOnClickListener(new OnClickListener() {
             @Override
@@ -201,6 +196,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             getActivity().getApplicationContext().unregisterReceiver(mNowPlayingReceiver);
             mNowPlayingReceiver = null;
         }
+        mServiceConnection = null;
     }
 
     @Override

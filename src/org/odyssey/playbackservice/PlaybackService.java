@@ -9,7 +9,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
-import org.odyssey.IOdysseyNowPlayingCallback;
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.NowPlayingInformation;
@@ -111,7 +110,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // NowPlaying callbacks
     // List holding registered callback clients
-    private ArrayList<IOdysseyNowPlayingCallback> mNowPlayingCallbacks;
+    // private ArrayList<IOdysseyNowPlayingCallback> mNowPlayingCallbacks;
 
     // Playlistmanager for saving and reading playlist
     private DatabaseManager mPlaylistManager = null;
@@ -169,7 +168,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNextPlayingIndex = -1;
 
         // NowPlaying
-        mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
+        // mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
 
         mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -920,58 +919,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mRandom = random;
     }
 
-    /**
-     * Registers callback interfaces from distant processes which receive the
-     * NowPlayingInformation
-     * 
-     * @param callback
-     */
-    public synchronized void registerNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
-        Log.v(TAG, "Added NowPlaying callback");
-        // mutex lock
-        try {
-            mCallbackMutex.acquire();
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-            // Cancel (not safe)
-            return;
-        }
-        mNowPlayingCallbacks.add(callback);
-        // mutex unlock
-        mCallbackMutex.release();
-        // Notify about current status right away
-        if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
-            String playingURL = mCurrentList.get(mCurrentPlayingIndex).getTrackURL();
-            int playing = mPlayer.isRunning() ? 1 : 0;
-            try {
-                // FIXME nicer
-                callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL, mCurrentPlayingIndex, mRepeat, mRandom, mCurrentList.size()));
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * Unregister callback interfaces from distant processes
-     * 
-     * @param callback
-     */
-    public synchronized void unregisterNowPlayingCallback(IOdysseyNowPlayingCallback callback) {
-        Log.v(TAG, "Unregistering callback");
-        // mutex lock
-        try {
-            mCallbackMutex.acquire();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            // Cancel here
-            return;
-        }
-        mNowPlayingCallbacks.remove(callback);
-        // mutex unlock
-        mCallbackMutex.release();
-    }
-
     public int getCurrentIndex() {
         return mCurrentPlayingIndex;
     }
@@ -998,19 +945,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 TrackItem trackItem = mCurrentList.get(mCurrentPlayingIndex);
                 setLockscreenPicture(trackItem, PLAYSTATE.PLAYING);
                 setNotification(trackItem, PLAYSTATE.PLAYING);
-                notifyNowPlayingListeners(trackItem, PLAYSTATE.PLAYING);
+                // notifyNowPlayingListeners(trackItem, PLAYSTATE.PLAYING);
                 broadcastPlaybackInformation(trackItem, PLAYSTATE.PLAYING);
             } else if (mPlayer.isPaused() && (mCurrentPlayingIndex >= 0)) {
                 TrackItem trackItem = mCurrentList.get(mCurrentPlayingIndex);
                 setLockscreenPicture(trackItem, PLAYSTATE.PAUSE);
                 setNotification(trackItem, PLAYSTATE.PAUSE);
-                notifyNowPlayingListeners(trackItem, PLAYSTATE.PAUSE);
+                // notifyNowPlayingListeners(trackItem, PLAYSTATE.PAUSE);
                 broadcastPlaybackInformation(trackItem, PLAYSTATE.PAUSE);
             } else {
                 // Remove notification if shown
                 clearNotification();
                 setLockscreenPicture(null, PLAYSTATE.STOPPED);
-                notifyNowPlayingListeners(null, PLAYSTATE.STOPPED);
+                // notifyNowPlayingListeners(null, PLAYSTATE.STOPPED);
                 broadcastPlaybackInformation(null, PLAYSTATE.STOPPED);
             }
         } else {
@@ -1018,7 +965,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             clearNotification();
             setLockscreenPicture(null, PLAYSTATE.STOPPED);
             // Notify all listeners with broadcast about playing situation
-            notifyNowPlayingListeners(null, PLAYSTATE.STOPPED);
+            // notifyNowPlayingListeners(null, PLAYSTATE.STOPPED);
             broadcastPlaybackInformation(null, PLAYSTATE.STOPPED);
         }
 
@@ -1193,60 +1140,62 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
-    private void notifyNowPlayingListeners(TrackItem item, PLAYSTATE state) {
-        if (item != null) {
-            /*
-             * Sends a new NowPlaying object on its way to connected callbacks
-             * PlaybackService --> OdysseyApplication |-> Homescreen-widget
-             */
-
-            // Create data package for distribution
-            int playing = (state == PLAYSTATE.PLAYING ? 1 : 0);
-            String playingURL = item.getTrackURL();
-            int playingIndex = mCurrentPlayingIndex;
-            int repeat = mRepeat;
-            int random = mRandom;
-            int playlistlength = mCurrentList.size();
-
-            NowPlayingInformation info = new NowPlayingInformation(playing, playingURL, playingIndex, repeat, random, playlistlength);
-
-            try {
-                mCallbackMutex.acquire();
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-                // Cancel here, because it isn't safe
-                return;
-            }
-
-            for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
-                Log.v(TAG, "Sending now playing information to receiver");
-                try {
-                    callback.receiveNewNowPlayingInformation(info);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-            mCallbackMutex.release();
-        } else {
-            NowPlayingInformation info = new NowPlayingInformation(0, "", -1, mRepeat, mRandom, mCurrentList.size());
-
-            try {
-                mCallbackMutex.acquire();
-            } catch (InterruptedException e1) {
-                // Cancel here, because it isn't safe
-                return;
-            }
-            for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
-                Log.v(TAG, "Sending now playing information to receiver");
-                try {
-                    callback.receiveNewNowPlayingInformation(info);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-            mCallbackMutex.release();
-        }
-    }
+    // private void notifyNowPlayingListeners(TrackItem item, PLAYSTATE state) {
+    // if (item != null) {
+    // /*
+    // * Sends a new NowPlaying object on its way to connected callbacks
+    // * PlaybackService --> OdysseyApplication |-> Homescreen-widget
+    // */
+    //
+    // // Create data package for distribution
+    // int playing = (state == PLAYSTATE.PLAYING ? 1 : 0);
+    // String playingURL = item.getTrackURL();
+    // int playingIndex = mCurrentPlayingIndex;
+    // int repeat = mRepeat;
+    // int random = mRandom;
+    // int playlistlength = mCurrentList.size();
+    //
+    // NowPlayingInformation info = new NowPlayingInformation(playing,
+    // playingURL, playingIndex, repeat, random, playlistlength);
+    //
+    // try {
+    // mCallbackMutex.acquire();
+    // } catch (InterruptedException e1) {
+    // e1.printStackTrace();
+    // // Cancel here, because it isn't safe
+    // return;
+    // }
+    //
+    // for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
+    // Log.v(TAG, "Sending now playing information to receiver");
+    // try {
+    // callback.receiveNewNowPlayingInformation(info);
+    // } catch (RemoteException e) {
+    // e.printStackTrace();
+    // }
+    // }
+    // mCallbackMutex.release();
+    // } else {
+    // NowPlayingInformation info = new NowPlayingInformation(0, "", -1,
+    // mRepeat, mRandom, mCurrentList.size());
+    //
+    // try {
+    // mCallbackMutex.acquire();
+    // } catch (InterruptedException e1) {
+    // // Cancel here, because it isn't safe
+    // return;
+    // }
+    // for (IOdysseyNowPlayingCallback callback : mNowPlayingCallbacks) {
+    // Log.v(TAG, "Sending now playing information to receiver");
+    // try {
+    // callback.receiveNewNowPlayingInformation(info);
+    // } catch (RemoteException e) {
+    // e.printStackTrace();
+    // }
+    // }
+    // mCallbackMutex.release();
+    // }
+    // }
 
     public int isPlaying() {
         return mPlayer.isRunning() ? 1 : 0;
@@ -1453,16 +1402,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Message msg = mService.get().getHandler().obtainMessage();
             msg.obj = obj;
             mService.get().getHandler().sendMessage(msg);
-        }
-
-        @Override
-        public void registerNowPlayingReceiver(IOdysseyNowPlayingCallback receiver) throws RemoteException {
-            mService.get().registerNowPlayingCallback(receiver);
-        }
-
-        @Override
-        public void unregisterNowPlayingReceiver(IOdysseyNowPlayingCallback receiver) throws RemoteException {
-            mService.get().unregisterNowPlayingCallback(receiver);
         }
 
         @Override
