@@ -643,45 +643,44 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                         handlePlaybackException(e);
                     }
                 }
+            }
+        } else {
 
-            } else {
+            if (mCurrentPlayingIndex - 1 >= 0) {
+                mCurrentPlayingIndex--;
+            } else if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
+                // In repeat mode next track is last track of playlist
+                mCurrentPlayingIndex = mCurrentList.size() - 1;
+            }
 
-                if (mCurrentPlayingIndex - 1 >= 0) {
-                    mCurrentPlayingIndex--;
-                } else if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
-                    // In repeat mode next track is last track of playlist
-                    mCurrentPlayingIndex = mCurrentList.size() - 1;
+            // Next track is availible
+            if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
+                // Start playback of new song
+                try {
+                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
                 }
 
-                // Next track is availible
-                if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
-                    // Start playback of new song
+                // Broadcast simple.last.fm.scrobble broadcast
+                TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                Log.v(TAG, "Send to SLS: " + item);
+                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                bCast.putExtra("state", 0);
+                bCast.putExtra("app-name", "Odyssey");
+                bCast.putExtra("app-package", "org.odyssey");
+                bCast.putExtra("artist", item.getTrackArtist());
+                bCast.putExtra("album", item.getTrackAlbum());
+                bCast.putExtra("track", item.getTrackTitle());
+                bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                sendBroadcast(bCast);
+
+                // Check if next song is availible (gapless)
+                if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
                     try {
-                        mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                        mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
                     } catch (PlaybackException e) {
                         handlePlaybackException(e);
-                    }
-
-                    // Broadcast simple.last.fm.scrobble broadcast
-                    TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-                    Log.v(TAG, "Send to SLS: " + item);
-                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-                    bCast.putExtra("state", 0);
-                    bCast.putExtra("app-name", "Odyssey");
-                    bCast.putExtra("app-package", "org.odyssey");
-                    bCast.putExtra("artist", item.getTrackArtist());
-                    bCast.putExtra("album", item.getTrackAlbum());
-                    bCast.putExtra("track", item.getTrackTitle());
-                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
-                    sendBroadcast(bCast);
-
-                    // Check if next song is availible (gapless)
-                    if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
-                        try {
-                            mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
-                        } catch (PlaybackException e) {
-                            handlePlaybackException(e);
-                        }
                     }
                 }
             }
