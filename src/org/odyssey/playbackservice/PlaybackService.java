@@ -331,6 +331,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 mServiceCancelTimer.cancel();
                 mServiceCancelTimer = null;
             }
+            // Request audio focus before doing anything
+            AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                // Abort command
+                return;
+            }
             mPlayer.resume();
 
             // Broadcast simple.last.fm.scrobble broadcast
@@ -745,51 +752,42 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-            if (startPlayback) {
-
-                // Request audio focus before doing anything
-                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-                if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                    // Abort command
-                    return;
-                }
-                /*
-                 * Make sure service is "started" so android doesn't handle it
-                 * as a "bound service"
-                 */
-                Intent serviceStartIntent = new Intent(this, PlaybackService.class);
-                serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-                startService(serviceStartIntent);
-                if (mServiceCancelTimer != null) {
-                    mServiceCancelTimer.cancel();
-                    mServiceCancelTimer = null;
-                }
-                mIsPaused = false;
-
-                try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
-                } catch (PlaybackException e) {
-                    handlePlaybackException(e);
-                }
-                Log.v(TAG, "Send to SLS: " + item);
-                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-                bCast.putExtra("state", 0);
-                bCast.putExtra("app-name", "Odyssey");
-                bCast.putExtra("app-package", "org.odyssey");
-                bCast.putExtra("artist", item.getTrackArtist());
-                bCast.putExtra("album", item.getTrackAlbum());
-                bCast.putExtra("track", item.getTrackTitle());
-                bCast.putExtra("duration", item.getTrackDuration() / 1000);
-
-                updateStatus();
-            } else {
-                try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), jumpTime);
-                } catch (PlaybackException e) {
-                    handlePlaybackException(e);
-                }
+            // Request audio focus before doing anything
+            AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                // Abort command
+                return;
             }
+            /*
+             * Make sure service is "started" so android doesn't handle it as a
+             * "bound service"
+             */
+            Intent serviceStartIntent = new Intent(this, PlaybackService.class);
+            serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+            startService(serviceStartIntent);
+            if (mServiceCancelTimer != null) {
+                mServiceCancelTimer.cancel();
+                mServiceCancelTimer = null;
+            }
+            mIsPaused = false;
+
+            try {
+                mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), jumpTime);
+            } catch (PlaybackException e) {
+                handlePlaybackException(e);
+            }
+            Log.v(TAG, "Send to SLS: " + item);
+            Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+            bCast.putExtra("state", 0);
+            bCast.putExtra("app-name", "Odyssey");
+            bCast.putExtra("app-package", "org.odyssey");
+            bCast.putExtra("artist", item.getTrackArtist());
+            bCast.putExtra("album", item.getTrackAlbum());
+            bCast.putExtra("track", item.getTrackTitle());
+            bCast.putExtra("duration", item.getTrackDuration() / 1000);
+
+            updateStatus();
 
             // Check if another song follows current one for gapless
             // playback
@@ -1641,6 +1639,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     @Override
     public void onAudioFocusChange(int focusChange) {
+        Log.v(TAG, "Audiofocus changed");
         switch (focusChange) {
         case AudioManager.AUDIOFOCUS_GAIN:
             Log.v(TAG, "Gained audiofocus");
@@ -1648,7 +1647,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 mPlayer.setVolume(1.0f, 1.0f);
                 mIsDucked = false;
             } else if (mLostAudioFocus) {
-                mPlayer.resume();
+                resume();
                 mLostAudioFocus = false;
             }
             break;
@@ -1656,13 +1655,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Log.v(TAG, "Lost audiofocus");
             // Stop playback service
             // TODO save playlist position
-            stop();
+            pause();
             break;
         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
             Log.v(TAG, "Lost audiofocus temporarily");
             // Pause audio for the moment of focus loss
             if (mPlayer.isRunning()) {
-                mPlayer.pause();
+                pause();
                 mLostAudioFocus = true;
             }
             break;
