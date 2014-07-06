@@ -13,6 +13,11 @@ import android.util.Log;
 
 public class GaplessPlayer {
     private final static String TAG = "GaplessPlayer";
+
+    public static enum REASON {
+        IOError, SecurityError, StateError, ArgumentError;
+    }
+
     private MediaPlayer mCurrentMediaPlayer = null;
     private boolean mCurrentPrepared = false;
     private boolean mSecondPrepared = false;
@@ -33,7 +38,7 @@ public class GaplessPlayer {
         Log.v(TAG, "MyPid: " + android.os.Process.myPid() + " MyTid: " + android.os.Process.myTid());
     }
 
-    public void play(String uri) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+    public void play(String uri) throws PlaybackException {
         play(uri, 0);
     }
 
@@ -50,7 +55,7 @@ public class GaplessPlayer {
      * @throws IllegalStateException
      * @throws IOException
      */
-    public void play(String uri, int jumpTime) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+    public void play(String uri, int jumpTime) throws PlaybackException {
         Log.v(TAG, "play(): " + jumpTime);
         // save play decision
 
@@ -62,7 +67,17 @@ public class GaplessPlayer {
         mCurrentMediaPlayer = new MediaPlayer();
         mCurrentPrepared = false;
         mCurrentMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mCurrentMediaPlayer.setDataSource(uri);
+        try {
+            mCurrentMediaPlayer.setDataSource(uri);
+        } catch (IllegalArgumentException e) {
+            throw new PlaybackException(REASON.ArgumentError);
+        } catch (SecurityException e) {
+            throw new PlaybackException(REASON.SecurityError);
+        } catch (IllegalStateException e) {
+            throw new PlaybackException(REASON.StateError);
+        } catch (IOException e) {
+            throw new PlaybackException(REASON.IOError);
+        }
         /*
          * Signal audio effect desire to android
          */
@@ -168,12 +183,8 @@ public class GaplessPlayer {
      * was already initialized it gets resetted
      * 
      * @param uri
-     * @throws IllegalArgumentException
-     * @throws SecurityException
-     * @throws IllegalStateException
-     * @throws IOException
      */
-    public void setNextTrack(String uri) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+    public void setNextTrack(String uri) throws PlaybackException {
         mSecondPrepared = false;
         // Next mediaplayer already set, reset
         if (mNextMediaPlayer != null) {
@@ -185,7 +196,17 @@ public class GaplessPlayer {
         mNextMediaPlayer.setOnPreparedListener(mSecondaryPreparedListener);
         Log.v(TAG, "Set next track to: " + uri);
         mNextMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mNextMediaPlayer.setDataSource(uri);
+        try {
+            mNextMediaPlayer.setDataSource(uri);
+        } catch (IllegalArgumentException e) {
+            throw new PlaybackException(REASON.ArgumentError);
+        } catch (SecurityException e) {
+            throw new PlaybackException(REASON.SecurityError);
+        } catch (IllegalStateException e) {
+            throw new PlaybackException(REASON.StateError);
+        } catch (IOException e) {
+            throw new PlaybackException(REASON.IOError);
+        }
         mSecondarySource = uri;
         // Check if primary is prepared before preparing the second one
         if (mCurrentPrepared) {
@@ -348,6 +369,19 @@ public class GaplessPlayer {
             return false;
         }
 
+    }
+
+    public class PlaybackException extends Exception {
+
+        REASON mReason;
+
+        public PlaybackException(REASON reason) {
+            mReason = reason;
+        }
+
+        public REASON getReason() {
+            return mReason;
+        }
     }
 
 }

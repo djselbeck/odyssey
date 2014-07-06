@@ -1,6 +1,5 @@
 package org.odyssey.playbackservice;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +15,7 @@ import org.odyssey.MusicLibraryHelper;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
 import org.odyssey.manager.DatabaseManager;
+import org.odyssey.playbackservice.GaplessPlayer.PlaybackException;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -426,20 +426,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             updateStatus();
 
             // set next track for gapless
+
             try {
                 mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
-            } catch (IllegalArgumentException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (SecurityException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IllegalStateException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            } catch (PlaybackException e) {
+                handlePlaybackException(e);
             }
         } else if (mCurrentList.size() > 0 && index < 0) {
             // service stopped just shuffle playlist
@@ -495,45 +486,30 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex < mCurrentList.size() && (mCurrentPlayingIndex >= 0)) {
                 try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
+                }
 
-                    // Broadcast simple.last.fm.scrobble broadcast
-                    TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-                    Log.v(TAG, "Send to SLS: " + item);
-                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-                    bCast.putExtra("state", 0);
-                    bCast.putExtra("app-name", "Odyssey");
-                    bCast.putExtra("app-package", "org.odyssey");
-                    bCast.putExtra("artist", item.getTrackArtist());
-                    bCast.putExtra("album", item.getTrackAlbum());
-                    bCast.putExtra("track", item.getTrackTitle());
-                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
-                    sendBroadcast(bCast);
+                // Broadcast simple.last.fm.scrobble broadcast
+                TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                Log.v(TAG, "Send to SLS: " + item);
+                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                bCast.putExtra("state", 0);
+                bCast.putExtra("app-name", "Odyssey");
+                bCast.putExtra("app-package", "org.odyssey");
+                bCast.putExtra("artist", item.getTrackArtist());
+                bCast.putExtra("album", item.getTrackAlbum());
+                bCast.putExtra("track", item.getTrackTitle());
+                bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                sendBroadcast(bCast);
 
-                    // Check if next song is availible (gapless)
-                    if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
+                // Check if next song is availible (gapless)
+                if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
+                    try {
                         mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
+                    } catch (PlaybackException e) {
+                        handlePlaybackException(e);
                     }
-
-                } catch (IllegalArgumentException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IllegalArgument for playback");
-                    Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-                } catch (SecurityException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "SecurityException for playback");
-                    Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-                } catch (IllegalStateException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IllegalState for playback");
-                    Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-                } catch (IOException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IOException for playback");
-                    Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -560,44 +536,30 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 // Start playback of new song
                 try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
+                }
 
-                    // Broadcast simple.last.fm.scrobble broadcast
-                    TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-                    Log.v(TAG, "Send to SLS: " + item);
-                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-                    bCast.putExtra("state", 0);
-                    bCast.putExtra("app-name", "Odyssey");
-                    bCast.putExtra("app-package", "org.odyssey");
-                    bCast.putExtra("artist", item.getTrackArtist());
-                    bCast.putExtra("album", item.getTrackAlbum());
-                    bCast.putExtra("track", item.getTrackTitle());
-                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
-                    sendBroadcast(bCast);
+                // Broadcast simple.last.fm.scrobble broadcast
+                TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                Log.v(TAG, "Send to SLS: " + item);
+                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                bCast.putExtra("state", 0);
+                bCast.putExtra("app-name", "Odyssey");
+                bCast.putExtra("app-package", "org.odyssey");
+                bCast.putExtra("artist", item.getTrackArtist());
+                bCast.putExtra("album", item.getTrackAlbum());
+                bCast.putExtra("track", item.getTrackTitle());
+                bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                sendBroadcast(bCast);
 
-                    // Check if next song is availible (gapless)
-                    if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+                // Check if next song is availible (gapless)
+                if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
+                    try {
                         mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+                    } catch (PlaybackException e) {
+                        handlePlaybackException(e);
                     }
-                } catch (IllegalArgumentException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IllegalArgument for playback");
-                    Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-                } catch (SecurityException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "SecurityException for playback");
-                    Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-                } catch (IllegalStateException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IllegalState for playback");
-                    Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-                } catch (IOException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IOException for playback");
-                    Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -612,26 +574,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Set next track to new one
             try {
                 mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
-            } catch (IllegalArgumentException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IllegalArgument for playback");
-                Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-            } catch (SecurityException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "SecurityException for playback");
-                Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-            } catch (IllegalStateException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IllegalState for playback");
-                Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-            } catch (IOException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IOException for playback");
-                Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+            } catch (PlaybackException e) {
+                handlePlaybackException(e);
             }
         } else {
             // If not playing just add it to the beginning of the playlist
@@ -679,62 +623,49 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
                 try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
-
-                    // Broadcast simple.last.fm.scrobble broadcast
-                    TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-                    Log.v(TAG, "Send to SLS: " + item);
-                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-                    bCast.putExtra("state", 0);
-                    bCast.putExtra("app-name", "Odyssey");
-                    bCast.putExtra("app-package", "org.odyssey");
-                    bCast.putExtra("artist", item.getTrackArtist());
-                    bCast.putExtra("album", item.getTrackAlbum());
-                    bCast.putExtra("track", item.getTrackTitle());
-                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
-                    sendBroadcast(bCast);
-
-                    // Check if next song is availible (gapless)
-                    if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
-                        mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
-                    }
-
-                } catch (IllegalArgumentException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IllegalArgument for playback");
-                    Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-                } catch (SecurityException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "SecurityException for playback");
-                    Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-                } catch (IllegalStateException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IllegalState for playback");
-                    Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-                } catch (IOException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IOException for playback");
-                    Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
                 }
-            }
 
-        } else {
+                // Broadcast simple.last.fm.scrobble broadcast
+                TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+                Log.v(TAG, "Send to SLS: " + item);
+                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                bCast.putExtra("state", 0);
+                bCast.putExtra("app-name", "Odyssey");
+                bCast.putExtra("app-package", "org.odyssey");
+                bCast.putExtra("artist", item.getTrackArtist());
+                bCast.putExtra("album", item.getTrackAlbum());
+                bCast.putExtra("track", item.getTrackTitle());
+                bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                sendBroadcast(bCast);
 
-            if (mCurrentPlayingIndex - 1 >= 0) {
-                mCurrentPlayingIndex--;
-            } else if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
-                // In repeat mode next track is last track of playlist
-                mCurrentPlayingIndex = mCurrentList.size() - 1;
-            }
+                // Check if next song is availible (gapless)
+                if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
+                    try {
+                        mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
+                    } catch (PlaybackException e) {
+                        handlePlaybackException(e);
+                    }
+                }
 
-            // Next track is availible
-            if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
-                // Start playback of new song
-                try {
-                    mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+            } else {
+
+                if (mCurrentPlayingIndex - 1 >= 0) {
+                    mCurrentPlayingIndex--;
+                } else if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
+                    // In repeat mode next track is last track of playlist
+                    mCurrentPlayingIndex = mCurrentList.size() - 1;
+                }
+
+                // Next track is availible
+                if (mCurrentPlayingIndex < mCurrentList.size() && mCurrentPlayingIndex >= 0) {
+                    // Start playback of new song
+                    try {
+                        mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
+                    } catch (PlaybackException e) {
+                        handlePlaybackException(e);
+                    }
 
                     // Broadcast simple.last.fm.scrobble broadcast
                     TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -751,28 +682,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
                     // Check if next song is availible (gapless)
                     if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
-                        mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+                        try {
+                            mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+                        } catch (PlaybackException e) {
+                            handlePlaybackException(e);
+                        }
                     }
-                } catch (IllegalArgumentException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IllegalArgument for playback");
-                    Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-                } catch (SecurityException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "SecurityException for playback");
-                    Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-                } catch (IllegalStateException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IllegalState for playback");
-                    Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-                } catch (IOException e) {
-                    // In case of error stop playback and log error
-                    mPlayer.stop();
-                    Log.e(TAG, "IOException for playback");
-                    Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -817,78 +732,65 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Set currentindex to new song
         if (index < mCurrentList.size() && index >= 0) {
             mCurrentPlayingIndex = index;
-            try {
-                Log.v(TAG, "Start playback of: " + mCurrentList.get(mCurrentPlayingIndex));
+            Log.v(TAG, "Start playback of: " + mCurrentList.get(mCurrentPlayingIndex));
 
-                // Broadcast simple.last.fm.scrobble broadcast
-                TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
-                if (startPlayback) {
+            // Broadcast simple.last.fm.scrobble broadcast
+            TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
+            if (startPlayback) {
 
-                    // Request audio focus before doing anything
-                    AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                    int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-                    if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                        // Abort command
-                        return;
-                    }
-                    /*
-                     * Make sure service is "started" so android doesn't handle
-                     * it as a "bound service"
-                     */
-                    Intent serviceStartIntent = new Intent(this, PlaybackService.class);
-                    serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-                    startService(serviceStartIntent);
-                    if (mServiceCancelTimer != null) {
-                        mServiceCancelTimer.cancel();
-                        mServiceCancelTimer = null;
-                    }
-                    mIsPaused = false;
+                // Request audio focus before doing anything
+                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+                if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                    // Abort command
+                    return;
+                }
+                /*
+                 * Make sure service is "started" so android doesn't handle it
+                 * as a "bound service"
+                 */
+                Intent serviceStartIntent = new Intent(this, PlaybackService.class);
+                serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+                startService(serviceStartIntent);
+                if (mServiceCancelTimer != null) {
+                    mServiceCancelTimer.cancel();
+                    mServiceCancelTimer = null;
+                }
+                mIsPaused = false;
 
+                try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL());
-                    Log.v(TAG, "Send to SLS: " + item);
-                    Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
-                    bCast.putExtra("state", 0);
-                    bCast.putExtra("app-name", "Odyssey");
-                    bCast.putExtra("app-package", "org.odyssey");
-                    bCast.putExtra("artist", item.getTrackArtist());
-                    bCast.putExtra("album", item.getTrackAlbum());
-                    bCast.putExtra("track", item.getTrackTitle());
-                    bCast.putExtra("duration", item.getTrackDuration() / 1000);
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
+                }
+                Log.v(TAG, "Send to SLS: " + item);
+                Intent bCast = new Intent("com.adam.aslfms.notify.playstatechanged");
+                bCast.putExtra("state", 0);
+                bCast.putExtra("app-name", "Odyssey");
+                bCast.putExtra("app-package", "org.odyssey");
+                bCast.putExtra("artist", item.getTrackArtist());
+                bCast.putExtra("album", item.getTrackAlbum());
+                bCast.putExtra("track", item.getTrackTitle());
+                bCast.putExtra("duration", item.getTrackDuration() / 1000);
 
-                    updateStatus();
-                } else {
+                updateStatus();
+            } else {
+                try {
                     mPlayer.play(mCurrentList.get(mCurrentPlayingIndex).getTrackURL(), jumpTime);
-                    // broadcastNowPlaying(new NowPlayingInformation(0,
-                    // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
-                    // mCurrentPlayingIndex, mRepeat, mRandom));
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
                 }
+            }
 
-                // Check if another song follows current one for gapless
-                // playback
-                if ((mCurrentPlayingIndex + 1) < mCurrentList.size()) {
-                    Log.v(TAG, "Set next track to: " + mCurrentList.get(mCurrentPlayingIndex + 1));
+            // Check if another song follows current one for gapless
+            // playback
+            if ((mCurrentPlayingIndex + 1) < mCurrentList.size()) {
+                Log.v(TAG, "Set next track to: " + mCurrentList.get(mCurrentPlayingIndex + 1));
+                try {
                     mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
                 }
-            } catch (IllegalArgumentException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IllegalArgument for playback");
-                Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-            } catch (SecurityException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "SecurityException for playback");
-                Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-            } catch (IllegalStateException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IllegalState for playback");
-                Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-            } catch (IOException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IOException for playback");
-                Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
             }
         }
 
@@ -928,26 +830,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Next song for MP has to be set for gapless mediaplayback
             try {
                 mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
-            } catch (IllegalArgumentException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IllegalArgument for playback");
-                Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-            } catch (SecurityException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "SecurityException for playback");
-                Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-            } catch (IllegalStateException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IllegalState for playback");
-                Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-            } catch (IOException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IOException for playback");
-                Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+            } catch (PlaybackException e) {
+                handlePlaybackException(e);
             }
         }
     }
@@ -979,26 +863,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mCurrentList.remove(index);
             try {
                 mPlayer.setNextTrack(mCurrentList.get(index).getTrackURL());
-            } catch (IllegalArgumentException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IllegalArgument for playback");
-                Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-            } catch (SecurityException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "SecurityException for playback");
-                Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-            } catch (IllegalStateException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IllegalState for playback");
-                Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-            } catch (IOException e) {
-                // In case of error stop playback and log error
-                mPlayer.stop();
-                Log.e(TAG, "IOException for playback");
-                Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+            } catch (PlaybackException e) {
+                handlePlaybackException(e);
             }
         } else if (index >= 0 && index < mCurrentList.size()) {
             mCurrentList.remove(index);
@@ -1343,7 +1209,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             try {
                 mCallbackMutex.acquire();
             } catch (InterruptedException e1) {
-                e1.printStackTrace();
                 // Cancel here, because it isn't safe
                 return;
             }
@@ -1357,6 +1222,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             }
             mCallbackMutex.release();
         }
+    }
+
+    private void handlePlaybackException(PlaybackException exception) {
+        Log.v(TAG, "Exception occured: " + exception.getReason().toString());
+        Toast.makeText(getBaseContext(), TAG + ":" + exception.getReason().toString(), Toast.LENGTH_LONG).show();
+        // TODO better handling?
+        // Stop service on exception for now
+        stop();
     }
 
     private final static class PlaybackServiceStub extends IOdysseyPlaybackService.Stub {
@@ -1708,10 +1581,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 } else {
                     mCurrentPlayingIndex = mNextPlayingIndex;
                 }
-                // broadcastNowPlaying(new NowPlayingInformation(1,
-                // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
-                // mCurrentPlayingIndex, mRepeat, mRandom));
-                // updateNotification();
+
                 updateStatus();
 
                 // Broadcast simple.last.fm.scrobble broadcast
@@ -1741,26 +1611,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 if (mNextPlayingIndex < mCurrentList.size() && (mNextPlayingIndex >= 0)) {
                     try {
                         mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
-                    } catch (IllegalArgumentException e) {
-                        // In case of error stop playback and log error
-                        mPlayer.stop();
-                        Log.e(TAG, "IllegalArgument for playback");
-                        Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-                    } catch (SecurityException e) {
-                        // In case of error stop playback and log error
-                        mPlayer.stop();
-                        Log.e(TAG, "SecurityException for playback");
-                        Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-                    } catch (IllegalStateException e) {
-                        // In case of error stop playback and log error
-                        mPlayer.stop();
-                        Log.e(TAG, "IllegalState for playback");
-                        Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-                    } catch (IOException e) {
-                        // In case of error stop playback and log error
-                        mPlayer.stop();
-                        Log.e(TAG, "IOException for playback");
-                        Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+                    } catch (PlaybackException e) {
+                        handlePlaybackException(e);
                     }
                 }
             } else {
@@ -1781,10 +1633,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 } else {
                     // At least one song to go
                     mCurrentPlayingIndex++;
-                    // broadcastNowPlaying(new NowPlayingInformation(1,
-                    // mCurrentList.get(mCurrentPlayingIndex).getTrackURL(),
-                    // mCurrentPlayingIndex, mRepeat, mRandom));
-                    // updateNotification();
+
                     updateStatus();
 
                     // Broadcast simple.last.fm.scrobble broadcast
@@ -1807,26 +1656,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     if (mCurrentPlayingIndex + 1 < mCurrentList.size()) {
                         try {
                             mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
-                        } catch (IllegalArgumentException e) {
-                            // In case of error stop playback and log error
-                            mPlayer.stop();
-                            Log.e(TAG, "IllegalArgument for playback");
-                            Toast.makeText(getBaseContext(), "Playback illegal argument  error", Toast.LENGTH_LONG).show();
-                        } catch (SecurityException e) {
-                            // In case of error stop playback and log error
-                            mPlayer.stop();
-                            Log.e(TAG, "SecurityException for playback");
-                            Toast.makeText(getBaseContext(), "Playback security error", Toast.LENGTH_LONG).show();
-                        } catch (IllegalStateException e) {
-                            // In case of error stop playback and log error
-                            mPlayer.stop();
-                            Log.e(TAG, "IllegalState for playback");
-                            Toast.makeText(getBaseContext(), "Playback state error", Toast.LENGTH_LONG).show();
-                        } catch (IOException e) {
-                            // In case of error stop playback and log error
-                            mPlayer.stop();
-                            Log.e(TAG, "IOException for playback");
-                            Toast.makeText(getBaseContext(), "Playback IO error", Toast.LENGTH_LONG).show();
+                        } catch (PlaybackException e) {
+                            handlePlaybackException(e);
                         }
                     }
                 }
