@@ -80,12 +80,6 @@ public class PlaylistFragment extends Fragment {
             }
         });
 
-        // OdysseyApplication mainApplication = (OdysseyApplication)
-        // getActivity().getApplication();
-        //
-        // mainApplication.registerNowPlayingListener(this);
-
-        // register context menu
         registerForContextMenu(mListView);
 
         return rootView;
@@ -106,7 +100,7 @@ public class PlaylistFragment extends Fragment {
             mNowPlayingReceiver = null;
         }
 
-        mServiceConnection = null;
+        // mServiceConnection = null;
     }
 
     @Override

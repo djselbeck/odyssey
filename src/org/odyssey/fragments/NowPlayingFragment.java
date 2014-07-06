@@ -196,7 +196,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             getActivity().getApplicationContext().unregisterReceiver(mNowPlayingReceiver);
             mNowPlayingReceiver = null;
         }
-        mServiceConnection = null;
+        // mServiceConnection = null;
     }
 
     @Override
