@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
-import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
+import org.odyssey.playbackservice.PlaybackServiceConnection;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.ActionBar;
@@ -59,6 +59,8 @@ public class AlbumsTracksFragment extends Fragment {
 
     // FIXME listener in new file?
     OnArtistSelectedListener mArtistSelectedCallback;
+
+    private PlaybackServiceConnection mServiceConnection;
 
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -140,6 +142,13 @@ public class AlbumsTracksFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
+        mServiceConnection.openConnection();
     }
 
     private void setAlbumInformation() {
@@ -293,8 +302,6 @@ public class AlbumsTracksFragment extends Fragment {
 
     private void playAlbum(int position) {
         // clear playlist and play current album
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-
         int index = position;
 
         // respect head element
@@ -303,9 +310,9 @@ public class AlbumsTracksFragment extends Fragment {
         }
 
         try {
-            app.getPlaybackService().clearPlaylist();
+            mServiceConnection.getPBS().clearPlaylist();
             enqueueAlbum();
-            app.getPlaybackService().jumpTo(index);
+            mServiceConnection.getPBS().jumpTo(index);
         } catch (RemoteException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -314,12 +321,11 @@ public class AlbumsTracksFragment extends Fragment {
 
     private void enqueueAlbum() {
         // Enqueue complete album
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
         // enqueue albumtracks
         for (int i = 0; i < mTrackListAdapter.getCount(); i++) {
             try {
-                app.getPlaybackService().enqueueTrack(mTrackListAdapter.getItem(i));
+                mServiceConnection.getPBS().enqueueTrack(mTrackListAdapter.getItem(i));
             } catch (RemoteException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -329,10 +335,9 @@ public class AlbumsTracksFragment extends Fragment {
 
     private void enqueueTrack(int position) {
         // Enqueue single track
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
         try {
-            app.getPlaybackService().enqueueTrack(mTrackListAdapter.getItem(position));
+            mServiceConnection.getPBS().enqueueTrack(mTrackListAdapter.getItem(position));
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -341,10 +346,9 @@ public class AlbumsTracksFragment extends Fragment {
 
     private void enqueueTrackAsNext(int position) {
         // Enqueue single track
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
         try {
-            app.getPlaybackService().enqueueTrackAsNext(mTrackListAdapter.getItem(position));
+            mServiceConnection.getPBS().enqueueTrackAsNext(mTrackListAdapter.getItem(position));
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

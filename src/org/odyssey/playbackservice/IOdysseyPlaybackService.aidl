@@ -43,6 +43,7 @@ interface IOdysseyPlaybackService {
 	
 	int getRandom();
 	int getRepeat();
+	int getPlaying();
 	
 	// track is the full uri with "file://" !
 	void setNextTrack(String track);

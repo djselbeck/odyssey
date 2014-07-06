@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
-import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
@@ -13,6 +12,7 @@ import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListene
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
+import org.odyssey.playbackservice.PlaybackServiceConnection;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.ActionBar;
@@ -67,6 +67,8 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
     private GridView mRootGrid;
     private int mLastPosition;
+
+    private PlaybackServiceConnection mServiceConnection;
 
     // Listener for communication via container activity
     public interface OnAlbumSelectedListener {
@@ -190,6 +192,8 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     @Override
     public void onResume() {
         super.onResume();
+        mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
+        mServiceConnection.openConnection();
         if (mLastPosition >= 0) {
             mRootGrid.setSelection(mLastPosition);
             mLastPosition = -1;
@@ -476,9 +480,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         albumCursor.moveToPosition(position);
 
         String albumKey = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
-
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-
         // get and enqueue albumtracks
 
         String whereVal[] = { albumKey };
@@ -503,7 +504,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
                 // enqueue current track
                 try {
-                    app.getPlaybackService().enqueueTrack(item);
+                    mServiceConnection.getPBS().enqueueTrack(item);
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -514,12 +515,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     }
 
     private void playAlbum(int position) {
-
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-
         // Remove old tracks
         try {
-            app.getPlaybackService().clearPlaylist();
+            mServiceConnection.getPBS().clearPlaylist();
         } catch (RemoteException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -530,7 +528,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         // play album
         try {
-            app.getPlaybackService().jumpTo(0);
+            mServiceConnection.getPBS().jumpTo(0);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -541,11 +539,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         // play all album of current artist if exists
 
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
-
         // Remove old tracks
         try {
-            app.getPlaybackService().clearPlaylist();
+            mServiceConnection.getPBS().clearPlaylist();
         } catch (RemoteException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -558,7 +554,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         // play album
         try {
-            app.getPlaybackService().jumpTo(0);
+            mServiceConnection.getPBS().jumpTo(0);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

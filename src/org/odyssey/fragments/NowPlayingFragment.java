@@ -1,25 +1,31 @@
 package org.odyssey.fragments;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import org.odyssey.MainActivity;
 import org.odyssey.NowPlayingInformation;
-import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.manager.AsyncLoader;
-import org.odyssey.playbackservice.IOdysseyPlaybackService;
+import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.PlaybackService.RANDOMSTATE;
 import org.odyssey.playbackservice.PlaybackService.REPEATSTATE;
+import org.odyssey.playbackservice.PlaybackServiceConnection;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,7 +36,7 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
-public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListener, OdysseyApplication.NowPlayingListener {
+public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListener {
 
     private TextView mTitleTextView;
     private TextView mAlbumTextView;
@@ -39,11 +45,13 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     private TextView mMaxDuration;
     private ImageView mCoverImageView;
     private SeekBar mSeekBar;
-    private IOdysseyPlaybackService mPlayer;
+    private PlaybackServiceConnection mServiceConnection;
     private Timer mRefreshTimer = null;
     private ImageButton mPlayPauseButton;
     private ImageButton mRepeatButton;
     private ImageButton mRandomButton;
+
+    private final static String TAG = "OdysseyNowPlayingFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -73,14 +81,16 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         mSeekBar.setOnSeekBarChangeListener(this);
 
         // get the playbackservice
-        mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
+        mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
+        mServiceConnection.setNotifier(new ServiceConnectionListener());
+        mServiceConnection.openConnection();
 
         // Set up button listeners
         rootView.findViewById(R.id.nowPlayingNextButton).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 try {
-                    mPlayer.next();
+                    mServiceConnection.getPBS().next();
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -93,7 +103,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             @Override
             public void onClick(View arg0) {
                 try {
-                    mPlayer.previous();
+                    mServiceConnection.getPBS().previous();
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -108,7 +118,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             @Override
             public void onClick(View arg0) {
                 try {
-                    mPlayer.togglePause();
+                    mServiceConnection.getPBS().togglePause();
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -121,7 +131,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             @Override
             public void onClick(View arg0) {
                 try {
-                    mPlayer.stop();
+                    mServiceConnection.getPBS().stop();
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -137,10 +147,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             @Override
             public void onClick(View arg0) {
                 try {
-                    int repeat = (mPlayer.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? REPEATSTATE.REPEAT_OFF.ordinal() : REPEATSTATE.REPEAT_ALL.ordinal();
+                    int repeat = (mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? REPEATSTATE.REPEAT_OFF.ordinal() : REPEATSTATE.REPEAT_ALL.ordinal();
 
-                    mPlayer.setRepeat(repeat);
-                    if (mPlayer.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) {
+                    mServiceConnection.getPBS().setRepeat(repeat);
+                    if (mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
                     } else {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
@@ -160,10 +170,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             @Override
             public void onClick(View arg0) {
                 try {
-                    int random = (mPlayer.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? RANDOMSTATE.RANDOM_OFF.ordinal() : RANDOMSTATE.RANDOM_ON.ordinal();
+                    int random = (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? RANDOMSTATE.RANDOM_OFF.ordinal() : RANDOMSTATE.RANDOM_ON.ordinal();
 
-                    mPlayer.setRandom(random);
-                    if (mPlayer.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) {
+                    mServiceConnection.getPBS().setRandom(random);
+                    if (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
                     } else {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
@@ -175,13 +185,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             }
         });
 
-        // register for playback callbacks
-        OdysseyApplication mainApplication = (OdysseyApplication) getActivity().getApplication();
-
-        mainApplication.registerNowPlayingListener(this);
-
-        // Create timer for seekbar refresh
-        mRefreshTimer = new Timer();
+        getActivity().getApplicationContext().registerReceiver(new NowPlayingReceiver(), new IntentFilter(PlaybackService.MESSAGE_NEWTRACKINFORMATION));
 
         return rootView;
     }
@@ -189,26 +193,28 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     @Override
     public void onPause() {
         super.onPause();
-        mRefreshTimer.cancel();
-        mRefreshTimer = null;
+        if (mRefreshTimer != null) {
+            mRefreshTimer.cancel();
+            mRefreshTimer = null;
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
         // get the playbackservice
-        mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
-        mRefreshTimer = new Timer();
-        mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
+        mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
+        mServiceConnection.setNotifier(new ServiceConnectionListener());
+        mServiceConnection.openConnection();
+
     }
 
     private void updateStatus() {
-        mPlayer = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
 
         // get current track
         TrackItem currentTrack = null;
         try {
-            currentTrack = mPlayer.getCurrentSong();
+            currentTrack = mServiceConnection.getPBS().getCurrentSong();
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -217,7 +223,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         if (currentTrack == null) {
             currentTrack = new TrackItem();
         }
-
+        Log.v(TAG, "Current track: " + currentTrack);
         // set tracktitle, album, artist and albumcover
         mTitleTextView.setText(currentTrack.getTrackTitle());
 
@@ -267,12 +273,46 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         updateSeekBar();
 
         updateDurationView();
+
+        try {
+            final boolean isRandom = mServiceConnection.getPBS().getRandom() == 1 ? true : false;
+            final boolean songPlaying = mServiceConnection.getPBS().getPlaying() == 1 ? true : false;
+            final boolean isRepeat = mServiceConnection.getPBS().getRepeat() == 1 ? true : false;
+            Activity activity = (Activity) getActivity();
+            if (activity != null) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // update imagebuttons
+                        if (songPlaying) {
+                            mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+                        } else {
+                            mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+                        }
+                        if (isRepeat) {
+                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                        } else {
+                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
+                        }
+                        if (isRandom) {
+                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                        } else {
+                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
+                        }
+
+                    }
+                });
+            }
+
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     private void updateSeekBar() {
-        IOdysseyPlaybackService service = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
         try {
-            mSeekBar.setProgress(service.getTrackPosition());
+            mSeekBar.setProgress(mServiceConnection.getPBS().getTrackPosition());
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -283,10 +323,9 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         // calculate duration in minutes and seconds
         String seconds = "";
         String minutes = "";
-        IOdysseyPlaybackService service = ((OdysseyApplication) getActivity().getApplication()).getPlaybackService();
         try {
-            seconds = String.valueOf((service.getTrackPosition() % 60000) / 1000);
-            minutes = String.valueOf(service.getTrackPosition() / 60000);
+            seconds = String.valueOf((mServiceConnection.getPBS().getTrackPosition() % 60000) / 1000);
+            minutes = String.valueOf(mServiceConnection.getPBS().getTrackPosition() / 60000);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -322,7 +361,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 
         if (fromUser) {
             try {
-                mPlayer.seekTo(progress);
+                mServiceConnection.getPBS().seekTo(progress);
             } catch (RemoteException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -342,42 +381,71 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
 
     }
 
-    @Override
-    public void onNewInformation(NowPlayingInformation info) {
+    private class ServiceConnectionListener implements PlaybackServiceConnection.ConnectionNotifier {
 
-        final boolean songPlaying = (info.getPlaying() == 1) ? true : false;
-        final boolean isRepeat = (info.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? true : false;
-        final boolean isRandom = (info.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? true : false;
+        @Override
+        public void onConnect() {
+            Log.v(TAG, "Service connection established");
+            updateStatus();
+            mRefreshTimer = new Timer();
+            mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
+        }
 
-        new Thread() {
-            public void run() {
-                Activity activity = (Activity) getActivity();
-                if (activity != null) {
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
+        @Override
+        public void onDisconnect() {
+            // TODO Auto-generated method stub
+
+        }
+
+    }
+
+    private class NowPlayingReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(PlaybackService.MESSAGE_NEWTRACKINFORMATION)) {
+                Log.v(TAG, "Received new information");
+                // Extract nowplaying info
+                ArrayList<NowPlayingInformation> infoArray = intent.getExtras().getParcelableArrayList(PlaybackService.INTENT_NOWPLAYINGNAME);
+                if (infoArray.size() != 0) {
+                    NowPlayingInformation info = infoArray.get(0);
+                    final boolean songPlaying = (info.getPlaying() == 1) ? true : false;
+                    final boolean isRepeat = (info.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? true : false;
+                    final boolean isRandom = (info.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? true : false;
+
+                    new Thread() {
                         public void run() {
-                            // update imagebuttons
-                            if (songPlaying) {
-                                mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
-                            } else {
-                                mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+                            Activity activity = (Activity) getActivity();
+                            if (activity != null) {
+                                activity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // update imagebuttons
+                                        if (songPlaying) {
+                                            mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+                                        } else {
+                                            mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+                                        }
+                                        if (isRepeat) {
+                                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                                        } else {
+                                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
+                                        }
+                                        if (isRandom) {
+                                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                                        } else {
+                                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
+                                        }
+                                        // update views
+                                        updateStatus();
+                                    }
+                                });
                             }
-                            if (isRepeat) {
-                                mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
-                            } else {
-                                mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
-                            }
-                            if (isRandom) {
-                                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
-                            } else {
-                                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
-                            }
-                            // update views
-                            updateStatus();
                         }
-                    });
+                    }.start();
                 }
             }
-        }.start();
+        }
+
     }
 }

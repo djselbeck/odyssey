@@ -4,18 +4,16 @@ import java.util.ArrayList;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
-import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListener;
-import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
+import org.odyssey.playbackservice.PlaybackServiceConnection;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.MediaStore;
@@ -23,24 +21,21 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.CursorAdapter;
-import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
 
 public class AllTracksFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
 
@@ -51,6 +46,8 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
     OnAboutSelectedListener mAboutSelectedCallback;
     OnSettingsSelectedListener mSettingsSelectedCallback;
     OnPlayAllSelectedListener mPlayAllSelectedCallback;
+
+    private PlaybackServiceConnection mServiceConnection;
 
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -138,7 +135,8 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onResume() {
         super.onResume();
-        // TODO
+        mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
+        mServiceConnection.openConnection();
     }
 
     private class AllTracksCursorAdapter extends BaseAdapter implements SectionIndexer {
@@ -329,12 +327,11 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
     private void playTrack(int position) {
         // clear playlist and play current track
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
         try {
-            app.getPlaybackService().clearPlaylist();
+            mServiceConnection.getPBS().clearPlaylist();
             enqueueTrack(position);
-            app.getPlaybackService().jumpTo(0);
+            mServiceConnection.getPBS().jumpTo(0);
         } catch (RemoteException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -343,10 +340,9 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
     private void enqueueTrack(int position) {
         // Enqueue single track
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
         try {
-            app.getPlaybackService().enqueueTrack((TrackItem) mCursorAdapter.getItem(position));
+            mServiceConnection.getPBS().enqueueTrack((TrackItem) mCursorAdapter.getItem(position));
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -355,10 +351,9 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
     private void enqueueTrackAsNext(int position) {
         // Enqueue single track
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
         try {
-            app.getPlaybackService().enqueueTrackAsNext((TrackItem) mCursorAdapter.getItem(position));
+            mServiceConnection.getPBS().enqueueTrackAsNext((TrackItem) mCursorAdapter.getItem(position));
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

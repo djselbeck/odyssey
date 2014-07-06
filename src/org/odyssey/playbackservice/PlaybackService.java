@@ -1248,6 +1248,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    public int isPlaying() {
+        return mPlayer.isRunning() ? 1 : 0;
+    }
+
     private void handlePlaybackException(PlaybackException exception) {
         Log.v(TAG, "Exception occured: " + exception.getReason().toString());
         Toast.makeText(getBaseContext(), TAG + ":" + exception.getReason().toString(), Toast.LENGTH_LONG).show();
@@ -1541,6 +1545,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         @Override
         public int getCurrentIndex() throws RemoteException {
             return mService.get().getCurrentIndex();
+        }
+
+        @Override
+        public int getPlaying() throws RemoteException {
+            return mService.get().isPlaying();
         }
     }
 

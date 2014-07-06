@@ -1,24 +1,16 @@
 package org.odyssey.fragments;
 
-import org.odyssey.MainActivity;
-import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 public class ArtistsAlbumsTabsFragment extends Fragment {
 
@@ -43,7 +35,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
         super.onCreateView(inflater, container, savedInstanceState);
 
         // indicate this fragment has its own menu
-//        setHasOptionsMenu(true);
+        // setHasOptionsMenu(true);
 
         View rootView = inflater.inflate(R.layout.fragment_artists_albums_tabs, container, false);
 

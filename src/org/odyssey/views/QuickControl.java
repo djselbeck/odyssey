@@ -1,32 +1,31 @@
 package org.odyssey.views;
 
-import org.odyssey.MusicLibraryHelper;
-import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
-import org.odyssey.OdysseyApplication;
 import org.odyssey.playbackservice.PlaybackService.RANDOMSTATE;
 import org.odyssey.playbackservice.PlaybackService.REPEATSTATE;
-import org.odyssey.playbackservice.TrackItem;
+import org.odyssey.playbackservice.PlaybackServiceConnection;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.os.RemoteException;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class QuickControl extends LinearLayout implements OdysseyApplication.NowPlayingListener {
+public class QuickControl extends LinearLayout {
     private static final String TAG = "OdysseyQuickControl";
     TextView mTitleView;
     ImageButton mPlayPauseButton;
     ImageButton mRepeatButton;
     ImageButton mRandomButton;
+
+    Activity mActivity;
+
+    private PlaybackServiceConnection mServiceConnection;
 
     public QuickControl(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -39,13 +38,15 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
         mRepeatButton = (ImageButton) findViewById(R.id.repeatButton);
         mRandomButton = (ImageButton) findViewById(R.id.randomButton);
 
+        mServiceConnection = new PlaybackServiceConnection(context);
+        mServiceConnection.openConnection();
+
         // Set up button listeners
         findViewById(R.id.nextButton).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                OdysseyApplication app = (OdysseyApplication) ((Activity) getContext()).getApplication();
                 try {
-                    app.getPlaybackService().next();
+                    mServiceConnection.getPBS().next();
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -57,9 +58,8 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
 
             @Override
             public void onClick(View arg0) {
-                OdysseyApplication app = (OdysseyApplication) ((Activity) getContext()).getApplication();
                 try {
-                    app.getPlaybackService().previous();
+                    mServiceConnection.getPBS().previous();
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -71,9 +71,8 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
 
             @Override
             public void onClick(View arg0) {
-                OdysseyApplication app = (OdysseyApplication) ((Activity) getContext()).getApplication();
                 try {
-                    app.getPlaybackService().togglePause();
+                    mServiceConnection.getPBS().togglePause();
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -85,9 +84,8 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
 
             @Override
             public void onClick(View arg0) {
-                OdysseyApplication app = (OdysseyApplication) ((Activity) getContext()).getApplication();
                 try {
-                    app.getPlaybackService().stop();
+                    mServiceConnection.getPBS().stop();
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -99,12 +97,11 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
 
             @Override
             public void onClick(View arg0) {
-                OdysseyApplication app = (OdysseyApplication) ((Activity) getContext()).getApplication();
                 try {
-                    int repeat = (app.getPlaybackService().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? REPEATSTATE.REPEAT_OFF.ordinal() : REPEATSTATE.REPEAT_ALL.ordinal();
+                    int repeat = mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal() ? REPEATSTATE.REPEAT_OFF.ordinal() : REPEATSTATE.REPEAT_ALL.ordinal();
 
-                    app.getPlaybackService().setRepeat(repeat);
-                    if (app.getPlaybackService().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) {
+                    mServiceConnection.getPBS().setRepeat(repeat);
+                    if (mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
                     } else {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
@@ -120,12 +117,11 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
 
             @Override
             public void onClick(View arg0) {
-                OdysseyApplication app = (OdysseyApplication) ((Activity) getContext()).getApplication();
                 try {
-                    int random = (app.getPlaybackService().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? RANDOMSTATE.RANDOM_OFF.ordinal() : RANDOMSTATE.RANDOM_ON.ordinal();
+                    int random = (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? RANDOMSTATE.RANDOM_OFF.ordinal() : RANDOMSTATE.RANDOM_ON.ordinal();
 
-                    app.getPlaybackService().setRandom(random);
-                    if (app.getPlaybackService().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) {
+                    mServiceConnection.getPBS().setRandom(random);
+                    if (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
                     } else {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
@@ -138,42 +134,20 @@ public class QuickControl extends LinearLayout implements OdysseyApplication.Now
         });
     }
 
-    @Override
-    public void onNewInformation(NowPlayingInformation info) {
-        Log.v(TAG, "Info: " + info);
-        final boolean songPlaying = (info.getPlaying() == 1) ? true : false;
-        final boolean isRepeat = (info.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? true : false;
-        final boolean isRandom = (info.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? true : false;
-        Log.v(TAG, "Playing: " + songPlaying);
-        final TrackItem trackItem = MusicLibraryHelper.getTrackItemFromURL(info.getPlayingURL(), this.getContext().getContentResolver());
-        // Make sure listeners set GUI items only from GUI thread
-        new Thread() {
-            public void run() {
-                Activity activity = (Activity) getContext();
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Resources resources = getResources();
-                        mTitleView.setText(trackItem.getTrackTitle() + " - " + trackItem.getTrackArtist());
-                        if (songPlaying) {
-                            mPlayPauseButton.setImageDrawable(resources.getDrawable(android.R.drawable.ic_media_pause));
-                        } else {
-                            mPlayPauseButton.setImageDrawable(resources.getDrawable(android.R.drawable.ic_media_play));
-                        }
-                        if (isRepeat) {
-                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
-                        } else {
-                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat));
-                        }
-                        if (isRandom) {
-                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
-                        } else {
-                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle));
-                        }
-                    }
-                });
-            }
-        }.start();
+    public void setRandomButtonDrawable(Drawable drawable) {
+        mRandomButton.setImageDrawable(drawable);
+    }
+
+    public void setRepeatButtonDrawable(Drawable drawable) {
+        mRepeatButton.setImageDrawable(drawable);
+    }
+
+    public void setPlayPauseButtonDrawable(Drawable drawable) {
+        mPlayPauseButton.setImageDrawable(drawable);
+    }
+
+    public void setText(String text) {
+        mTitleView.setText(text);
     }
 
 }

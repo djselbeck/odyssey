@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
-import org.odyssey.OdysseyApplication;
 import org.odyssey.R;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
@@ -13,23 +12,21 @@ import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListene
 import org.odyssey.manager.ArtistCoverLoader;
 import org.odyssey.manager.AsyncLoader;
 import org.odyssey.manager.AsyncLoader.CoverViewHolder;
+import org.odyssey.playbackservice.PlaybackServiceConnection;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.util.LruCache;
 import android.support.v4.widget.CursorAdapter;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -59,6 +56,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     private GridView mRootGrid;
 
     private int mLastPosition = -1;
+
+    private PlaybackServiceConnection mServiceConnection;
 
     // Listener for communication via container activity
     public interface OnArtistSelectedListener {
@@ -159,6 +158,8 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
             mLastPosition = -1;
             mRootGrid.setFastScrollEnabled(true);
         }
+        mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
+        mServiceConnection.openConnection();
     }
 
     private class ArtistsCursorAdapter extends CursorAdapter implements SectionIndexer {
@@ -409,7 +410,6 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
     private void enqueueAllAlbums(int position) {
 
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
         // identify current artist
         Cursor cursorArtist = mCursorAdapter.getCursor();
 
@@ -446,7 +446,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
                         // enqueue current track
                         try {
-                            app.getPlaybackService().enqueueTrack(item);
+                            mServiceConnection.getPBS().enqueueTrack(item);
                         } catch (RemoteException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
@@ -461,11 +461,10 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
     }
 
     private void playAllAlbums(int position) {
-        OdysseyApplication app = (OdysseyApplication) getActivity().getApplication();
 
         // Remove old tracks
         try {
-            app.getPlaybackService().clearPlaylist();
+            mServiceConnection.getPBS().clearPlaylist();
         } catch (RemoteException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -476,7 +475,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
         // play album
         try {
-            app.getPlaybackService().jumpTo(0);
+            mServiceConnection.getPBS().jumpTo(0);
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
