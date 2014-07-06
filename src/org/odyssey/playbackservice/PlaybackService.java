@@ -1166,6 +1166,26 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             // We're good to go, send it away
             sendBroadcast(broadcastIntent);
+        } else {
+            // TODO fix Widget and stuff for tolerance without this information
+            // Send empty broadcast with stopped information
+            Intent broadcastIntent = new Intent(MESSAGE_NEWTRACKINFORMATION);
+
+            // Add empty trackitem to parcel
+            ArrayList<Parcelable> extraTrackItemList = new ArrayList<Parcelable>();
+            extraTrackItemList.add(new TrackItem());
+
+            NowPlayingInformation info = new NowPlayingInformation(0, "", -1, mRepeat, mRandom, mCurrentList.size());
+            // Add nowplayingInfo to parcel
+            ArrayList<Parcelable> extraNPList = new ArrayList<Parcelable>();
+            extraNPList.add(info);
+
+            // Add this stuff to the parcel
+            broadcastIntent.putParcelableArrayListExtra(INTENT_TRACKITEMNAME, extraTrackItemList);
+            broadcastIntent.putParcelableArrayListExtra(INTENT_NOWPLAYINGNAME, extraNPList);
+
+            // We're good to go, send it away
+            sendBroadcast(broadcastIntent);
         }
     }
 
