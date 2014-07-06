@@ -283,9 +283,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mIsPaused = true;
         }
 
-        if (mCurrentPlayingIndex >= 0) {
-            updateStatus();
-        }
+        updateStatus();
+
         mServiceCancelTimer = new Timer();
         // Set timeout to 10 minutes for now
         mServiceCancelTimer.schedule(new ServiceCancelTask(), (long) ((60 * 1000) * 10));
@@ -419,10 +418,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // reset index
             mCurrentPlayingIndex = 0;
 
-            // sent broadcast
-            // sendUpdateBroadcast();
-            // updateNotification();
-            // FIXME simplyfi
             updateStatus();
 
             // set next track for gapless
@@ -885,7 +880,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public void stopService() {
         // save currentlist to database
         mPlaylistManager.savePlaylist(mCurrentList);
-        // TODO save current track and track position
 
         mPlayer.stop();
         stopForeground(true);
@@ -938,7 +932,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 // FIXME nicer
                 callback.receiveNewNowPlayingInformation(new NowPlayingInformation(playing, playingURL, mCurrentPlayingIndex, mRepeat, mRandom, mCurrentList.size()));
             } catch (RemoteException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
