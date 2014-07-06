@@ -45,7 +45,6 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -1184,9 +1183,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+
     public int getCurrentIndex() {
         return mCurrentPlayingIndex;
     }
+
 
     public TrackItem getCurrentTrack() {
         if (mCurrentPlayingIndex >= 0 && mCurrentList.size() > mCurrentPlayingIndex) {
@@ -1207,13 +1208,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     private void updateNotification() {
         Intent resultIntent = new Intent(this, MainActivity.class);
+        resultIntent.putExtra("Fragment", "currentsong");
 
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
-
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
 

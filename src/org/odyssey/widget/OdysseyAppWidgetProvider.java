@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.odyssey.MainActivity;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
-import org.odyssey.manager.AsyncLoader;
 import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.TrackItem;
 
@@ -19,7 +18,6 @@ import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Parcelable;
 import android.provider.MediaStore;
-import android.webkit.WebView.FindListener;
 import android.widget.RemoteViews;
 
 public class OdysseyAppWidgetProvider extends AppWidgetProvider {
@@ -38,9 +36,10 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 
             // get remoteviews
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.odyssey_appwidget);
-            
+
             // Main action
             Intent mainIntent = new Intent(context, MainActivity.class);
+            mainIntent.putExtra("Fragment", "currentsong");
             PendingIntent mainPendingIntent = PendingIntent.getActivity(context, 0, mainIntent, 0);
             views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
 
@@ -116,10 +115,10 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
                 NowPlayingInformation info = (NowPlayingInformation) infoList.get(0);
 
                 if (info.getPlaying() == 0) {
-                	// Show play icon
+                    // Show play icon
                     views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_play);
                 } else if (info.getPlaying() == 1) {
-                	// Show pause icon
+                    // Show pause icon
                     views.setImageViewResource(R.id.odysseyWidgetPlaypauseButton, android.R.drawable.ic_media_pause);
                 }
             }
