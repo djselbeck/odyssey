@@ -14,6 +14,8 @@ public class MusicLibraryHelper {
     public static final String[] projectionTracks = { MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media.TRACK, MediaStore.Audio.Media.ALBUM_KEY, MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DATA };
 
+    public static final String[] projectionPlaylists = { MediaStore.Audio.Playlists.NAME, MediaStore.Audio.Playlists._ID };
+
     /**
      * Resolves the url into an comfortably trackitem which contains artist and
      * title

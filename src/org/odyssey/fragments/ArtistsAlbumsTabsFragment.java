@@ -62,7 +62,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
      */
     public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
         Context mContext;
-        static final int mNumberOfPages = 3;
+        static final int mNumberOfPages = 4;
 
         public AppSectionsPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
@@ -78,6 +78,8 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
                 return new AlbumsSectionFragment();
             case 2:
                 return new AllTracksFragment();
+            case 3:
+                return new SavedPlaylistsFragment();
             default:
                 return null;
             }
@@ -97,6 +99,8 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
                 return mContext.getText(R.string.section_title_albums);
             case 2:
                 return mContext.getText(R.string.section_title_alltracks);
+            case 3:
+                return mContext.getText(R.string.section_title_allplaylists);
             }
             return "";
         }

@@ -173,16 +173,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-        intentFilter.addAction(ACTION_PREVIOUS);
-        intentFilter.addAction(ACTION_PAUSE);
-        intentFilter.addAction(ACTION_PLAY);
-        intentFilter.addAction(ACTION_TOGGLEPAUSE);
-        intentFilter.addAction(ACTION_NEXT);
-        intentFilter.addAction(ACTION_STOP);
+        if (mNoisyReceiver == null) {
+            mNoisyReceiver = new NoisyReceiver();
 
-        registerReceiver(mNoisyReceiver, intentFilter);
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+            intentFilter.addAction(ACTION_PREVIOUS);
+            intentFilter.addAction(ACTION_PAUSE);
+            intentFilter.addAction(ACTION_PLAY);
+            intentFilter.addAction(ACTION_TOGGLEPAUSE);
+            intentFilter.addAction(ACTION_NEXT);
+            intentFilter.addAction(ACTION_STOP);
+
+            registerReceiver(mNoisyReceiver, intentFilter);
+        }
 
         // Remote control client
         ComponentName remoteReceiver = new ComponentName(getPackageName(), RemoteControlReceiver.class.getName());
@@ -232,6 +236,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     @Override
     public void onDestroy() {
         Log.v(TAG, "Service destroyed");
+        if (mNoisyReceiver != null) {
+            unregisterReceiver(mNoisyReceiver);
+            mNoisyReceiver = null;
+        }
         stopSelf();
 
     }
@@ -1678,7 +1686,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     }
 
-    private final BroadcastReceiver mNoisyReceiver = new BroadcastReceiver() {
+    private NoisyReceiver mNoisyReceiver = null;
+
+    private class NoisyReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
