@@ -18,9 +18,12 @@ import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 public class OdysseyAppWidgetProvider extends AppWidgetProvider {
+
+    private static final String TAG = "OdysseyWidget";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -44,23 +47,27 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
 
             // Play/Pause action
-            Intent playPauseIntent = new Intent(PlaybackService.ACTION_TOGGLEPAUSE);
-            PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(context, 42, playPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent playPauseIntent = new Intent(context, PlaybackService.class);
+            playPauseIntent.putExtra("action", PlaybackService.ACTION_TOGGLEPAUSE);
+            PendingIntent playPausePendingIntent = PendingIntent.getService(context, 0, playPauseIntent, 0);
             views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, playPausePendingIntent);
 
             // Previous song action
-            Intent prevIntent = new Intent(PlaybackService.ACTION_PREVIOUS);
-            PendingIntent prevPendingIntent = PendingIntent.getBroadcast(context, 42, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent prevIntent = new Intent(context, PlaybackService.class);
+            prevIntent.putExtra("action", PlaybackService.ACTION_PREVIOUS);
+            PendingIntent prevPendingIntent = PendingIntent.getService(context, 1, prevIntent, 0);
             views.setOnClickPendingIntent(R.id.odysseyWidgetPreviousButton, prevPendingIntent);
 
             // Next song action
-            Intent nextIntent = new Intent(PlaybackService.ACTION_NEXT);
-            PendingIntent nextPendingIntent = PendingIntent.getBroadcast(context, 42, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent nextIntent = new Intent(context, PlaybackService.class);
+            nextIntent.putExtra("action", PlaybackService.ACTION_NEXT);
+            PendingIntent nextPendingIntent = PendingIntent.getService(context, 2, nextIntent, 0);
             views.setOnClickPendingIntent(R.id.odysseyWidgetNextButton, nextPendingIntent);
 
             // Quit action
-            Intent stopIntent = new Intent(PlaybackService.ACTION_STOP);
-            PendingIntent stopPendingIntent = PendingIntent.getBroadcast(context, 42, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent stopIntent = new Intent(context, PlaybackService.class);
+            stopIntent.putExtra("action", PlaybackService.ACTION_STOP);
+            PendingIntent stopPendingIntent = PendingIntent.getService(context, 3, stopIntent, 0);
             views.setOnClickPendingIntent(R.id.odysseyWidgetStopButton, stopPendingIntent);
 
             // Tell the AppWidgetManager to perform an update on the current app
@@ -73,6 +80,7 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
 
         super.onReceive(context, intent);
+        Log.v(TAG, "Onreceive");
 
         // get remoteviews
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.odyssey_appwidget);
@@ -132,23 +140,27 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
 
         // Play/Pause action
-        Intent playPauseIntent = new Intent(PlaybackService.ACTION_TOGGLEPAUSE);
-        PendingIntent playPausePendingIntent = PendingIntent.getBroadcast(context, 42, playPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent playPauseIntent = new Intent(context, PlaybackService.class);
+        playPauseIntent.putExtra("action", PlaybackService.ACTION_TOGGLEPAUSE);
+        PendingIntent playPausePendingIntent = PendingIntent.getService(context, 0, playPauseIntent, 0);
         views.setOnClickPendingIntent(R.id.odysseyWidgetPlaypauseButton, playPausePendingIntent);
 
         // Previous song action
-        Intent prevIntent = new Intent(PlaybackService.ACTION_PREVIOUS);
-        PendingIntent prevPendingIntent = PendingIntent.getBroadcast(context, 42, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent prevIntent = new Intent(context, PlaybackService.class);
+        prevIntent.putExtra("action", PlaybackService.ACTION_PREVIOUS);
+        PendingIntent prevPendingIntent = PendingIntent.getService(context, 1, prevIntent, 0);
         views.setOnClickPendingIntent(R.id.odysseyWidgetPreviousButton, prevPendingIntent);
 
         // Next song action
-        Intent nextIntent = new Intent(PlaybackService.ACTION_NEXT);
-        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(context, 42, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent nextIntent = new Intent(context, PlaybackService.class);
+        nextIntent.putExtra("action", PlaybackService.ACTION_NEXT);
+        PendingIntent nextPendingIntent = PendingIntent.getService(context, 2, nextIntent, 0);
         views.setOnClickPendingIntent(R.id.odysseyWidgetNextButton, nextPendingIntent);
 
         // Quit action
-        Intent stopIntent = new Intent(PlaybackService.ACTION_STOP);
-        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(context, 42, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent stopIntent = new Intent(context, PlaybackService.class);
+        stopIntent.putExtra("action", PlaybackService.ACTION_STOP);
+        PendingIntent stopPendingIntent = PendingIntent.getService(context, 3, stopIntent, 0);
         views.setOnClickPendingIntent(R.id.odysseyWidgetStopButton, stopPendingIntent);
 
         AppWidgetManager.getInstance(context).updateAppWidget(new ComponentName(context, OdysseyAppWidgetProvider.class), views);

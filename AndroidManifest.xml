@@ -38,6 +38,11 @@
             <intent-filter>
                 <action android:name="org.odyssey.playbackservice.IOdysseyPlaybackService" />
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />
+   		        <action android:name="org.odyssey.newtrackinfo"/> 
+		        <action android:name="org.odyssey.togglepause"/>
+		        <action android:name="org.odyssey.stop"/>
+		        <action android:name="org.odyssey.previous"/>
+		        <action android:name="org.odyssey.next"/>
             </intent-filter>
         </service>
         
@@ -53,7 +58,6 @@
 		    <meta-data android:name="android.appwidget.provider"
 		               android:resource="@xml/odyssey_appwidget_info" />
 		</receiver>   
-		
 		<receiver android:name="org.odyssey.playbackservice.RemoteControlReceiver" >
 		    <intent-filter>
 		        <action android:name="android.intent.action.MEDIA_BUTTON" />

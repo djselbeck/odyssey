@@ -209,6 +209,23 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        if (intent.getExtras() != null) {
+            String action = intent.getExtras().getString("action");
+            if (action != null) {
+                Log.v(TAG, "Action requested: " + action);
+                if (action.equals(ACTION_TOGGLEPAUSE)) {
+                    togglePause();
+                } else if (action.equals(ACTION_NEXT)) {
+                    setNextTrack();
+                } else if (action.equals(ACTION_PREVIOUS)) {
+                    setPreviousTrack();
+                } else if (action.equals(ACTION_STOP)) {
+                    stop();
+                } else if (action.equals(ACTION_PLAY)) {
+                    resume();
+                }
+            }
+        }
         Log.v(TAG, "onStartCommand");
         return START_NOT_STICKY;
     }
