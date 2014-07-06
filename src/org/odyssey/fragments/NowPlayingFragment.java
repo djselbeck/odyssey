@@ -52,6 +52,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     private ImageButton mRandomButton;
 
     private final static String TAG = "OdysseyNowPlayingFragment";
+    private NowPlayingReceiver mNowPlayingReceiver = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -185,8 +186,6 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             }
         });
 
-        getActivity().getApplicationContext().registerReceiver(new NowPlayingReceiver(), new IntentFilter(PlaybackService.MESSAGE_NEWTRACKINFORMATION));
-
         return rootView;
     }
 
@@ -198,11 +197,21 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             mRefreshTimer.purge();
             mRefreshTimer = null;
         }
+        if (mNowPlayingReceiver != null) {
+            getActivity().getApplicationContext().unregisterReceiver(mNowPlayingReceiver);
+            mNowPlayingReceiver = null;
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        if (mNowPlayingReceiver != null) {
+            getActivity().getApplicationContext().unregisterReceiver(mNowPlayingReceiver);
+            mNowPlayingReceiver = null;
+        }
+        mNowPlayingReceiver = new NowPlayingReceiver();
+        getActivity().getApplicationContext().registerReceiver(mNowPlayingReceiver, new IntentFilter(PlaybackService.MESSAGE_NEWTRACKINFORMATION));
         // get the playbackservice
         mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
         mServiceConnection.setNotifier(new ServiceConnectionListener());

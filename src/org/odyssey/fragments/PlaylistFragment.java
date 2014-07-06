@@ -44,6 +44,7 @@ public class PlaylistFragment extends Fragment {
     private PlaylistTracksAdapter mPlayListAdapter;
 
     private PlaybackServiceConnection mServiceConnection = null;
+    private NowPlayingReceiver mNowPlayingReceiver = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -87,9 +88,6 @@ public class PlaylistFragment extends Fragment {
         // register context menu
         registerForContextMenu(mListView);
 
-        // Register broadcast receiver
-        getActivity().getApplicationContext().registerReceiver(new NowPlayingReceiver(), new IntentFilter(PlaybackService.MESSAGE_NEWTRACKINFORMATION));
-
         return rootView;
     }
 
@@ -100,8 +98,29 @@ public class PlaylistFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        // Unregister registered broadcast receiver to save some resources
+        if (mNowPlayingReceiver != null) {
+            getActivity().getApplicationContext().unregisterReceiver(mNowPlayingReceiver);
+            mNowPlayingReceiver = null;
+        }
+
+        mServiceConnection = null;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+        // Register receiver to get newest information
+        if (mNowPlayingReceiver != null) {
+            getActivity().getApplicationContext().unregisterReceiver(mNowPlayingReceiver);
+            mNowPlayingReceiver = null;
+        }
+        mNowPlayingReceiver = new NowPlayingReceiver();
+        getActivity().getApplicationContext().registerReceiver(mNowPlayingReceiver, new IntentFilter(PlaybackService.MESSAGE_NEWTRACKINFORMATION));
+
+        // Reopen service connection
         mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
         mServiceConnection.setNotifier(new ServiceListener());
         mServiceConnection.openConnection();

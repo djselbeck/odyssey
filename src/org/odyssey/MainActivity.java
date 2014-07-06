@@ -56,6 +56,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
     private String mRequestedFragment = "";
 
+    private NowPlayingReceiver mNowPlayingReceiver = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,7 +112,6 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         // Register callbacks in mainapplication which currently manages
         // callback from playback service process
         mQuickControl = (QuickControl) findViewById(R.id.quickControl);
-        // mainApplication.registerNowPlayingListener(mQuickControl);
 
     }
 
@@ -144,17 +145,34 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
     @Override
     public void onResume() {
         super.onResume();
+        mRequestedFragment = "";
         mServiceConnection = new PlaybackServiceConnection(getApplicationContext());
         mServiceConnection.setNotifier(new ConnectionListener());
         mServiceConnection.openConnection();
 
         Log.v(TAG, "Resume mainactivity");
         Intent resumeIntent = getIntent();
+        setIntent(new Intent());
         if (resumeIntent != null && resumeIntent.getExtras() != null && resumeIntent.getExtras().getString("Fragment").equals("currentsong")) {
             mRequestedFragment = "currentsong";
+            Log.v(TAG, "Current song fragment requested: " + resumeIntent.getExtras().getString("Fragment"));
         }
 
-        registerReceiver(new NowPlayingReceiver(), new IntentFilter(PlaybackService.MESSAGE_NEWTRACKINFORMATION));
+        if (mNowPlayingReceiver != null) {
+            unregisterReceiver(mNowPlayingReceiver);
+            mNowPlayingReceiver = null;
+        }
+        mNowPlayingReceiver = new NowPlayingReceiver();
+        registerReceiver(mNowPlayingReceiver, new IntentFilter(PlaybackService.MESSAGE_NEWTRACKINFORMATION));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mNowPlayingReceiver != null) {
+            unregisterReceiver(mNowPlayingReceiver);
+            mNowPlayingReceiver = null;
+        }
     }
 
     @Override
