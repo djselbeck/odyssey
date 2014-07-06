@@ -2,7 +2,6 @@ package org.odyssey;
 
 import org.odyssey.fragments.AboutFragment;
 import org.odyssey.fragments.AlbumsSectionFragment;
-import org.odyssey.fragments.SettingsFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment;
@@ -12,10 +11,12 @@ import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListene
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.NowPlayingFragment;
 import org.odyssey.fragments.PlaylistFragment;
+import org.odyssey.fragments.SettingsFragment;
 import org.odyssey.playbackservice.IOdysseyPlaybackService;
 import org.odyssey.views.QuickControl;
 
 import android.app.ActionBar;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -25,14 +26,11 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener, OnSettingsSelectedListener, OnPlayAllSelectedListener {
 
@@ -141,6 +139,24 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
     public void onResume() {
         super.onResume();
         Log.v(TAG, "Resume mainactivity");
+        Intent resumeIntent = getIntent();
+        if (resumeIntent != null && resumeIntent.getExtras() != null) {
+            if (resumeIntent.getExtras().getString("Fragment").equals("currentsong")) {
+                Log.v(TAG, "Opening nowplaying fragment");
+                android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+                // Launch current song fragment
+                NowPlayingFragment mNowPlayingFragment = new NowPlayingFragment();
+                // Replace whatever is in the fragment_container view with this
+                // fragment,
+                transaction.replace(R.id.fragmentFrame, mNowPlayingFragment);
+
+                // Commit the transaction
+                transaction.commit();
+
+                invalidateOptionsMenu();
+            }
+        }
         // FIXME Workaround for service reconnect
         ((OdysseyApplication) getApplication()).getPlaybackService();
     }
