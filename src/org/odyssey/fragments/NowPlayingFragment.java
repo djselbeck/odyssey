@@ -195,6 +195,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         super.onPause();
         if (mRefreshTimer != null) {
             mRefreshTimer.cancel();
+            mRefreshTimer.purge();
             mRefreshTimer = null;
         }
     }
@@ -387,6 +388,11 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         public void onConnect() {
             Log.v(TAG, "Service connection established");
             updateStatus();
+            if (mRefreshTimer != null) {
+                mRefreshTimer.cancel();
+                mRefreshTimer.purge();
+                mRefreshTimer = null;
+            }
             mRefreshTimer = new Timer();
             mRefreshTimer.scheduleAtFixedRate(new RefreshTask(), 0, 500);
         }
