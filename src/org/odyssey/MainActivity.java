@@ -153,6 +153,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         Log.v(TAG, "Resume mainactivity");
         Intent resumeIntent = getIntent();
         setIntent(new Intent());
+
         if (resumeIntent != null && resumeIntent.getExtras() != null && resumeIntent.getExtras().getString("Fragment").equals("currentsong")) {
             mRequestedFragment = "currentsong";
             Log.v(TAG, "Current song fragment requested: " + resumeIntent.getExtras().getString("Fragment"));
@@ -291,6 +292,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
                 transaction.replace(R.id.fragmentFrame, mPlaylistFragment);
+                transaction.addToBackStack(null);
 
                 // Commit the transaction
                 transaction.commit();
@@ -305,6 +307,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
                 transaction.replace(R.id.fragmentFrame, mNowPlayingFragment);
+                transaction.addToBackStack(null);
 
                 // Commit the transaction
                 transaction.commit();
@@ -389,7 +392,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
             Log.v(TAG, "Service connected :)");
             // Update gui elements
             try {
-                if (mRequestedFragment.equals("currentsong") && mServiceConnection.getPBS().getCurrentIndex() >= 0) {
+                if (mRequestedFragment.equals("currentsong") && mServiceConnection.getPBS().getCurrentIndex() >= 0 && mServiceConnection.getPBS().getPlaying() == 1) {
                     Log.v(TAG, "Opening nowplaying fragment");
                     android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
@@ -399,6 +402,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                     // this
                     // fragment,
                     transaction.replace(R.id.fragmentFrame, mNowPlayingFragment);
+                    transaction.addToBackStack(null);
 
                     // Commit the transaction
                     transaction.commit();
