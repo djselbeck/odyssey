@@ -26,7 +26,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
@@ -42,6 +41,7 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 public class PlaybackService extends Service implements AudioManager.OnAudioFocusChangeListener {
@@ -75,6 +75,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     public static final String INTENT_TRACKITEMNAME = "OdysseyTrackItem";
     public static final String INTENT_NOWPLAYINGNAME = "OdysseyNowPlaying";
+
+    private final static int SERVICE_CANCEL_TIME = 60 * 5 * 1000;
 
     private HandlerThread mHandlerThread;
     private PlaybackServiceHandler mHandler;
@@ -184,6 +186,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             intentFilter.addAction(ACTION_TOGGLEPAUSE);
             intentFilter.addAction(ACTION_NEXT);
             intentFilter.addAction(ACTION_STOP);
+            intentFilter.addAction(ACTION_QUIT);
 
             registerReceiver(mNoisyReceiver, intentFilter);
         }
@@ -236,6 +239,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     @Override
     public void onDestroy() {
         Log.v(TAG, "Service destroyed");
+
         if (mNoisyReceiver != null) {
             unregisterReceiver(mNoisyReceiver);
             mNoisyReceiver = null;
@@ -277,7 +281,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mLastPlayingIndex = -1;
 
         updateStatus();
-
         stopService();
     }
 
@@ -285,8 +288,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (mPlayer.isRunning()) {
             mLastPosition = mPlayer.getPosition();
             mPlayer.pause();
-            // Save position in settings table
-            mPlaylistManager.saveCurrentPlayState(mLastPosition, mCurrentPlayingIndex);
 
             // Broadcast simple.last.fm.scrobble broadcast
             if (mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
@@ -310,7 +311,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         mServiceCancelTimer = new Timer();
         // Set timeout to 10 minutes for now
-        mServiceCancelTimer.schedule(new ServiceCancelTask(), (long) ((60 * 1000) * 10));
+        mServiceCancelTimer.schedule(new ServiceCancelTask(), (long) (SERVICE_CANCEL_TIME));
     }
 
     public void resume() {
@@ -898,10 +899,28 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      * any ongoing notification.
      */
     public void stopService() {
+        // Cancel possible cancel timers ( yeah, very funny )
+        if (mServiceCancelTimer != null) {
+            mServiceCancelTimer.cancel();
+            mServiceCancelTimer.purge();
+            mServiceCancelTimer = null;
+        }
+        mLastPosition = getTrackPosition();
+        if (mPlayer.isRunning()) {
+            mPlayer.pause();
+        }
+        Log.v(TAG, "Stopping service and saving playlist with size: " + mCurrentList.size() + " and currentplaying: " + mCurrentPlayingIndex + " at position: " + mLastPosition);
         // save currentlist to database
         mPlaylistManager.savePlaylist(mCurrentList);
 
-        mPlayer.stop();
+        // Save position in settings table
+        mPlaylistManager.saveCurrentPlayState(mLastPosition, mCurrentPlayingIndex);
+
+        if (mPlayer.isRunning()) {
+            mPlayer.stop();
+        }
+        updateStatus();
+
         stopForeground(true);
         mNotificationBuilder.setOngoing(false);
         mNotificationManager.cancel(NOTIFICATION_ID);
@@ -1043,52 +1062,151 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     private void setNotification(TrackItem track, PLAYSTATE playbackState) {
         if (track != null) {
+            // Intent resultIntent = new Intent(this, MainActivity.class);
+            // resultIntent.putExtra("Fragment", "currentsong");
+            //
+            // PendingIntent resultPendingIntent =
+            // PendingIntent.getActivity(this, 0, resultIntent,
+            // PendingIntent.FLAG_CANCEL_CURRENT);
+            //
+            // mNotificationBuilder = new
+            // NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
+            //
+            // mNotificationBuilder.setContentTitle(track.getTrackTitle());
+            // mNotificationBuilder.setContentText(track.getTrackArtist());
+            // mNotificationBuilder.setSubText(track.getTrackAlbum());
+            //
+            // // Previous song action
+            // Intent prevIntent = new Intent(ACTION_PREVIOUS);
+            // PendingIntent prevPendingIntent =
+            // PendingIntent.getBroadcast(this, 42, prevIntent,
+            // PendingIntent.FLAG_UPDATE_CURRENT);
+            // mNotificationBuilder.addAction(android.R.drawable.ic_media_previous,
+            // "", prevPendingIntent);
+            //
+            // // Pause/Play action
+            // if (mPlayer.isRunning()) {
+            // Intent pauseIntent = new Intent(ACTION_PAUSE);
+            // PendingIntent pausePendingIntent =
+            // PendingIntent.getBroadcast(this, 42, pauseIntent,
+            // PendingIntent.FLAG_UPDATE_CURRENT);
+            // mNotificationBuilder.addAction(android.R.drawable.ic_media_pause,
+            // "", pausePendingIntent);
+            // } else {
+            // Intent playIntent = new Intent(ACTION_PLAY);
+            // PendingIntent playPendingIntent =
+            // PendingIntent.getBroadcast(this, 42, playIntent,
+            // PendingIntent.FLAG_UPDATE_CURRENT);
+            // mNotificationBuilder.addAction(android.R.drawable.ic_media_play,
+            // "", playPendingIntent);
+            // }
+            //
+            // // Previous song action
+            // Intent nextIntent = new Intent(ACTION_NEXT);
+            // PendingIntent nextPendingIntent =
+            // PendingIntent.getBroadcast(this, 42, nextIntent,
+            // PendingIntent.FLAG_UPDATE_CURRENT);
+            // mNotificationBuilder.addAction(android.R.drawable.ic_media_next,
+            // "", nextPendingIntent);
+            //
+            // mNotificationBuilder.setContentIntent(resultPendingIntent);
+            //
+            // // Quit action
+            // Intent stopIntent = new Intent(ACTION_STOP);
+            // PendingIntent stopPendingIntent =
+            // PendingIntent.getBroadcast(this, 42, stopIntent,
+            // PendingIntent.FLAG_UPDATE_CURRENT);
+            //
+            // mNotificationBuilder.setDeleteIntent(stopPendingIntent);
+            // // Make notification persistent
+            // mNotificationBuilder.setOngoing(true);
+            // mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(),
+            // R.drawable.ic_launcher));
+            //
+            // mNotification = mNotificationBuilder.build();
+            // mNotificationManager.notify(NOTIFICATION_ID, mNotification);
+            // startForeground(NOTIFICATION_ID, mNotification);
+            mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
+            RemoteViews remoteViewBig = new RemoteViews(getPackageName(), R.layout.big_notification_layout);
+            RemoteViews remoteViewSmall = new RemoteViews(getPackageName(), R.layout.small_notification_layout);
+            remoteViewBig.setTextViewText(R.id.notificationTitle, track.getTrackTitle());
+            remoteViewBig.setTextViewText(R.id.notificationArtist, track.getTrackArtist());
+            remoteViewBig.setTextViewText(R.id.notificationAlbum, track.getTrackAlbum());
+
+            remoteViewSmall.setTextViewText(R.id.notificationTitle, track.getTrackTitle());
+            remoteViewSmall.setTextViewText(R.id.notificationArtist, track.getTrackArtist());
+            remoteViewSmall.setTextViewText(R.id.notificationAlbum, track.getTrackAlbum());
+
+            // Set pendingintents
+            // Previous song action
+            Intent prevIntent = new Intent(ACTION_PREVIOUS);
+            PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this, 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            remoteViewBig.setOnClickPendingIntent(R.id.notificationPrevBtn, prevPendingIntent);
+
+            // Pause/Play action
+            if (playbackState == PLAYSTATE.PLAYING) {
+                Intent pauseIntent = new Intent(ACTION_PAUSE);
+                PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this, 1, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                remoteViewBig.setOnClickPendingIntent(R.id.notificationPlayBtn, pausePendingIntent);
+                // Set right drawable
+                remoteViewBig.setImageViewResource(R.id.notificationPlayBtn, android.R.drawable.ic_media_pause);
+
+            } else {
+                Intent playIntent = new Intent(ACTION_PLAY);
+                PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, 2, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                remoteViewBig.setOnClickPendingIntent(R.id.notificationPlayBtn, playPendingIntent);
+                // Set right drawable
+                remoteViewBig.setImageViewResource(R.id.notificationPlayBtn, android.R.drawable.ic_media_play);
+            }
+
+            // Next song action
+            Intent nextIntent = new Intent(ACTION_NEXT);
+            PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this, 3, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            remoteViewBig.setOnClickPendingIntent(R.id.notificationNextBtn, nextPendingIntent);
+
+            // Quit action
+            Intent quitIntent = new Intent(ACTION_QUIT);
+            PendingIntent quitPendingIntent = PendingIntent.getBroadcast(this, 4, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            remoteViewBig.setOnClickPendingIntent(R.id.notificationCloseBtn, quitPendingIntent);
+            remoteViewSmall.setOnClickPendingIntent(R.id.notificationCloseBtn, quitPendingIntent);
+
+            // Cover
+            // TODO SPEED UP
+
+            String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
+
+            String whereVal[] = { track.getTrackAlbumKey() };
+
+            Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
+
+            String coverPath = null;
+            if (cursor.moveToFirst()) {
+                coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+            }
+
+            if (coverPath != null) {
+                BitmapDrawable cover = (BitmapDrawable) BitmapDrawable.createFromPath(coverPath);
+
+                remoteViewBig.setImageViewBitmap(R.id.notificationImage, cover.getBitmap());
+                remoteViewSmall.setImageViewBitmap(R.id.notificationImage, cover.getBitmap());
+            } else {
+                remoteViewBig.setImageViewResource(R.id.notificationImage, R.drawable.ic_stat_odys);
+                remoteViewSmall.setImageViewResource(R.id.notificationImage, R.drawable.ic_stat_odys);
+            }
+
+            // Open application intent
             Intent resultIntent = new Intent(this, MainActivity.class);
             resultIntent.putExtra("Fragment", "currentsong");
 
             PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-            mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
-
-            mNotificationBuilder.setContentTitle(track.getTrackTitle());
-            mNotificationBuilder.setContentText(track.getTrackArtist());
-            mNotificationBuilder.setSubText(track.getTrackAlbum());
-
-            // Previous song action
-            Intent prevIntent = new Intent(ACTION_PREVIOUS);
-            PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this, 42, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mNotificationBuilder.addAction(android.R.drawable.ic_media_previous, "", prevPendingIntent);
-
-            // Pause/Play action
-            if (mPlayer.isRunning()) {
-                Intent pauseIntent = new Intent(ACTION_PAUSE);
-                PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this, 42, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                mNotificationBuilder.addAction(android.R.drawable.ic_media_pause, "", pausePendingIntent);
-            } else {
-                Intent playIntent = new Intent(ACTION_PLAY);
-                PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, 42, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                mNotificationBuilder.addAction(android.R.drawable.ic_media_play, "", playPendingIntent);
-            }
-
-            // Previous song action
-            Intent nextIntent = new Intent(ACTION_NEXT);
-            PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this, 42, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mNotificationBuilder.addAction(android.R.drawable.ic_media_next, "", nextPendingIntent);
-
             mNotificationBuilder.setContentIntent(resultPendingIntent);
 
-            // Quit action
-            Intent stopIntent = new Intent(ACTION_STOP);
-            PendingIntent stopPendingIntent = PendingIntent.getBroadcast(this, 42, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            mNotificationBuilder.setDeleteIntent(stopPendingIntent);
-            // Make notification persistent
-            mNotificationBuilder.setOngoing(true);
-            mNotificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-
             mNotification = mNotificationBuilder.build();
+            mNotification.bigContentView = remoteViewBig;
+            mNotification.contentView = remoteViewSmall;
             mNotificationManager.notify(NOTIFICATION_ID, mNotification);
             startForeground(NOTIFICATION_ID, mNotification);
+
         } else {
             clearNotification();
         }
@@ -1707,6 +1825,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 stop();
             } else if (intent.getAction().equals(ACTION_TOGGLEPAUSE)) {
                 togglePause();
+            } else if (intent.getAction().equals(ACTION_QUIT)) {
+                stopService();
             }
         }
 
@@ -1717,9 +1837,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         @Override
         public void run() {
             Log.v(TAG, "Cancel odyssey playbackservice");
-            stop();
+            stopService();
         }
-
     }
 
     private class RemoteController extends RemoteControlClient {

@@ -169,6 +169,7 @@ public class GaplessPlayer {
     public int getPosition() {
         try {
             if (mCurrentMediaPlayer != null && mCurrentMediaPlayer.isPlaying()) {
+                Log.v(TAG, "Returning position");
                 return mCurrentMediaPlayer.getCurrentPosition();
             }
         } catch (IllegalStateException exception) {
