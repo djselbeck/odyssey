@@ -1858,11 +1858,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         public void receiveBitmap(BitmapDrawable bm) {
             Log.v(TAG, "Received notification bm");
             // Check if notification exists and set picture
-            if (mNotification != null && mNotification.bigContentView != null) {
+            if (mNotification != null && mNotification.bigContentView != null && bm != null) {
                 mNotification.bigContentView.setImageViewBitmap(R.id.notificationImage, bm.getBitmap());
                 mNotificationManager.notify(NOTIFICATION_ID, mNotification);
             }
-            if (mNotification != null && mNotification.contentView != null) {
+            if (mNotification != null && mNotification.contentView != null && bm != null) {
                 mNotification.contentView.setImageViewBitmap(R.id.notificationImage, bm.getBitmap());
                 mNotificationManager.notify(NOTIFICATION_ID, mNotification);
             }
@@ -1874,9 +1874,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         @Override
         public void receiveBitmap(BitmapDrawable bm) {
-            RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
-            editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, bm.getBitmap());
-            editor.apply();
+            if (bm != null) {
+                RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
+                editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, bm.getBitmap());
+                editor.apply();
+            }
         }
 
     }

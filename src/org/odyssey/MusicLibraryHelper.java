@@ -88,8 +88,10 @@ public class MusicLibraryHelper {
                 if (cursor.moveToFirst()) {
                     coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
                 }
-                BitmapDrawable cover = (BitmapDrawable) BitmapDrawable.createFromPath(coverPath);
-                mListener.receiveBitmap(cover);
+                if (coverPath != null) {
+                    BitmapDrawable cover = (BitmapDrawable) BitmapDrawable.createFromPath(coverPath);
+                    mListener.receiveBitmap(cover);
+                }
             }
 
         }
