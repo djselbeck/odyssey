@@ -15,7 +15,11 @@
     
     <RelativeLayout 
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp" 
+        android:layout_marginBottom="8dp">
     
 		<TextView
 		    android:id="@+id/nowPlayingMinValue"
@@ -43,29 +47,43 @@
         
     </RelativeLayout>
 
-    <TextView
-        android:id="@+id/nowPlayingTitleView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/quickcontrol_textcolor"
-        android:textSize="16sp"        
-        android:text="" />
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp" 
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical" >    
     
-    <TextView
-        android:id="@+id/nowPlayingAlbumView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/quickcontrol_textcolor"
-        android:textSize="16sp"        
-        android:text="" />
-    
-    <TextView
-        android:id="@+id/nowPlayingArtistView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/quickcontrol_textcolor"
-        android:textSize="16sp"        
-        android:text="" />    
+	    <TextView
+	        android:id="@+id/nowPlayingTitleView"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:textColor="@color/quickcontrol_textcolor"
+	        android:textSize="16sp"
+	        android:maxLines="1"        
+	        android:text="" />
+	    
+	    <TextView
+	        android:id="@+id/nowPlayingAlbumView"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:textColor="@color/quickcontrol_textcolor"
+	        android:textSize="16sp"
+	        android:maxLines="1"        
+	        android:text="" />
+	    
+	    <TextView
+	        android:id="@+id/nowPlayingArtistView"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:textColor="@color/quickcontrol_textcolor"
+	        android:textSize="16sp"
+	        android:maxLines="1"        
+	        android:text="" /> 
+	          
+    </LinearLayout>    
 
     <LinearLayout
         android:layout_width="match_parent"
