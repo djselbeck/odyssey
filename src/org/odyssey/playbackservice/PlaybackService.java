@@ -11,6 +11,7 @@ import java.util.concurrent.Semaphore;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
+import org.odyssey.MusicLibraryHelper.CoverBitmapGenerator;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
 import org.odyssey.manager.DatabaseManager;
@@ -109,6 +110,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     // Timer for service stop after certain amount of time
     private Timer mServiceCancelTimer = null;
     private WakeLock mTempWakelock = null;
+
+    private MusicLibraryHelper.CoverBitmapGenerator mNotificationCoverGenerator;
+    private MusicLibraryHelper.CoverBitmapGenerator mLockscreenCoverGenerator;
 
     // NowPlaying callbacks
     // List holding registered callback clients
@@ -210,6 +214,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // set up random generator
         mRandomGenerator = new Random();
 
+        mNotificationCoverGenerator = new CoverBitmapGenerator(this, new NotificationCoverListener());
+        mLockscreenCoverGenerator = new CoverBitmapGenerator(this, new LockscreenCoverListener());
     }
 
     @Override
@@ -907,7 +913,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
         mLastPosition = getTrackPosition();
         if (mPlayer.isRunning()) {
-            mPlayer.pause();
+            mPlayer.stop();
         }
         Log.v(TAG, "Stopping service and saving playlist with size: " + mCurrentList.size() + " and currentplaying: " + mCurrentPlayingIndex + " at position: " + mLastPosition);
         // save currentlist to database
@@ -1006,21 +1012,27 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Clear if track == null
         if (track != null) {
             // Retrieve image url from androids database
-            String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
-
-            String whereVal[] = { mCurrentList.get(mCurrentPlayingIndex).getTrackAlbumKey() };
-
-            Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
-
-            String coverPath = null;
-            if (cursor.moveToFirst()) {
-                coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-            }
-
-            cursor.close();
-
-            // Create drawable from url
-            BitmapDrawable cover;
+            // String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY
+            // + "=?";
+            //
+            // String whereVal[] = {
+            // mCurrentList.get(mCurrentPlayingIndex).getTrackAlbumKey() };
+            //
+            // Cursor cursor =
+            // getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+            // new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where,
+            // whereVal, "");
+            //
+            // String coverPath = null;
+            // if (cursor.moveToFirst()) {
+            // coverPath =
+            // cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+            // }
+            //
+            // cursor.close();
+            //
+            // // Create drawable from url
+            // BitmapDrawable cover;
 
             RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
 
@@ -1028,17 +1040,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
              * Check if picture exists, otherwise set null picture which should
              * clear the last one but seems to be broken for android 4.4
              */
+            //
+            // if (coverPath != null) {
+            // if (coverPath != mLastCoverURL) {
+            // mLastCoverURL = coverPath;
+            // cover = (BitmapDrawable)
+            // BitmapDrawable.createFromPath(mLastCoverURL);
+            // editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK,
+            // cover.getBitmap());
+            // }
+            //
+            // } else {
 
-            if (coverPath != null) {
-                if (coverPath != mLastCoverURL) {
-                    mLastCoverURL = coverPath;
-                    cover = (BitmapDrawable) BitmapDrawable.createFromPath(mLastCoverURL);
-                    editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, cover.getBitmap());
-                }
-
-            } else {
-                editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, null);
-            }
+            editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, null);
+            // }
             // Set other information
             editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, track.getTrackAlbum());
             editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, track.getTrackArtist());
@@ -1054,6 +1069,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             }
             // Apply some flags, ex. which buttons to show
             mRemoteControlClient.setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE | RemoteControlClient.FLAG_KEY_MEDIA_NEXT | RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS);
+            mLockscreenCoverGenerator.getImage(track);
         } else {
             // Clear lockscreen
             mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
@@ -1061,6 +1077,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     private void setNotification(TrackItem track, PLAYSTATE playbackState) {
+        Log.v(TAG, "SetNotification: " + track + " state: " + playbackState.toString());
         if (track != null) {
             // Intent resultIntent = new Intent(this, MainActivity.class);
             // resultIntent.putExtra("Fragment", "currentsong");
@@ -1173,26 +1190,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Cover
             // TODO SPEED UP
 
-            String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
+            remoteViewBig.setImageViewResource(R.id.notificationImage, R.drawable.ic_stat_odys);
+            remoteViewSmall.setImageViewResource(R.id.notificationImage, R.drawable.ic_stat_odys);
 
-            String whereVal[] = { track.getTrackAlbumKey() };
-
-            Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
-
-            String coverPath = null;
-            if (cursor.moveToFirst()) {
-                coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-            }
-
-            if (coverPath != null) {
-                BitmapDrawable cover = (BitmapDrawable) BitmapDrawable.createFromPath(coverPath);
-
-                remoteViewBig.setImageViewBitmap(R.id.notificationImage, cover.getBitmap());
-                remoteViewSmall.setImageViewBitmap(R.id.notificationImage, cover.getBitmap());
-            } else {
-                remoteViewBig.setImageViewResource(R.id.notificationImage, R.drawable.ic_stat_odys);
-                remoteViewSmall.setImageViewResource(R.id.notificationImage, R.drawable.ic_stat_odys);
-            }
+            mNotificationCoverGenerator.getImage(track);
 
             // Open application intent
             Intent resultIntent = new Intent(this, MainActivity.class);
@@ -1201,6 +1202,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mNotificationBuilder.setContentIntent(resultPendingIntent);
 
+            Log.v(TAG, "Big content view : " + remoteViewBig);
             mNotification = mNotificationBuilder.build();
             mNotification.bigContentView = remoteViewBig;
             mNotification.contentView = remoteViewSmall;
@@ -1846,6 +1848,35 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         public RemoteController(PendingIntent mediaButtonIntent) {
             super(mediaButtonIntent);
             // TODO Auto-generated constructor stub
+        }
+
+    }
+
+    private class NotificationCoverListener implements MusicLibraryHelper.CoverBitmapListener {
+
+        @Override
+        public void receiveBitmap(BitmapDrawable bm) {
+            Log.v(TAG, "Received notification bm");
+            // Check if notification exists and set picture
+            if (mNotification != null && mNotification.bigContentView != null) {
+                mNotification.bigContentView.setImageViewBitmap(R.id.notificationImage, bm.getBitmap());
+                mNotificationManager.notify(NOTIFICATION_ID, mNotification);
+            }
+            if (mNotification != null && mNotification.contentView != null) {
+                mNotification.contentView.setImageViewBitmap(R.id.notificationImage, bm.getBitmap());
+                mNotificationManager.notify(NOTIFICATION_ID, mNotification);
+            }
+        }
+
+    }
+
+    private class LockscreenCoverListener implements MusicLibraryHelper.CoverBitmapListener {
+
+        @Override
+        public void receiveBitmap(BitmapDrawable bm) {
+            RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
+            editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, bm.getBitmap());
+            editor.apply();
         }
 
     }

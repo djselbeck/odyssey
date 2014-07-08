@@ -3,7 +3,9 @@ package org.odyssey;
 import org.odyssey.playbackservice.TrackItem;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
+import android.graphics.drawable.BitmapDrawable;
 import android.provider.MediaStore;
 
 public class MusicLibraryHelper {
@@ -50,5 +52,51 @@ public class MusicLibraryHelper {
         trackCursor.close();
 
         return new TrackItem(title, artist, album, url, trackno, duration, albumKey);
+    }
+
+    public static class CoverBitmapGenerator {
+        private CoverBitmapListener mListener;
+        private Context mContext;
+        private TrackItem mTrack;
+        private Thread mGeneratorThread;
+
+        public CoverBitmapGenerator(Context context, CoverBitmapListener listener) {
+            mContext = context;
+            mListener = listener;
+        }
+
+        public void getImage(TrackItem track) {
+            if (track != null) {
+                mTrack = track;
+                // Create generator thread
+                mGeneratorThread = new Thread(new DownloadRunner());
+                mGeneratorThread.start();
+            }
+        }
+
+        private class DownloadRunner implements Runnable {
+
+            @Override
+            public void run() {
+                String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
+
+                String whereVal[] = { mTrack.getTrackAlbumKey() };
+
+                Cursor cursor = mContext.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
+
+                String coverPath = null;
+                if (cursor.moveToFirst()) {
+                    coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                }
+                BitmapDrawable cover = (BitmapDrawable) BitmapDrawable.createFromPath(coverPath);
+                mListener.receiveBitmap(cover);
+            }
+
+        }
+
+    }
+
+    public interface CoverBitmapListener {
+        public void receiveBitmap(BitmapDrawable bm);
     }
 }
