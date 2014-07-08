@@ -1,80 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@android:color/background_dark" >
-    
-    <LinearLayout 
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@android:color/background_dark" >      
-    
-	    <ImageView
-	        android:id="@+id/odysseyWidgetImageView"
-	        android:layout_width="@dimen/widget_cover_height"
-	        android:layout_height="@dimen/widget_cover_height"
-	        android:src="@drawable/coverplaceholder"
-	    />    
-    
-        <ImageButton
-            android:id="@+id/odysseyWidgetPreviousButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_media_previous" />
+    android:layout_height="96dp"
+    android:background="@color/transparent_black" >
+   
+    <ImageView
+        android:id="@+id/odysseyWidgetImageView"
+        android:layout_width="96dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="4dp" 
+        android:layout_marginBottom="4dp"         
+        android:src="@drawable/coverplaceholder"
+    />    
 
-        <ImageButton
-            android:id="@+id/odysseyWidgetPlaypauseButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_media_play" />
-        
-        <ImageButton
-            android:id="@+id/odysseyWidgetStopButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_action_stop" />
-        
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_toRightOf="@+id/odysseyWidgetImageView"
+        android:orientation="vertical" >
 
-        <ImageButton
-            android:id="@+id/odysseyWidgetNextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_media_next"/>     
-    
-    </LinearLayout>
-    
-    <LinearLayout 
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@android:color/background_dark" >      
-    
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+	        <ImageButton
+	            android:id="@+id/odysseyWidgetPreviousButton"
+	            android:layout_width="0px"
+	            android:layout_height="match_parent"
+	            android:layout_weight="1"
+	            android:background="?android:selectableItemBackground"
+	            android:src="@android:drawable/ic_media_previous" />
+	
+	        <ImageButton
+	            android:id="@+id/odysseyWidgetPlaypauseButton"
+	            android:layout_width="0px"
+	            android:layout_height="match_parent"
+	            android:layout_weight="1"
+	            android:background="?android:selectableItemBackground"
+	            android:src="@android:drawable/ic_media_play" />
+	        
+	        <ImageButton
+	            android:id="@+id/odysseyWidgetStopButton"
+	            android:layout_width="0px"
+	            android:layout_height="match_parent"
+	            android:layout_weight="1"
+	            android:background="?android:selectableItemBackground"
+	            android:src="@drawable/ic_action_stop" />
+	        
+	        <ImageButton
+	            android:id="@+id/odysseyWidgetNextButton"
+	            android:layout_width="0px"
+	            android:layout_height="match_parent"
+	            android:layout_weight="1"
+	            android:background="?android:selectableItemBackground"
+	            android:src="@android:drawable/ic_media_next"/> 
+        </LinearLayout>
+        
 		<TextView
 		    android:id="@+id/odysseyWidgetTextViewTrack"
-		    android:layout_width="wrap_content"
+		    android:layout_width="match_parent"
 		    android:layout_height="wrap_content"
 		    android:textSize="16sp"
 		    android:maxLines="1"
 		/>	    
 		
-		<TextView
+<!-- 		<TextView
 		    android:id="@+id/odysseyWidgetTextViewDummy"
-		    android:layout_width="wrap_content"
+		    android:layout_width="match_parent"
 		    android:layout_height="wrap_content"
 		    android:maxLines="1"
 		    android:text=" - "
-		    android:textSize="16sp" />
+		    android:textSize="16sp" /> -->
 		
 		<TextView
 		    android:id="@+id/odysseyWidgetTextViewArtist"
-		    android:layout_width="wrap_content"
+		    android:layout_width="match_parent"
 		    android:layout_height="wrap_content"
 		    android:maxLines="1"
 		    android:textSize="16sp"
-		    android:textColor="#ff777777" />		
+		    android:textColor="@color/widget_artistcolor" />   
+        
+    </LinearLayout>
 
-</LinearLayout>
-
-</LinearLayout>
+</RelativeLayout>

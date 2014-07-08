@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        
+    <color name="transparent_black">#BB000000</color>
+    <color name="quickcontrol_backgroundcolor">#99000000</color>
+    <color name="quickcontrol_textcolor">#FFFFFFFF</color>
+    <color name="widget_artistcolor">#FF777777</color>
+    
+    
+</resources>

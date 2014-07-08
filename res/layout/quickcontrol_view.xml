@@ -3,55 +3,72 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
+    android:background="@color/quickcontrol_backgroundcolor"
     android:orientation="vertical" >
 
     <TextView
         android:id="@+id/titleView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="@color/quickcontrol_textcolor"
+        android:textSize="16sp"
         android:text="" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal" >
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="8dp" 
+        android:layout_marginBottom="8dp" >
 
         <ImageButton
             android:id="@+id/previousButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
             android:src="@android:drawable/ic_media_previous" />
 
         <ImageButton
             android:id="@+id/playpauseButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
             android:src="@android:drawable/ic_media_play" />
         
         <ImageButton
             android:id="@+id/stopButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
             android:src="@drawable/ic_action_stop" />
         
-
         <ImageButton
             android:id="@+id/nextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
             android:src="@android:drawable/ic_media_next"/>
         
         <ImageButton
             android:id="@+id/repeatButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_action_repeat"/>         
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:src="@drawable/ic_action_repeat_white"/>         
         
         <ImageButton
             android:id="@+id/randomButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_action_shuffle"/>         
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:src="@drawable/ic_action_shuffle_white"/>         
 
     </LinearLayout>
 
