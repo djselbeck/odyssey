@@ -496,12 +496,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (mCurrentPlayingIndex >= 0) {
             // Enqueue in list structure
             mCurrentList.add(mCurrentPlayingIndex + 1, track);
+            mNextPlayingIndex = mCurrentPlayingIndex + 1;
             // Set next track to new one
-            try {
-                mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
-            } catch (PlaybackException e) {
-                handlePlaybackException(e);
-            }
+            setNextTrackForMP();
         } else {
             // If not playing just add it to the beginning of the playlist
             mCurrentList.add(0, track);
