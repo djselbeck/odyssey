@@ -155,7 +155,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Set listeners
         mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
         mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
-        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+        // Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
         // set up playlistmanager
         mPlaylistManager = new DatabaseManager(getApplicationContext());
@@ -1391,6 +1391,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 bCast.putExtra("duration", item.getTrackDuration() / 1000);
                 sendBroadcast(bCast);
             }
+
+            // No more tracks
+            if (mNextPlayingIndex == -1) {
+                stop();
+                updateStatus();
+            }
         }
     }
 
@@ -1505,6 +1511,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         public void receiveBitmap(BitmapDrawable bm) {
             if (bm != null) {
                 RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
+                TrackItem track = getCurrentTrack();
+                editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, track.getTrackAlbum());
+                editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, track.getTrackArtist());
+                editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST, track.getTrackArtist());
+                editor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, track.getTrackTitle());
                 editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, bm.getBitmap());
                 editor.apply();
             }

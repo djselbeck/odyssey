@@ -382,6 +382,7 @@ public class GaplessPlayer {
                 Intent audioEffectIntent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
                 audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, audioSessionID);
                 audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
+                mCurrentMediaPlayer = null;
             }
 
             Log.v(TAG, "Releasing old MP");
