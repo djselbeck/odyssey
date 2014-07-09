@@ -3,25 +3,44 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
-    android:background="@color/quickcontrol_backgroundcolor"
     android:orientation="vertical" >
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:background="@android:color/holo_blue_dark" >
+    </View>
 
     <TextView
         android:id="@+id/titleView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/quickcontrol_textcolor"
-        android:textSize="16sp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginTop="4dp"
+        android:fadingEdge="horizontal"
         android:maxLines="1"
-        android:text="" />
+        android:text=""
+        android:textColor="@color/quickcontrol_textcolor"
+        android:textSize="16sp" />
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray" >
+    </View>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="8dp" 
-        android:layout_marginBottom="8dp" >
+        android:layout_height="48dp" >
+
+        <ImageButton
+            android:id="@+id/randomButton"
+            android:layout_width="0px"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:src="@drawable/ic_action_shuffle_white" />
 
         <ImageButton
             android:id="@+id/previousButton"
@@ -38,7 +57,7 @@
             android:layout_weight="1"
             android:background="?android:selectableItemBackground"
             android:src="@android:drawable/ic_media_play" />
-        
+
         <ImageButton
             android:id="@+id/stopButton"
             android:layout_width="0px"
@@ -46,31 +65,22 @@
             android:layout_weight="1"
             android:background="?android:selectableItemBackground"
             android:src="@drawable/ic_action_stop" />
-        
+
         <ImageButton
             android:id="@+id/nextButton"
             android:layout_width="0px"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="?android:selectableItemBackground"
-            android:src="@android:drawable/ic_media_next"/>
-        
+            android:src="@android:drawable/ic_media_next" />
+
         <ImageButton
             android:id="@+id/repeatButton"
             android:layout_width="0px"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="?android:selectableItemBackground"
-            android:src="@drawable/ic_action_repeat_white"/>         
-        
-        <ImageButton
-            android:id="@+id/randomButton"
-            android:layout_width="0px"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?android:selectableItemBackground"
-            android:src="@drawable/ic_action_shuffle_white"/>         
-
+            android:src="@drawable/ic_action_repeat_white" />
     </LinearLayout>
 
 </LinearLayout>

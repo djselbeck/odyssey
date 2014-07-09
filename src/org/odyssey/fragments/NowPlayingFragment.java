@@ -146,10 +146,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                     int repeat = (mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? REPEATSTATE.REPEAT_OFF.ordinal() : REPEATSTATE.REPEAT_ALL.ordinal();
 
                     mServiceConnection.getPBS().setRepeat(repeat);
-                    if (mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) {
-                        mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
-                    } else {
+                    if (repeat == 0) {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                    } else {
+                        mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
                     }
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
@@ -169,10 +169,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                     int random = (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? RANDOMSTATE.RANDOM_OFF.ordinal() : RANDOMSTATE.RANDOM_ON.ordinal();
 
                     mServiceConnection.getPBS().setRandom(random);
-                    if (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) {
-                        mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
-                    } else {
+                    if (random == 0) {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                    } else {
+                        mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                     }
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
@@ -296,14 +296,14 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                             mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                         }
                         if (isRepeat) {
-                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
-                        } else {
                             mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                        } else {
+                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
                         }
                         if (isRandom) {
-                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
-                        } else {
                             mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                        } else {
+                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                         }
 
                     }
@@ -438,14 +438,14 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                                             mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                                         }
                                         if (isRepeat) {
-                                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
-                                        } else {
                                             mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                                        } else {
+                                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
                                         }
                                         if (isRandom) {
-                                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
-                                        } else {
                                             mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                                        } else {
+                                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                                         }
                                         // update views
                                         updateStatus();

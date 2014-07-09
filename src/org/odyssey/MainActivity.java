@@ -424,14 +424,14 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                             mQuickControl.setPlayPauseButtonDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                         }
                         if (isRepeat) {
-                            mQuickControl.setRepeatButtonDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
-                        } else {
                             mQuickControl.setRepeatButtonDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                        } else {
+                            mQuickControl.setRepeatButtonDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
                         }
                         if (isRandom) {
-                            mQuickControl.setRandomButtonDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
-                        } else {
                             mQuickControl.setRandomButtonDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                        } else {
+                            mQuickControl.setRandomButtonDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                         }
                         if (trackItem != null) {
                             mQuickControl.setText(trackItem.getTrackTitle() + " - " + trackItem.getTrackArtist());
@@ -475,14 +475,14 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                                 mQuickControl.setPlayPauseButtonDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                             }
                             if (isRepeat) {
-                                mQuickControl.setRepeatButtonDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
-                            } else {
                                 mQuickControl.setRepeatButtonDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                            } else {
+                                mQuickControl.setRepeatButtonDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
                             }
                             if (isRandom) {
-                                mQuickControl.setRandomButtonDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
-                            } else {
                                 mQuickControl.setRandomButtonDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                            } else {
+                                mQuickControl.setRandomButtonDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                             }
                         }
                     });
