@@ -11,19 +11,39 @@
         android:background="@android:color/holo_blue_dark" >
     </View>
 
-    <TextView
-        android:id="@+id/titleView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="4dp"
         android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
         android:layout_marginTop="4dp"
-        android:fadingEdge="horizontal"
-        android:maxLines="1"
-        android:text=""
-        android:textColor="@color/quickcontrol_textcolor"
-        android:textSize="16sp" />
+        >
+
+        <TextView
+            android:id="@+id/titleView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fadingEdge="horizontal"
+            android:fontFamily="sans-serif-light"
+            android:maxLines="1"
+            android:text=""
+            android:textColor="@color/quickcontrol_textcolor"
+            android:textSize="7pt" />
+
+        <TextView
+            android:id="@+id/artistView"
+            android:layout_marginLeft="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fadingEdge="horizontal"
+            android:fontFamily="sans-serif-light"
+            android:maxLines="1"
+            android:text=""
+            android:textColor="@android:color/secondary_text_dark"
+            android:textSize="7pt" />
+    </LinearLayout>
+
     <View
         android:layout_width="fill_parent"
         android:layout_height="1dp"

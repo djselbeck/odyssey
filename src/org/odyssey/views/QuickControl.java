@@ -19,6 +19,7 @@ import android.widget.TextView;
 public class QuickControl extends LinearLayout {
     private static final String TAG = "OdysseyQuickControl";
     TextView mTitleView;
+    TextView mArtistView;
     ImageButton mPlayPauseButton;
     ImageButton mRepeatButton;
     ImageButton mRandomButton;
@@ -34,6 +35,7 @@ public class QuickControl extends LinearLayout {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.quickcontrol_view, this, true);
         mTitleView = (TextView) findViewById(R.id.titleView);
+        mArtistView = (TextView) findViewById(R.id.artistView);
         mPlayPauseButton = (ImageButton) findViewById(R.id.playpauseButton);
         mRepeatButton = (ImageButton) findViewById(R.id.repeatButton);
         mRandomButton = (ImageButton) findViewById(R.id.randomButton);
@@ -146,8 +148,12 @@ public class QuickControl extends LinearLayout {
         mPlayPauseButton.setImageDrawable(drawable);
     }
 
-    public void setText(String text) {
+    public void setTitleText(String text) {
         mTitleView.setText(text);
+    }
+
+    public void setArtistText(String text) {
+        mArtistView.setText(text);
     }
 
 }

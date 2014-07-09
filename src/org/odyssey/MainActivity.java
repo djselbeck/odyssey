@@ -434,7 +434,8 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                             mQuickControl.setRandomButtonDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                         }
                         if (trackItem != null) {
-                            mQuickControl.setText(trackItem.getTrackTitle() + " - " + trackItem.getTrackArtist());
+                            mQuickControl.setTitleText(trackItem.getTrackTitle());
+                            mQuickControl.setArtistText(trackItem.getTrackArtist());
                         }
                     }
                 });
@@ -496,13 +497,13 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                         @Override
                         public void run() {
                             TrackItem trackItem = trackArray.get(0);
-                            mQuickControl.setText(trackItem.getTrackTitle() + " - " + trackItem.getTrackArtist());
+                            mQuickControl.setTitleText(trackItem.getTrackTitle());
+                            mQuickControl.setArtistText(trackItem.getTrackArtist());
                         }
                     });
                 }
             }
         }
-
     }
 
 }
