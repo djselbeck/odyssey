@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="32"
+   height="32"
+   id="svg4829"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   inkscape:export-filename="/home/hendrik/sources/odyssey/res/drawable-xhdpi/ic_action_shuffle_dark.png"
+   inkscape:export-xdpi="180"
+   inkscape:export-ydpi="180"
+   sodipodi:docname="ic_shuffle.svg">
+  <defs
+     id="defs4831" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="15.839192"
+     inkscape:cx="11.53553"
+     inkscape:cy="12.302079"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
+     inkscape:window-x="1918"
+     inkscape:window-y="-3"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4921"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata4834">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1020.3622)">
+    <g
+       id="g8115"
+       transform="matrix(0.72891832,0,0,0.72891832,-40.13666,893.49043)"
+       style="fill:#ffffff;fill-opacity:0;opacity:1"
+       inkscape:export-filename="/home/hendrik/sources/odyssey/res/drawable-xxhdpi/ic_action_shuffle_dark_active.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <g
+         transform="matrix(1.25,0,0,-1.25,61.7634,189.8757)"
+         id="g7034"
+         style="fill:#ffffff;fill-opacity:0">
+        <path
+           inkscape:connector-curvature="0"
+           id="path7036"
+           style="fill:#ffffff;fill-opacity:0;fill-rule:nonzero;stroke:none"
+           d="m 0,0 c 1.567,-0.003 3.055,-0.359 4.547,-1.086 1.308,-0.644 2.609,-1.58 3.87,-2.785 0.117,0.127 0.232,0.256 0.348,0.386 0.498,0.571 1.028,1.129 1.579,1.662 C 9.081,-0.712 7.799,0.156 6.433,0.827 4.445,1.81 2.25,2.328 0.061,2.328 -0.151,2.328 -0.358,2.32 -0.562,2.31 l -0.408,-0.019 0,-2.334 0.451,0.027 C -0.346,-0.007 -0.174,0 0,0" />
+      </g>
+      <g
+         transform="matrix(1.25,0,0,-1.25,84.17677,191.62369)"
+         id="g7038"
+         style="fill:#ffffff;fill-opacity:0">
+        <path
+           inkscape:connector-curvature="0"
+           id="path7040"
+           style="fill:#ffffff;fill-opacity:0;fill-rule:nonzero;stroke:none"
+           d="m 0,0 c 0.408,0.199 0.814,0.369 1.221,0.513 l 0,-3.527 6.218,5.025 -6.218,5.025 0,-4 C 0.152,2.783 -0.894,2.408 -1.887,1.917 -4.094,0.829 -6.119,-0.79 -8.079,-3.033 c -1.707,-1.957 -3.491,-3.401 -5.306,-4.291 -1.491,-0.729 -2.979,-1.084 -4.546,-1.088 -0.173,0 -0.347,0.008 -0.519,0.018 l -0.45,0.027 0,-2.336 0.407,-0.019 c 0.204,-0.008 0.411,-0.018 0.623,-0.018 l 0.022,0 c 2.163,0 4.359,0.518 6.35,1.501 2.206,1.085 4.23,2.704 6.191,4.949 1.703,1.957 3.49,3.401 5.307,4.29" />
+      </g>
+      <g
+         transform="matrix(1.25,0,0,-1.25,85.70265,201.03044)"
+         id="g7042"
+         style="fill:#ffffff;fill-opacity:0">
+        <path
+           inkscape:connector-curvature="0"
+           id="path7044"
+           style="fill:#ffffff;fill-opacity:0;fill-rule:nonzero;stroke:none"
+           d="M 0,0 C -0.406,0.145 -0.813,0.312 -1.222,0.513 -2.418,1.101 -3.615,1.938 -4.782,3.008 -5.002,2.777 -5.223,2.54 -5.441,2.289 -5.835,1.838 -6.251,1.392 -6.683,0.961 c 1.158,-0.976 2.33,-1.751 3.576,-2.364 0.994,-0.491 2.04,-0.866 3.107,-1.118 l 0,-4 6.219,5.025 L 0,3.528 0,0 z" />
+      </g>
+    </g>
+  </g>
+</svg>
