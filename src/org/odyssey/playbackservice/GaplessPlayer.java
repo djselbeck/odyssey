@@ -153,7 +153,7 @@ public class GaplessPlayer {
             audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mCurrentMediaPlayer.getAudioSessionId());
             audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
             mPlaybackService.sendBroadcast(audioEffectIntent);
-            if ( mCurrentPrepared ) {
+            if (mCurrentPrepared) {
                 mCurrentMediaPlayer.reset();
                 mCurrentMediaPlayer.release();
             }
@@ -196,7 +196,7 @@ public class GaplessPlayer {
      */
     public void setNextTrack(String uri) throws PlaybackException {
         mSecondPrepared = false;
-        if ( mCurrentMediaPlayer == null ) {
+        if (mCurrentMediaPlayer == null) {
             // This call makes absolutely no sense at this point so abort
             throw new PlaybackException(REASON.StateError);
         }
@@ -205,6 +205,8 @@ public class GaplessPlayer {
             mCurrentMediaPlayer.setNextMediaPlayer(null);
             mNextMediaPlayer.reset();
             mNextMediaPlayer.release();
+            mNextMediaPlayer = null;
+            Log.v(TAG, "Clear next Player");
         }
         if (uri != null) {
             mNextMediaPlayer = new MediaPlayer();
