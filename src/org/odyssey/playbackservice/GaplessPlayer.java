@@ -193,6 +193,10 @@ public class GaplessPlayer {
      */
     public void setNextTrack(String uri) throws PlaybackException {
         mSecondPrepared = false;
+        if ( mCurrentMediaPlayer == null ) {
+            // This call makes absolutely no sense at this point so abort
+            throw new PlaybackException(REASON.StateError);
+        }
         // Next mediaplayer already set, reset
         if (mNextMediaPlayer != null) {
             mCurrentMediaPlayer.setNextMediaPlayer(null);

@@ -1296,18 +1296,21 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     private void setNextTrackForMP() {
-        // Sets the next track for gapless playing
-        if (mNextPlayingIndex >= 0 && mNextPlayingIndex < mCurrentList.size()) {
-            try {
-                mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
-            } catch (PlaybackException e) {
-                handlePlaybackException(e);
-            }
-        } else {
-            try {
-                mPlayer.setNextTrack(null);
-            } catch (PlaybackException e) {
-                handlePlaybackException(e);
+        // If player is not running or at least prepared, this makes no sense
+        if (mPlayer.isPrepared() || mPlayer.isRunning()) {
+            // Sets the next track for gapless playing
+            if (mNextPlayingIndex >= 0 && mNextPlayingIndex < mCurrentList.size()) {
+                try {
+                    mPlayer.setNextTrack(mCurrentList.get(mNextPlayingIndex).getTrackURL());
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
+                }
+            } else {
+                try {
+                    mPlayer.setNextTrack(null);
+                } catch (PlaybackException e) {
+                    handlePlaybackException(e);
+                }
             }
         }
     }
