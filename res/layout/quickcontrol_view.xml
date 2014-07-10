@@ -60,7 +60,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="?android:selectableItemBackground"
-            android:src="@drawable/ic_action_shuffle_white" />
+            android:src="@drawable/ic_action_shuffle_dark" />
 
         <ImageButton
             android:id="@+id/previousButton"
@@ -100,7 +100,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="?android:selectableItemBackground"
-            android:src="@drawable/ic_action_repeat_white" />
+            android:src="@drawable/ic_action_repeat_dark" />
     </LinearLayout>
 
 </LinearLayout>
