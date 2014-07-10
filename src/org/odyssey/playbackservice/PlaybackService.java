@@ -834,7 +834,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     private void setLockscreenPicture(TrackItem track, PLAYSTATE playbackState) {
         // Clear if track == null
         if (track != null && playbackState != PLAYSTATE.STOPPED) {
-
+            Log.v(TAG,"Setting lockscreen picture/remote controls");
             RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
 
             editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, null);
@@ -857,6 +857,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         } else {
             // Clear lockscreen
             mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+            Log.v(TAG,"Setting lockscreen picture/remote controls to stopped");
         }
     }
 

@@ -137,7 +137,7 @@ public class GaplessPlayer {
      * Stops mediaplayback
      */
     public void stop() {
-        if (mCurrentMediaPlayer != null && mCurrentPrepared) {
+        if (mCurrentMediaPlayer != null) {
             if (mNextMediaPlayer != null && mSecondPrepared) {
                 mCurrentMediaPlayer.setNextMediaPlayer(null);
                 mNextMediaPlayer.reset();
@@ -153,8 +153,10 @@ public class GaplessPlayer {
             audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mCurrentMediaPlayer.getAudioSessionId());
             audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
             mPlaybackService.sendBroadcast(audioEffectIntent);
-            mCurrentMediaPlayer.reset();
-            mCurrentMediaPlayer.release();
+            if ( mCurrentPrepared ) {
+                mCurrentMediaPlayer.reset();
+                mCurrentMediaPlayer.release();
+            }
             mCurrentMediaPlayer = null;
             mCurrentPrepared = false;
         }
