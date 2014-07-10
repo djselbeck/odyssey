@@ -68,6 +68,7 @@ public class GaplessPlayer {
         if (mCurrentMediaPlayer != null) {
             mCurrentMediaPlayer.reset();
             mCurrentMediaPlayer.release();
+            mCurrentMediaPlayer = null;
         }
         mCurrentMediaPlayer = new MediaPlayer();
         mCurrentPrepared = false;
@@ -137,7 +138,7 @@ public class GaplessPlayer {
      */
     public void stop() {
         if (mCurrentMediaPlayer != null && mCurrentPrepared) {
-            if (mNextMediaPlayer != null) {
+            if (mNextMediaPlayer != null && mSecondPrepared) {
                 mCurrentMediaPlayer.setNextMediaPlayer(null);
                 mNextMediaPlayer.reset();
                 mNextMediaPlayer.release();

@@ -798,7 +798,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0) {
             // Check current playback state. If playing inform all listeners and
             // check if notification is set, and set if not.
-            if (mPlayer.isRunning() && (mCurrentPlayingIndex >= 0)) {
+            if (mPlayer.isRunning() && (mCurrentPlayingIndex >= 0) && (mCurrentPlayingIndex < mCurrentList.size())) {
                 // Get the actual trackitem and distribute the information
                 TrackItem trackItem = mCurrentList.get(mCurrentPlayingIndex);
                 setLockscreenPicture(trackItem, PLAYSTATE.PLAYING);
@@ -1284,14 +1284,16 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     private void randomizeNextTrack() {
         // Set next index to random one
-        mNextPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+        if (mCurrentList.size() > 0) {
+            mNextPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
 
-        // if next index equal to current index create a new random
-        // index but just trying 20 times
-        int counter = 0;
-        while (mNextPlayingIndex == mCurrentPlayingIndex && counter > 20) {
-            mCurrentPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
-            counter++;
+            // if next index equal to current index create a new random
+            // index but just trying 20 times
+            int counter = 0;
+            while (mNextPlayingIndex == mCurrentPlayingIndex && counter > 20) {
+                mCurrentPlayingIndex = mRandomGenerator.nextInt(mCurrentList.size());
+                counter++;
+            }
         }
     }
 
