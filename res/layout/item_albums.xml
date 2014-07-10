@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
@@ -8,18 +8,28 @@
     <ImageView
         android:id="@+id/imageViewAlbum"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/album_cover_height"
-        android:layout_weight="1.0"
+        android:layout_height="@dimen/album_item_height"
     />
+    
+	<View
+		android:layout_width="fill_parent"
+		android:layout_height="20dp"
+		android:background="@color/gridviewitem_backgroundcolor" 
+		android:layout_gravity="bottom|center"
+	/>
 
     <TextView
         android:id="@+id/textViewAlbumItem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1.0"
         android:maxLines="1" 
         android:singleLine="true"
         android:ellipsize="marquee"
-        android:fadingEdgeLength="16sp"/>
+        android:fadingEdgeLength="16sp"
+        android:layout_gravity="bottom|center"
+        android:fontFamily="sans-serif-light"
+        android:textSize="7pt"
+        android:textColor="@android:color/primary_text_dark"
+/>
 
-</LinearLayout>
+</FrameLayout>
