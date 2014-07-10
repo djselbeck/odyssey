@@ -104,7 +104,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     private int mRepeat = 0;
 
     // Remote control
-    private RemoteController mRemoteControlClient = null;
+    private RemoteControlClient mRemoteControlClient = null;
     private String mLastCoverURL = "";
 
     // Timer for service stop after certain amount of time
@@ -153,7 +153,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         Log.v(TAG, "Service created");
 
         // Set listeners
-        mPlayer.setOnTrackStartListener(new PlaybackStartListener(this));
+        mPlayer.setOnTrackStartListener(new PlaybackStartListener());
         mPlayer.setOnTrackFinishedListener(new PlaybackFinishListener());
         // Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
@@ -180,7 +180,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (mNoisyReceiver == null) {
-            mNoisyReceiver = new NoisyReceiver();
+            mNoisyReceiver = new BroadcastControlReceiver();
 
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY);
@@ -205,7 +205,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         PendingIntent buttonPendingIntent = PendingIntent.getBroadcast(this, 0, buttonIntent, 0);
 
         // Create remotecontrol instance
-        mRemoteControlClient = new RemoteController(buttonPendingIntent);
+        mRemoteControlClient = new RemoteControlClient(buttonPendingIntent);
         audioManager.registerRemoteControlClient(mRemoteControlClient);
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -635,6 +635,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    public int getTrackDuration() {
+        if (mPlayer.isPrepared() || mPlayer.isRunning()) {
+            return mPlayer.getDuration();
+        } else {
+            return 0;
+        }
+    }
+
     public void enqueueTracks(ArrayList<TrackItem> tracklist) {
         // Check if current song is old last one, if so set next song to MP for
         // gapless playback
@@ -653,23 +661,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
          */
         if (mCurrentPlayingIndex == (oldSize - 1) && (mCurrentPlayingIndex >= 0)) {
             // Next song for MP has to be set for gapless mediaplayback
-            try {
-                mPlayer.setNextTrack(mCurrentList.get(mCurrentPlayingIndex + 1).getTrackURL());
-            } catch (PlaybackException e) {
-                handlePlaybackException(e);
-            }
+            mNextPlayingIndex = mCurrentPlayingIndex + 1;
+            setNextTrackForMP();
         }
-    }
-
-    public void dequeueTracks(ArrayList<String> tracklist) {
-        for (String track : tracklist) {
-            dequeueTrack(track);
-        }
-    }
-
-    public void dequeueTrack(String track) {
-        // Check if track is currently playing, if so stop it
-        mCurrentList.remove(track);
     }
 
     public void dequeueTrack(int index) {
@@ -686,11 +680,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Deletion of next song which requires extra handling
             // because of gapless playback, set next song to next on
             mCurrentList.remove(index);
-            try {
-                mPlayer.setNextTrack(mCurrentList.get(index).getTrackURL());
-            } catch (PlaybackException e) {
-                handlePlaybackException(e);
-            }
+            setNextTrackForMP();
         } else if (index >= 0 && index < mCurrentList.size()) {
             mCurrentList.remove(index);
             // mCurrentIndex is now moved one position up so set variable
@@ -715,6 +705,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mServiceCancelTimer = null;
         }
         mLastPosition = getTrackPosition();
+
+        // If it is still running stop playback.
         if (mPlayer.isRunning() || mPlayer.isPrepared()) {
             mPlayer.stop();
         }
@@ -736,9 +728,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             updateStatus();
         }
 
+        // Removes foreground notification (probably already done)
         stopForeground(true);
         mNotificationBuilder.setOngoing(false);
         mNotificationManager.cancel(NOTIFICATION_ID);
+
+        // Stops the service itself.
         stopSelf();
     }
 
@@ -750,6 +745,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         return mRepeat;
     }
 
+    /*
+     * Enables/disables repeat function. If enabling check if end of playlist is
+     * already reached and then set next track to track0.
+     * 
+     * If disabling check if last track plays.
+     */
     public void setRepeat(int repeat) {
         mRepeat = repeat;
         updateStatus(false, false, true);
@@ -767,21 +768,35 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * Enables/disables the random function. If enabling randomize next song and
+     * notify the gaplessPlayer about the new track. If deactivating set check
+     * if new track exists and set it to this.
+     */
     public void setRandom(int random) {
         mRandom = random;
         updateStatus(false, false, true);
         if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
             randomizeNextTrack();
         } else {
-            mNextPlayingIndex = mCurrentPlayingIndex + 1;
+            // This corrects the next track. A bit of a dirty solution but
+            // better than code duplication.
+            setRepeat(mRepeat);
         }
+        // Notify GaplessPlayer
         setNextTrackForMP();
     }
 
+    /*
+     * Returns the index of the currently playing/paused track
+     */
     public int getCurrentIndex() {
         return mCurrentPlayingIndex;
     }
 
+    /*
+     * Returns current track if any is playing/paused at the moment.
+     */
     public TrackItem getCurrentTrack() {
         if (mCurrentPlayingIndex >= 0 && mCurrentList.size() > mCurrentPlayingIndex) {
             return mCurrentList.get(mCurrentPlayingIndex);
@@ -831,12 +846,22 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     }
 
+    /* Removes the Foreground notification */
     private void clearNotification() {
         if (mNotification != null) {
             stopForeground(true);
         }
     }
 
+    /*
+     * Gets an MetadataEditor from android system. Sets all the attributes
+     * (playing/paused), title/artist/album and applys it. Also sets which
+     * buttons android should show.
+     * 
+     * Starts an thread for Cover generation.
+     * 
+     * TODO: Android >=4.4 remote control seek support.
+     */
     private void setLockscreenPicture(TrackItem track, PLAYSTATE playbackState) {
         // Clear if track == null
         if (track != null && playbackState != PLAYSTATE.STOPPED) {
@@ -867,6 +892,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * Creates a android system notification with two different remoteViews. One
+     * for the normal layout and one for the big one. Sets the different
+     * attributes of the remoteViews and starts a thread for Cover generation.
+     */
     private void setNotification(TrackItem track, PLAYSTATE playbackState) {
         Log.v(TAG, "SetNotification: " + track + " state: " + playbackState.toString());
         if (track != null && playbackState != PLAYSTATE.STOPPED) {
@@ -930,7 +960,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mNotificationBuilder.setContentIntent(resultPendingIntent);
 
-            Log.v(TAG, "Big content view : " + remoteViewBig);
             mNotification = mNotificationBuilder.build();
             mNotification.bigContentView = remoteViewBig;
             mNotification.contentView = remoteViewSmall;
@@ -942,6 +971,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * Sends an broadcast which contains different kind of information about the
+     * current state of the PlaybackService.
+     */
     private void broadcastPlaybackInformation(TrackItem track, PLAYSTATE state) {
         if (track != null) {
             // Create the broadcast intent
@@ -994,10 +1027,18 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * True if the GaplessPlayer is actually playing a song.
+     */
     public int isPlaying() {
         return mPlayer.isRunning() ? 1 : 0;
     }
 
+    /*
+     * Handles all the exceptions from the GaplessPlayer. For now it justs stops
+     * itself and outs an Toast message to the user. Thats the best we could
+     * think of now :P.
+     */
     private void handlePlaybackException(PlaybackException exception) {
         Log.v(TAG, "Exception occured: " + exception.getReason().toString());
         Toast.makeText(getBaseContext(), TAG + ":" + exception.getReason().toString(), Toast.LENGTH_LONG).show();
@@ -1119,25 +1160,37 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         @Override
         public String getArtist() throws RemoteException {
-            // TODO Auto-generated method stub
-            return null;
+            TrackItem track = mService.get().getCurrentTrack();
+            if (track != null) {
+                return track.getTrackArtist();
+            }
+            return "";
         }
 
         @Override
         public String getAlbum() throws RemoteException {
-            // TODO Auto-generated method stub
-            return null;
+            TrackItem track = mService.get().getCurrentTrack();
+            if (track != null) {
+                return track.getTrackAlbum();
+            }
+            return "";
         }
 
         @Override
         public String getTrackname() throws RemoteException {
-            // TODO Auto-generated method stub
-            return null;
+            TrackItem track = mService.get().getCurrentTrack();
+            if (track != null) {
+                return track.getTrackTitle();
+            }
+            return "";
         }
 
         @Override
         public int getTrackNo() throws RemoteException {
-            // TODO Auto-generated method stub
+            TrackItem track = mService.get().getCurrentTrack();
+            if (track != null) {
+                return track.getTrackNumber();
+            }
             return 0;
         }
 
@@ -1216,8 +1269,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         @Override
         public int getTrackDuration() throws RemoteException {
-            // TODO Auto-generated method stub
-            return 0;
+            return mService.get().getTrackDuration();
         }
 
         @Override
@@ -1289,6 +1341,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * Sets the index of the track to play next to a random generated one.
+     */
     private void randomizeNextTrack() {
         // Set next index to random one
         if (mCurrentList.size() > 0) {
@@ -1304,6 +1359,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * Sets the next track of the GaplessPlayer to the nextTrack in the queue so
+     * there can be a smooth transition from one track to the next one.
+     */
     private void setNextTrackForMP() {
         // If player is not running or at least prepared, this makes no sense
         if (mPlayer.isPrepared() || mPlayer.isRunning()) {
@@ -1316,6 +1375,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 }
             } else {
                 try {
+                    /*
+                     * No tracks remains. So set it to null. GaplessPlayer knows
+                     * who to handle this :)
+                     */
+
                     mPlayer.setNextTrack(null);
                 } catch (PlaybackException e) {
                     handlePlaybackException(e);
@@ -1324,13 +1388,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * Listener class for playback begin of the GaplessPlayer. Handles the
+     * different scenarios: If no random playback is active, check if new track
+     * is ready and set index and GaplessPlayer to it. If no track remains in
+     * queue check if repeat is activated and if reset queue to track 0. momIf
+     * not generate a random index and set GaplessPlayer to that random track.
+     */
     private class PlaybackStartListener implements GaplessPlayer.OnTrackStartedListener {
-        private PlaybackService mPlaybackService;
-
-        public PlaybackStartListener(PlaybackService service) {
-            mPlaybackService = service;
-        }
-
         @Override
         public void onTrackStarted(String URI) {
             mCurrentPlayingIndex = mNextPlayingIndex;
@@ -1350,6 +1415,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 newbCast.putExtra("duration", newTrackitem.getTrackDuration() / 1000);
                 sendBroadcast(newbCast);
             }
+            // Notify all the things
             updateStatus();
 
             if (mRandom == RANDOMSTATE.RANDOM_OFF.ordinal()) {
@@ -1383,11 +1449,18 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * Listener class for the GaplessPlayer. If a track finishes playback send
+     * it to the simple last.fm scrobbler. Check if this was the last track of
+     * the queue and if so send an update to all the things like
+     * notification,broadcastreceivers and lockscreen. Stop the service.
+     */
     private class PlaybackFinishListener implements GaplessPlayer.OnTrackFinishedListener {
 
         @Override
         public void onTrackFinished() {
             Log.v(TAG, "Playback of index: " + mCurrentPlayingIndex + " finished ");
+            // Remember the last track index for moving backwards in the queue.
             mLastPlayingIndex = mCurrentPlayingIndex;
             if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
                 // Broadcast simple.last.fm.scrobble broadcast
@@ -1412,6 +1485,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
+    /*
+     * Callback method for AudioFocus changes. If audio focus change a call got
+     * in or a notification for example. React to the different kinds of
+     * changes. Resumes on regaining.
+     */
     @Override
     public void onAudioFocusChange(int focusChange) {
         Log.v(TAG, "Audiofocus changed");
@@ -1453,9 +1531,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     }
 
-    private NoisyReceiver mNoisyReceiver = null;
+    private BroadcastControlReceiver mNoisyReceiver = null;
 
-    private class NoisyReceiver extends BroadcastReceiver {
+    /*
+     * Receiver class for all the different broadcasts which are able to control
+     * the PlaybackService. Also the receiver for the noisy event (e.x.
+     * headphone unplugging)
+     */
+    private class BroadcastControlReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -1481,6 +1564,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     };
 
+    /*
+     * Stops the service after a specific amount of time
+     */
     private class ServiceCancelTask extends TimerTask {
 
         @Override
@@ -1490,15 +1576,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
-    private class RemoteController extends RemoteControlClient {
-
-        public RemoteController(PendingIntent mediaButtonIntent) {
-            super(mediaButtonIntent);
-            // TODO Auto-generated constructor stub
-        }
-
-    }
-
+    /*
+     * Receives the generated album picture from a separate thread for the
+     * notification controls. Sets it and notifies the system that the
+     * notification has changed
+     */
     private class NotificationCoverListener implements MusicLibraryHelper.CoverBitmapListener {
 
         @Override
@@ -1506,29 +1588,43 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Log.v(TAG, "Received notification bm");
             // Check if notification exists and set picture
             if (mNotification != null && mNotification.bigContentView != null && bm != null) {
+                // Set the image in the remoteView
                 mNotification.bigContentView.setImageViewBitmap(R.id.notificationImage, bm.getBitmap());
+                // Notify android about the change
                 mNotificationManager.notify(NOTIFICATION_ID, mNotification);
             }
             if (mNotification != null && mNotification.contentView != null && bm != null) {
+                // Set the image in the remoteView
                 mNotification.contentView.setImageViewBitmap(R.id.notificationImage, bm.getBitmap());
+                // Notify android about the change
                 mNotificationManager.notify(NOTIFICATION_ID, mNotification);
             }
         }
 
     }
 
+    /*
+     * Receives the generated album picture from a separate thread for the
+     * lockscreen controls. Also sets the title/artist/album again otherwise
+     * android would sometimes set it to the track before
+     */
     private class LockscreenCoverListener implements MusicLibraryHelper.CoverBitmapListener {
 
         @Override
         public void receiveBitmap(BitmapDrawable bm) {
             if (bm != null) {
+                // Gets the system MetaData editor for lockscreen control
                 RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
                 TrackItem track = getCurrentTrack();
+
+                // Set all the different things
                 editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, track.getTrackAlbum());
                 editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, track.getTrackArtist());
                 editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST, track.getTrackArtist());
                 editor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, track.getTrackTitle());
                 editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, bm.getBitmap());
+
+                // Apply values here
                 editor.apply();
             }
         }

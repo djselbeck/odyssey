@@ -104,6 +104,12 @@ public class PlaylistFragment extends Fragment {
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        mServiceConnection = null;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         // Register receiver to get newest information

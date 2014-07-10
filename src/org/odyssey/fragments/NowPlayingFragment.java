@@ -200,6 +200,12 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        mServiceConnection = null;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if (mNowPlayingReceiver != null) {
@@ -244,6 +250,9 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
 
         String coverPath = null;
+        if (cursor == null) {
+            return;
+        }
         if (cursor.moveToFirst()) {
             coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
         }
