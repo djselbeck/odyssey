@@ -7,6 +7,7 @@ import org.odyssey.playbackservice.PlaybackServiceConnection;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources.NotFoundException;
 import android.graphics.drawable.Drawable;
 import android.os.RemoteException;
 import android.util.AttributeSet;
@@ -103,7 +104,7 @@ public class QuickControl extends LinearLayout {
                     int repeat = mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal() ? REPEATSTATE.REPEAT_OFF.ordinal() : REPEATSTATE.REPEAT_ALL.ordinal();
 
                     mServiceConnection.getPBS().setRepeat(repeat);
-                    if (mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) {
+                    if (repeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark_active));
                     } else {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
@@ -123,7 +124,7 @@ public class QuickControl extends LinearLayout {
                     int random = (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? RANDOMSTATE.RANDOM_OFF.ordinal() : RANDOMSTATE.RANDOM_ON.ordinal();
 
                     mServiceConnection.getPBS().setRandom(random);
-                    if (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) {
+                    if (random == RANDOMSTATE.RANDOM_ON.ordinal()) {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark_active));
                     } else {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
@@ -154,6 +155,25 @@ public class QuickControl extends LinearLayout {
 
     public void setArtistText(String text) {
         mArtistView.setText(text);
+    }
+
+    public void recheckStatus() {
+        // Rechecks repeat/random status on visibility change
+
+        try {
+            if (mServiceConnection.getPBS().getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) {
+                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark_active));
+            } else {
+                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
+            }
+            if (mServiceConnection.getPBS().getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) {
+                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark_active));
+            } else {
+                mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
+            }
+        } catch (RemoteException e) {
+        } catch (NotFoundException e) {
+        }
     }
 
 }

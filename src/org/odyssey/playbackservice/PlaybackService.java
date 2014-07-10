@@ -752,6 +752,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     public void setRepeat(int repeat) {
         mRepeat = repeat;
+        updateStatus(false, false, true);
         if (mRepeat == REPEATSTATE.REPEAT_ALL.ordinal()) {
             // If playing last track, next must be first in playlist
             if (mCurrentPlayingIndex == mCurrentList.size() - 1) {
@@ -768,6 +769,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     public void setRandom(int random) {
         mRandom = random;
+        updateStatus(false, false, true);
         if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
             randomizeNextTrack();
         } else {
@@ -792,6 +794,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      * current state of gaplessplayer, playbackservice and so on.
      */
     private synchronized void updateStatus() {
+        updateStatus(true, true, true);
+    }
+
+    private synchronized void updateStatus(boolean updateNotification, boolean updateLockScreen, boolean broadcastNewInfo) {
         Log.v(TAG, "updatestatus:" + mCurrentPlayingIndex);
         // Check if playlist contains any tracks otherwise playback should not
         // be possible
@@ -834,7 +840,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     private void setLockscreenPicture(TrackItem track, PLAYSTATE playbackState) {
         // Clear if track == null
         if (track != null && playbackState != PLAYSTATE.STOPPED) {
-            Log.v(TAG,"Setting lockscreen picture/remote controls");
+            Log.v(TAG, "Setting lockscreen picture/remote controls");
             RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
 
             editor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, null);
@@ -857,7 +863,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         } else {
             // Clear lockscreen
             mRemoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
-            Log.v(TAG,"Setting lockscreen picture/remote controls to stopped");
+            Log.v(TAG, "Setting lockscreen picture/remote controls to stopped");
         }
     }
 
