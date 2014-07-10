@@ -149,7 +149,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                     if (repeat == 0) {
                         mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
                     } else {
-                        mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                        mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark_active));
                     }
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
@@ -172,7 +172,7 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                     if (random == 0) {
                         mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                     } else {
-                        mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                        mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark_active));
                     }
                 } catch (RemoteException e) {
                     // TODO Auto-generated catch block
@@ -296,12 +296,12 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                             mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                         }
                         if (isRepeat) {
-                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark_active));
                         } else {
                             mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
                         }
                         if (isRandom) {
-                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark_active));
                         } else {
                             mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                         }
@@ -438,12 +438,12 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                                             mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                                         }
                                         if (isRepeat) {
-                                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_white));
+                                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark_active));
                                         } else {
                                             mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
                                         }
                                         if (isRandom) {
-                                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_white));
+                                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark_active));
                                         } else {
                                             mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
                                         }
