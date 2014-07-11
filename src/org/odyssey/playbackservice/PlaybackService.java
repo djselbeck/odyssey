@@ -779,9 +779,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
             randomizeNextTrack();
         } else {
-            // This corrects the next track. A bit of a dirty solution but
-            // better than code duplication.
-            setRepeat(mRepeat);
+            // Set nextTrack to next in list
+            if ((mCurrentPlayingIndex + 1 < mCurrentList.size()) && mCurrentPlayingIndex >= 0) {
+                mNextPlayingIndex = mCurrentPlayingIndex + 1;
+            }
         }
         // Notify GaplessPlayer
         setNextTrackForMP();
@@ -822,26 +823,38 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (mPlayer.isRunning() && (mCurrentPlayingIndex >= 0) && (mCurrentPlayingIndex < mCurrentList.size())) {
                 // Get the actual trackitem and distribute the information
                 TrackItem trackItem = mCurrentList.get(mCurrentPlayingIndex);
-                setLockscreenPicture(trackItem, PLAYSTATE.PLAYING);
-                setNotification(trackItem, PLAYSTATE.PLAYING);
-                broadcastPlaybackInformation(trackItem, PLAYSTATE.PLAYING);
+                if (updateLockScreen)
+                    setLockscreenPicture(trackItem, PLAYSTATE.PLAYING);
+                if (updateNotification)
+                    setNotification(trackItem, PLAYSTATE.PLAYING);
+                if (broadcastNewInfo)
+                    broadcastPlaybackInformation(trackItem, PLAYSTATE.PLAYING);
             } else if (mPlayer.isPaused() && (mCurrentPlayingIndex >= 0)) {
                 TrackItem trackItem = mCurrentList.get(mCurrentPlayingIndex);
-                setLockscreenPicture(trackItem, PLAYSTATE.PAUSE);
-                setNotification(trackItem, PLAYSTATE.PAUSE);
-                broadcastPlaybackInformation(trackItem, PLAYSTATE.PAUSE);
+                if (updateLockScreen)
+                    setLockscreenPicture(trackItem, PLAYSTATE.PAUSE);
+                if (updateNotification)
+                    setNotification(trackItem, PLAYSTATE.PAUSE);
+                if (broadcastNewInfo)
+                    broadcastPlaybackInformation(trackItem, PLAYSTATE.PAUSE);
             } else {
                 // Remove notification if shown
-                clearNotification();
-                setLockscreenPicture(null, PLAYSTATE.STOPPED);
-                broadcastPlaybackInformation(null, PLAYSTATE.STOPPED);
+                if (updateNotification)
+                    clearNotification();
+                if (updateLockScreen)
+                    setLockscreenPicture(null, PLAYSTATE.STOPPED);
+                if (broadcastNewInfo)
+                    broadcastPlaybackInformation(null, PLAYSTATE.STOPPED);
             }
         } else {
             // No playback, check if notification is set and remove it then
-            clearNotification();
-            setLockscreenPicture(null, PLAYSTATE.STOPPED);
+            if (updateNotification)
+                clearNotification();
+            if (updateLockScreen)
+                setLockscreenPicture(null, PLAYSTATE.STOPPED);
             // Notify all listeners with broadcast about playing situation
-            broadcastPlaybackInformation(null, PLAYSTATE.STOPPED);
+            if (broadcastNewInfo)
+                broadcastPlaybackInformation(null, PLAYSTATE.STOPPED);
         }
 
     }
