@@ -1,14 +1,14 @@
 package org.odyssey.fragments;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import org.odyssey.MainActivity;
+import org.odyssey.MusicLibraryHelper;
+import org.odyssey.MusicLibraryHelper.CoverBitmapGenerator;
 import org.odyssey.NowPlayingInformation;
 import org.odyssey.R;
-import org.odyssey.manager.AsyncLoader;
 import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.PlaybackService.RANDOMSTATE;
 import org.odyssey.playbackservice.PlaybackService.REPEATSTATE;
@@ -20,10 +20,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -54,6 +53,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     private final static String TAG = "OdysseyNowPlayingFragment";
     private NowPlayingReceiver mNowPlayingReceiver = null;
 
+    private MusicLibraryHelper.CoverBitmapGenerator mCoverGenerator = null;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -77,6 +78,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         mMaxDuration = (TextView) rootView.findViewById(R.id.nowPlayingMaxValue);
 
         mSeekBar = (SeekBar) rootView.findViewById(R.id.nowPlayingSeekBar);
+
+        mCoverGenerator = new CoverBitmapGenerator(getActivity(), new CoverReceiverClass());
 
         // set listener for seekbar
         mSeekBar.setOnSeekBarChangeListener(this);
@@ -235,41 +238,48 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         if (currentTrack == null) {
             currentTrack = new TrackItem();
         }
-        Log.v(TAG, "Current track: " + currentTrack);
         // set tracktitle, album, artist and albumcover
         mTitleTextView.setText(currentTrack.getTrackTitle());
 
         mAlbumTextView.setText(currentTrack.getTrackAlbum());
 
         mArtistTextView.setText(currentTrack.getTrackArtist());
+        mCoverGenerator.getImage(currentTrack);
 
-        String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
-
-        String whereVal[] = { currentTrack.getTrackAlbumKey() };
-
-        Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal, "");
-
-        String coverPath = null;
-        if (cursor == null) {
-            return;
-        }
-        if (cursor.moveToFirst()) {
-            coverPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-        }
-
-        cursor.close();
-
-        if (coverPath != null) {
-            // create and execute new asynctask
-            AsyncLoader.CoverViewHolder coverHolder = new AsyncLoader.CoverViewHolder();
-            coverHolder.coverViewReference = new WeakReference<ImageView>(mCoverImageView);
-            coverHolder.imagePath = coverPath;
-            coverHolder.task = new AsyncLoader();
-
-            coverHolder.task.execute(coverHolder);
-        } else {
-            mCoverImageView.setImageResource(R.drawable.coverplaceholder);
-        }
+        // String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY +
+        // "=?";
+        //
+        // String whereVal[] = { currentTrack.getTrackAlbumKey() };
+        //
+        // Cursor cursor =
+        // getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+        // new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal,
+        // "");
+        //
+        // String coverPath = null;
+        // if (cursor == null) {
+        // return;
+        // }
+        // if (cursor.moveToFirst()) {
+        // coverPath =
+        // cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+        // }
+        //
+        // cursor.close();
+        //
+        // if (coverPath != null) {
+        // // create and execute new asynctask
+        // AsyncLoader.CoverViewHolder coverHolder = new
+        // AsyncLoader.CoverViewHolder();
+        // coverHolder.coverViewReference = new
+        // WeakReference<ImageView>(mCoverImageView);
+        // coverHolder.imagePath = coverPath;
+        // coverHolder.task = new AsyncLoader();
+        //
+        // coverHolder.task.execute(coverHolder);
+        // } else {
+        // mCoverImageView.setImageResource(R.drawable.coverplaceholder);
+        // }
 
         // calculate duration in minutes and seconds
         String seconds = String.valueOf((currentTrack.getTrackDuration() % 60000) / 1000);
@@ -339,8 +349,10 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         String seconds = "";
         String minutes = "";
         try {
-            seconds = String.valueOf((mServiceConnection.getPBS().getTrackPosition() % 60000) / 1000);
-            minutes = String.valueOf(mServiceConnection.getPBS().getTrackPosition() / 60000);
+            if (mServiceConnection != null) {
+                seconds = String.valueOf((mServiceConnection.getPBS().getTrackPosition() % 60000) / 1000);
+                minutes = String.valueOf(mServiceConnection.getPBS().getTrackPosition() / 60000);
+            }
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -433,39 +445,54 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
                     final boolean isRepeat = (info.getRepeat() == REPEATSTATE.REPEAT_ALL.ordinal()) ? true : false;
                     final boolean isRandom = (info.getRandom() == RANDOMSTATE.RANDOM_ON.ordinal()) ? true : false;
 
-                    new Thread() {
-                        public void run() {
-                            Activity activity = (Activity) getActivity();
-                            if (activity != null) {
-                                activity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        // update imagebuttons
-                                        if (songPlaying) {
-                                            mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
-                                        } else {
-                                            mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
-                                        }
-                                        if (isRepeat) {
-                                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark_active));
-                                        } else {
-                                            mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
-                                        }
-                                        if (isRandom) {
-                                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark_active));
-                                        } else {
-                                            mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
-                                        }
-                                        // update views
-                                        updateStatus();
-                                    }
-                                });
+                    Activity activity = (Activity) getActivity();
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // update imagebuttons
+                                if (songPlaying) {
+                                    mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+                                } else {
+                                    mPlayPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+                                }
+                                if (isRepeat) {
+                                    mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark_active));
+                                } else {
+                                    mRepeatButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_repeat_dark));
+                                }
+                                if (isRandom) {
+                                    mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark_active));
+                                } else {
+                                    mRandomButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_shuffle_dark));
+                                }
+                                // update views
+                                updateStatus();
                             }
-                        }
-                    }.start();
+                        });
+                    }
+
                 }
             }
         }
+    }
 
+    private class CoverReceiverClass implements MusicLibraryHelper.CoverBitmapListener {
+
+        @Override
+        public void receiveBitmap(final BitmapDrawable bm) {
+            if (bm != null) {
+                Activity activity = getActivity();
+                if (activity != null) {
+                    activity.runOnUiThread(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            mCoverImageView.setImageDrawable(bm);
+                        }
+                    });
+                }
+            }
+        }
     }
 }

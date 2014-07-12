@@ -17,6 +17,9 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
     ViewPager mViewPager;
     AppSectionsPagerAdapter mAppSectionsPagerAdapter;
 
+    private ArtistsSectionFragment mArtistsFragment;
+    private AlbumsSectionFragment mAlbumsFragment;
+
     // Listener for communication via container activity
     public interface OnAboutSelectedListener {
         public void onAboutSelected();
@@ -56,11 +59,17 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        mAppSectionsPagerAdapter = new AppSectionsPagerAdapter(getChildFragmentManager(), getActivity());
+    }
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the primary sections of the app.
      */
-    public static class AppSectionsPagerAdapter extends FragmentPagerAdapter {
+    public class AppSectionsPagerAdapter extends FragmentPagerAdapter {
         Context mContext;
         static final int mNumberOfPages = 4;
 
@@ -73,9 +82,15 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
         public Fragment getItem(int i) {
             switch (i) {
             case 0:
-                return new ArtistsSectionFragment();
+                if (mArtistsFragment == null) {
+                    mArtistsFragment = new ArtistsSectionFragment();
+                    return mArtistsFragment;
+                }
             case 1:
-                return new AlbumsSectionFragment();
+                if (mAlbumsFragment == null) {
+                    mAlbumsFragment = new AlbumsSectionFragment();
+                    return mAlbumsFragment;
+                }
             case 2:
                 return new AllTracksFragment();
             case 3:

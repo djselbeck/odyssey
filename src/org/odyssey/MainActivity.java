@@ -174,6 +174,10 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
             unregisterReceiver(mNowPlayingReceiver);
             mNowPlayingReceiver = null;
         }
+
+        // TODO evaluate
+        // Cleanup fragments?
+        mServiceConnection = null;
     }
 
     @Override
@@ -263,23 +267,33 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
     private class NaviBarItemClickListener implements ListView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+            Log.v(TAG, "ITEM CLICKED");
             invalidateOptionsMenu();
             // TODO check clear backstack
-            getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
+            // getSupportFragmentManager().popBackStack(null,
+            // FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+            // CLear backstack
+            FragmentManager fm = getSupportFragmentManager();
+            for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
+                fm.popBackStack();
+            }
+            Log.v(TAG, "Popped Stack");
             android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            Log.v(TAG, "Transaction begun");
             transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
 
+            Log.v(TAG, "SWITCHING FRAGMENT");
             switch (position) {
 
             case 0:
                 mDrawerToggle.setDrawerIndicatorEnabled(true);
-                // FIXME always create a new fragment
-                ArtistsAlbumsTabsFragment mArtistsAlbumsTabsFragment = new ArtistsAlbumsTabsFragment();
+
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
-                transaction.replace(R.id.fragmentFrame, mArtistsAlbumsTabsFragment);
+                transaction.replace(R.id.fragmentFrame, new ArtistsAlbumsTabsFragment());
+                // transaction.addToBackStack("");
 
                 // Commit the transaction
                 transaction.commit();
@@ -288,11 +302,10 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
             case 1:
                 mDrawerToggle.setDrawerIndicatorEnabled(true);
 
-                PlaylistFragment mPlaylistFragment = new PlaylistFragment();
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
-                transaction.replace(R.id.fragmentFrame, mPlaylistFragment);
-                transaction.addToBackStack(null);
+                transaction.replace(R.id.fragmentFrame, new PlaylistFragment());
+                // transaction.addToBackStack("");
 
                 // Commit the transaction
                 transaction.commit();
@@ -303,11 +316,10 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
             case 2:
                 mDrawerToggle.setDrawerIndicatorEnabled(true);
 
-                NowPlayingFragment mNowPlayingFragment = new NowPlayingFragment();
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
-                transaction.replace(R.id.fragmentFrame, mNowPlayingFragment);
-                transaction.addToBackStack(null);
+                transaction.replace(R.id.fragmentFrame, new NowPlayingFragment());
+                // transaction.addToBackStack("");
 
                 // Commit the transaction
                 transaction.commit();
@@ -402,7 +414,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                     // this
                     // fragment,
                     transaction.replace(R.id.fragmentFrame, mNowPlayingFragment);
-                    transaction.addToBackStack(null);
+                    // transaction.addToBackStack(null);
 
                     // Commit the transaction
                     transaction.commit();

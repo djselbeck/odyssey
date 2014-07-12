@@ -115,6 +115,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
+        Log.v(TAG, "Creating");
         // indicate this fragment has its own menu
         setHasOptionsMenu(true);
 
@@ -147,7 +148,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         // register context menu
         registerForContextMenu(mRootGrid);
-
+        Log.v(TAG, "Created");
+        // Prepare loader ( start new one or reuse old)
+        getLoaderManager().initLoader(0, getArguments(), this);
         return rootView;
     }
 
@@ -185,12 +188,14 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     public void onStart() {
         super.onStart();
 
-        // Prepare loader ( start new one or reuse old)
-        getLoaderManager().initLoader(0, getArguments(), this);
+        Log.v(TAG, "Starting");
+
+        Log.v(TAG, "Started");
     }
 
     @Override
     public void onResume() {
+        Log.v(TAG, "Resuming");
         super.onResume();
         mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
         mServiceConnection.openConnection();
@@ -198,6 +203,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             mRootGrid.setSelection(mLastPosition);
             mLastPosition = -1;
         }
+        Log.v(TAG, "Resumed");
     }
 
     private class AlbumCursorAdapter extends CursorAdapter implements SectionIndexer {
@@ -231,7 +237,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-
             int coverIndex = 0;
             int labelIndex = 0;
 
@@ -311,7 +316,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public Cursor swapCursor(Cursor c) {
-
             this.mCursor = c;
 
             if (mCursor == null) {
@@ -323,23 +327,23 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             mSectionList = new ArrayList<String>();
             mSectionPositions = new ArrayList<Integer>();
 
-            this.mCursor.moveToPosition(0);
+            mCursor.moveToPosition(0);
 
-            int index = this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
+            int index = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
             char lastSection = 0;
 
             if (index > 0) {
-                lastSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).toUpperCase().charAt(0);
+                lastSection = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).toUpperCase().charAt(0);
             }
 
             mSectionList.add("" + lastSection);
             mSectionPositions.add(0);
 
-            for (int i = 1; i < this.mCursor.getCount(); i++) {
+            for (int i = 1; i < mCursor.getCount(); i++) {
 
-                this.mCursor.moveToPosition(i);
+                mCursor.moveToPosition(i);
 
-                char currentSection = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).toUpperCase().charAt(0);
+                char currentSection = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).toUpperCase().charAt(0);
 
                 if (lastSection != currentSection) {
                     mSectionList.add("" + currentSection);
@@ -349,8 +353,8 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
                 }
 
             }
-
-            return super.swapCursor(c);
+            Cursor retC = super.swapCursor(c);
+            return retC;
         }
 
         @Override
@@ -363,7 +367,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public int getSectionForPosition(int pos) {
-
             this.mCursor.moveToPosition(pos);
 
             String albumName = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
@@ -383,7 +386,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public Object[] getSections() {
-
             return mSectionList.toArray();
         }
 
@@ -392,10 +394,11 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     // New loader needed
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-
+        Log.v(TAG, "oncreateloader");
         if (bundle == null) {
 
             // all albums
+            Log.v(TAG, "oncreateloaderR");
 
             return new CursorLoader(getActivity(), MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionAlbums, "", null, MediaStore.Audio.Albums.ALBUM + " COLLATE NOCASE");
 
@@ -409,6 +412,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
             String[] whereVal = { mArtist };
 
+            Log.v(TAG, "oncreateloaderR");
             return new CursorLoader(getActivity(), MediaStore.Audio.Artists.Albums.getContentUri("external", mArtistID), MusicLibraryHelper.projectionAlbums, "", null, MediaStore.Audio.Albums.ALBUM + " COLLATE NOCASE");
         }
     }
@@ -585,4 +589,5 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         // Send the event to the host activity
         mArtistSelectedCallback.onArtistSelected(artistTitle, artistID);
     }
+
 }

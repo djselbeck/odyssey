@@ -27,6 +27,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.util.LruCache;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -152,6 +153,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public void onResume() {
+        Log.v(TAG, "Resuming");
         super.onResume();
         if (mLastPosition >= 0) {
             mRootGrid.setSelection(mLastPosition);
@@ -160,6 +162,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
         }
         mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
         mServiceConnection.openConnection();
+        Log.v(TAG, "Resumed");
     }
 
     private class ArtistsCursorAdapter extends CursorAdapter implements SectionIndexer {
