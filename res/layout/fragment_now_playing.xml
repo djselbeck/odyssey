@@ -62,7 +62,7 @@
             android:maxLines="1"
             android:text=""
             android:textColor="@android:color/primary_text_dark"
-            android:textSize="10pt" />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/nowPlayingAlbumView"
@@ -73,7 +73,7 @@
             android:maxLines="1"
             android:text=""
             android:textColor="@android:color/secondary_text_dark"
-            android:textSize="9pt" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/nowPlayingArtistView"
@@ -84,7 +84,7 @@
             android:maxLines="1"
             android:text=""
             android:textColor="@android:color/tertiary_text_dark"
-            android:textSize="9pt"  />
+            android:textSize="14sp"  />
     </LinearLayout>
 
     <View

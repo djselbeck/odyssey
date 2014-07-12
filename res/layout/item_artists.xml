@@ -1,35 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content" 
-    android:gravity="center_horizontal"
-    android:orientation="vertical">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/artists_item_height"
+    android:layout_height="@dimen/artists_item_height"
+>
 
     <ImageView
         android:id="@+id/imageViewArtists"
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="@dimen/artists_item_height"
-    />
-    
-	<View
-		android:layout_width="fill_parent"
-		android:layout_height="20dp"
-		android:background="@color/gridviewitem_backgroundcolor" 
-		android:layout_gravity="bottom|center"
-	/>    
+        android:layout_alignParentBottom="true"
+        android:scaleType="centerCrop" />
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/artists_item_height"
+        android:layout_alignParentBottom="true"
+        android:background="?android:selectableItemBackground" />
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true" >
 
-    <TextView
-        android:id="@+id/textViewArtistsItem"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:maxLines="1" 
-        android:singleLine="true"
-        android:ellipsize="marquee"
-        android:fadingEdgeLength="16sp"
-        android:layout_gravity="bottom|center"
-        android:fontFamily="sans-serif-light"
-        android:textSize="7pt"
-        android:textColor="@android:color/primary_text_dark"
-    />
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/gridgradient" />
 
-</FrameLayout>
+        <TextView
+            android:id="@+id/textViewArtistsItem"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="4dp"
+            android:ellipsize="marquee"
+            android:fadingEdgeLength="16sp"
+            android:fontFamily="sans-serif-light"
+            android:gravity="center_vertical|center_horizontal"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textColor="@android:color/primary_text_dark"
+            android:textSize="14sp" />
+    </RelativeLayout>
+
+
+
+</RelativeLayout>

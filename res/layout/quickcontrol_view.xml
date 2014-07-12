@@ -29,7 +29,7 @@
             android:maxLines="1"
             android:text=""
             android:textColor="@color/quickcontrol_textcolor"
-            android:textSize="7pt" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/artistView"
@@ -41,7 +41,7 @@
             android:maxLines="1"
             android:text=""
             android:textColor="@android:color/secondary_text_dark"
-            android:textSize="7pt" />
+            android:textSize="10sp" />
     </LinearLayout>
 
     <View

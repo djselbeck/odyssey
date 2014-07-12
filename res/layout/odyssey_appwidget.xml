@@ -71,7 +71,7 @@
 		    android:id="@+id/odysseyWidgetTextViewTrack"
 		    android:layout_width="match_parent"
 		    android:layout_height="wrap_content"
-		    android:textSize="9pt"
+		    android:textSize="16sp"
 		    android:fontFamily="sans-serif-light"
 		    android:textColor="@android:color/primary_text_dark"
 		    android:maxLines="1"
@@ -90,7 +90,7 @@
 		    android:layout_width="match_parent"
 		    android:layout_height="wrap_content"
 		    android:maxLines="1"
-		    android:textSize="7pt"
+		    android:textSize="12sp"
 		    android:textColor="@color/widget_artistcolor" />   
         
     </LinearLayout>

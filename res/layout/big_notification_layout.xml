@@ -39,7 +39,7 @@
                 android:fontFamily="sans-serif-light"
                 android:maxLines="1"
                 android:textColor="#ffffff"
-                android:textSize="9pt" />
+                android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/notificationArtist"
