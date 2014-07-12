@@ -146,13 +146,7 @@ public class GaplessPlayer {
                 mSecondPrepared = false;
             }
             Log.v(TAG, "Player stopped");
-            /*
-             * Signal android desire to close audio effect session
-             */
-            Intent audioEffectIntent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
-            audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mCurrentMediaPlayer.getAudioSessionId());
-            audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
-            mPlaybackService.sendBroadcast(audioEffectIntent);
+
             if (mCurrentPrepared) {
                 mCurrentMediaPlayer.reset();
                 mCurrentMediaPlayer.release();
@@ -270,6 +264,13 @@ public class GaplessPlayer {
             }
             mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
+            /*
+             * Signal audio effect desire to android
+             */
+            Intent audioEffectIntent = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+            audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mp.getAudioSessionId());
+            audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
+
             mp.start();
             // Notify connected listeners
             for (OnTrackStartedListener listener : mTrackStartListeners) {
@@ -303,11 +304,11 @@ public class GaplessPlayer {
             mp.setWakeMode(mPlaybackService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
             mSecondPrepared = true;
             /*
-             * Attach equalizer effect
+             * Signal audio effect desire to android
              */
-            // Equalizer eq = new Equalizer(0,
-            // mCurrentMediaPlayer.getAudioSessionId());
-            // mCurrentMediaPlayer.attachAuxEffect(eq.getId());
+            Intent audioEffectIntent = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+            audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mp.getAudioSessionId());
+            audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
             mCurrentMediaPlayer.setNextMediaPlayer(mp);
             Log.v(TAG, "Set Next MP");
         }
@@ -374,12 +375,20 @@ public class GaplessPlayer {
         public void onCompletion(MediaPlayer mp) {
             Log.v(TAG, "Track playback completed");
             // notify connected services
-            for (OnTrackFinishedListener listener : mTrackFinishedListeners) {
-                listener.onTrackFinished();
-            }
 
             // Cleanup old MP
             int audioSessionID = mp.getAudioSessionId();
+            /*
+             * Signal android desire to close audio effect session
+             */
+            Intent audioEffectIntent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
+            audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, audioSessionID);
+            audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
+            mCurrentMediaPlayer = null;
+
+            for (OnTrackFinishedListener listener : mTrackFinishedListeners) {
+                listener.onTrackFinished();
+            }
 
             // mCurrentMediaPlayer = null;
             // Set current MP to next MP
@@ -396,13 +405,7 @@ public class GaplessPlayer {
                     listener.onTrackStarted(mPrimarySource);
                 }
             } else {
-                /*
-                 * Signal android desire to close audio effect session
-                 */
-                Intent audioEffectIntent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
-                audioEffectIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, audioSessionID);
-                audioEffectIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, mPlaybackService.getPackageName());
-                mCurrentMediaPlayer = null;
+
             }
 
             Log.v(TAG, "Releasing old MP");
