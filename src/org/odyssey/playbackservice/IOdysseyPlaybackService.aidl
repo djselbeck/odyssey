@@ -26,6 +26,9 @@ interface IOdysseyPlaybackService {
 	// If currently playing return this song otherwise null
 	TrackItem getCurrentSong();
 	
+	// save current playlist in mediastore
+	void savePlaylist(String name);
+	
 	// return the current index
 	int getCurrentIndex();
 	

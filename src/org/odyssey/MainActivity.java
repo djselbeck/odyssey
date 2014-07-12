@@ -13,6 +13,8 @@ import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListene
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.NowPlayingFragment;
 import org.odyssey.fragments.PlaylistFragment;
+import org.odyssey.fragments.PlaylistNameDialogFragment.OnPlaylistNameListener;
+import org.odyssey.fragments.AllPlaylistsFragment.OnPlaylistSelectedListener;
 import org.odyssey.fragments.SettingsFragment;
 import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.PlaybackService.RANDOMSTATE;
@@ -40,8 +42,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener, OnSettingsSelectedListener, OnPlayAllSelectedListener {
+public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener, OnSettingsSelectedListener, OnPlayAllSelectedListener, OnPlaylistSelectedListener, OnPlaylistNameListener {
 
     private static final String TAG = "OdysseyMainActivity";
 
@@ -381,6 +384,23 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         }
     }
 
+    @Override
+    public void onPlaylistSelected(long playlistID) {
+        // TODO open PlaylistView
+        Toast.makeText(getApplicationContext(), "open playlistview", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPlaylistNameSpecified(String name) {
+        // Sending playlistname to playlistfragment
+
+        // identify playlistfragment
+        // FIXME make it save
+        PlaylistFragment playlistFragment = (PlaylistFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentFrame);
+
+        playlistFragment.savePlaylist(name);
+    }
+
     public QuickControl getQuickControl() {
         return mQuickControl;
     }
@@ -505,5 +525,4 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
             }
         }
     }
-
 }

@@ -79,7 +79,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
             case 2:
                 return new AllTracksFragment();
             case 3:
-                return new SavedPlaylistsFragment();
+                return new AllPlaylistsFragment();
             default:
                 return null;
             }

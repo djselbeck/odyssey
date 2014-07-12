@@ -379,7 +379,7 @@ public class GaplessPlayer {
             }
 
             // Cleanup old MP
-            int audioSessionID = mCurrentMediaPlayer.getAudioSessionId();
+            int audioSessionID = mp.getAudioSessionId();
 
             // mCurrentMediaPlayer = null;
             // Set current MP to next MP
