@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/nowplaying_equalizer_item"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/nowplaying_context_menu_equalizer"/>
+    <item
+        android:id="@+id/nowplaying_settings_item"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:enabled="false"
+        android:visible="false"
+        android:title="@string/action_settings"/>
+    <item
+        android:id="@+id/nowplaying_about_item"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:enabled="false"
+        android:visible="false"
+        android:title="@string/action_about"/>
+
+</menu>
