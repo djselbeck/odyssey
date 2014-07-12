@@ -33,6 +33,8 @@
      
      <string name="saved_playlist_context_menu_action_play">play playlist</string>
      <string name="saved_playlist_context_menu_action_delete">delete playlist</string>
+     
+     <string name="nowplaying_context_menu_equalizer">Equalizer</string>
     
     <string name="dummy_section_text">Dummy_Section</string>
     <string name="section_title_albums">Albums</string>

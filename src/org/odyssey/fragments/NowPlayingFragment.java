@@ -21,11 +21,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.audiofx.AudioEffect;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -80,6 +84,9 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         mSeekBar = (SeekBar) rootView.findViewById(R.id.nowPlayingSeekBar);
 
         mCoverGenerator = new CoverBitmapGenerator(getActivity(), new CoverReceiverClass());
+
+        // indicate this fragment has its own menu
+        setHasOptionsMenu(true);
 
         // set listener for seekbar
         mSeekBar.setOnSeekBarChangeListener(this);
@@ -200,6 +207,34 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
             mNowPlayingReceiver = null;
         }
         // mServiceConnection = null;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.now_playing_menu, menu);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+        case R.id.nowplaying_equalizer_item:
+            Log.v(TAG, "opening equalizer");
+            Intent startEqualizerIntent = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
+            startActivityForResult(startEqualizerIntent, 0);
+            return true;
+        case R.id.nowplaying_settings_item:
+            // FIXME
+            return true;
+        case R.id.nowplaying_about_item:
+            // FIXME
+            return true;
+        default:
+            return super.onContextItemSelected(item);
+        }
     }
 
     @Override

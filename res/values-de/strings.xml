@@ -11,44 +11,35 @@
     <string name="action_playalbum">Album abspielen</string>
     <string name="action_playall">Alle Lieder abspielen</string>
     <string name="action_shuffleplaylist">Wiedergabeliste mischen</string>
-    
     <string name="album_context_menu_action_enqueue">In Wiedergabeliste einreihen</string>
     <string name="album_context_menu_action_play">Album abspielen</string>
     <string name="album_context_menu_action_artist">Interpret anzeigen</string>
-    
     <string name="album_tracks_context_menu_action_enqueue">In Wiedergabeliste einreihen</string>
     <string name="album_tracks_context_menu_action_enqueueasnext">Lied als nächstes abspielen</string>
     <string name="album_tracks_context_menu_action_play">Album abspielen</string>
-    <string name="album_tracks_context_menu_action_artist">Interpret anzeigen</string> 
-    
+    <string name="album_tracks_context_menu_action_artist">Interpret anzeigen</string>
     <string name="all_tracks_context_menu_action_enqueue">In Wiedergabeliste einreihen</string>
     <string name="all_tracks_context_menu_action_enqueueasnext">Lied als nächstes abspielen</string>
-    <string name="all_tracks_context_menu_action_play">Lied abspielen</string>    
-       
+    <string name="all_tracks_context_menu_action_play">Lied abspielen</string>
     <string name="artist_context_menu_action_enqueue">In Wiedergabeliste einreihen</string>
     <string name="artist_context_menu_action_play">Alben abspielen</string>
-    
-     <string name="playlist_context_menu_action_remove">Lied entfernen</string>
-     <string name="playlist_context_menu_action_playnext">Lied als nächstes abspielen</string>
-     
-     <string name="saved_playlist_context_menu_action_play">Wiedergabeliste abspielen</string>
-     <string name="saved_playlist_context_menu_action_delete">Wiedergabeliste löschen</string>     
-    
+    <string name="playlist_context_menu_action_remove">Lied entfernen</string>
+    <string name="playlist_context_menu_action_playnext">Lied als nächstes abspielen</string>
+    <string name="saved_playlist_context_menu_action_play">Wiedergabeliste abspielen</string>
+    <string name="saved_playlist_context_menu_action_delete">Wiedergabeliste löschen</string>
+    <string name="nowplaying_context_menu_equalizer">Equalizer</string>
     <string name="dummy_section_text">Dummy_Section</string>
     <string name="section_title_albums">Alben</string>
     <string name="section_title_artists">Interpreten</string>
     <string name="section_title_alltracks">Lieder</string>
     <string name="drawer_open">Navigationsleiste öffnen</string>
     <string name="drawer_close">Navigationsleiste schließen</string>
-    
     <string name="dialog_playlist_name">Name der Wiedergabeliste</string>
     <string name="accept">OK</string>
-    <string name="cancel">Abbruch</string>    
-    
+    <string name="cancel">Abbruch</string>
     <string name="authors_title">Autoren: </string>
     <string name="authors">Hendrik Borghorst \nFrederik Lütkes</string>
     <string name="source_title">Quellcode: </string>
-    
     <string name="easterEgg1">Yeah. Sir, we can´t call it the Enterprise. \nWhy not?</string>
     <string name="easterEgg2">Weapons to maximum. \nSir? \nIt´s a joke Marks.</string>
 
