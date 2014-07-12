@@ -1366,7 +1366,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         @Override
         public void savePlaylist(String name) throws RemoteException {
-            mService.get().savePlaylist(name);
+            ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_SAVEPLAYLIST, name);
+            Message msg = mService.get().getHandler().obtainMessage();
+            msg.obj = obj;
+            mService.get().getHandler().sendMessage(msg);
         }
     }
 
