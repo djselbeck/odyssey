@@ -51,7 +51,7 @@ public class PlaybackServiceHandler extends Handler {
             } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_SEEKTO) {
                 mService.get().seekTo(msgObj.getIntParam());
             } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_JUMPTO) {
-                mService.get().jumpToIndex(msgObj.getIntParam(),true);
+                mService.get().jumpToIndex(msgObj.getIntParam(), true);
             } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUETRACK) {
 
             } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_DEQUEUEINDEX) {
@@ -72,6 +72,8 @@ public class PlaybackServiceHandler extends Handler {
                 mService.get().shufflePlaylist();
             } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAYALLTRACKS) {
                 mService.get().playAllTracks();
+            } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_SAVEPLAYLIST) {
+                mService.get().savePlaylist(msgObj.getStringParam());
             }
 
         }

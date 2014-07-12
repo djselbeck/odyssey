@@ -23,6 +23,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -31,6 +32,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.RemoteControlClient;
+import android.net.Uri;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
@@ -806,6 +808,15 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     /*
+     * Save the current playlist in mediastore
+     */
+    public void savePlaylist(String name) {
+        Thread savePlaylistThread = new Thread(new SavePlaylistRunner(name, getApplicationContext()));
+
+        savePlaylistThread.start();
+    }
+
+    /*
      * This method should be safe to call at any time. So it should check the
      * current state of gaplessplayer, playbackservice and so on.
      */
@@ -1352,6 +1363,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         public int getPlaying() throws RemoteException {
             return mService.get().isPlaying();
         }
+
+        @Override
+        public void savePlaylist(String name) throws RemoteException {
+            mService.get().savePlaylist(name);
+        }
     }
 
     /*
@@ -1644,4 +1660,63 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     }
 
+    /*
+     * Save playlist async
+     */
+    private class SavePlaylistRunner implements Runnable {
+
+        private String mPlaylistName;
+        private Context mContext;
+
+        public SavePlaylistRunner(String name, Context context) {
+            mPlaylistName = name;
+            mContext = context;
+        }
+
+        @Override
+        public void run() {
+
+            // remove playlist if exists
+            mContext.getContentResolver().delete(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, MediaStore.Audio.Playlists.NAME + "=?", new String[] { mPlaylistName });
+
+            // create new playlist and save row
+            ContentValues mInserts = new ContentValues();
+            mInserts.put(MediaStore.Audio.Playlists.NAME, mPlaylistName);
+            mInserts.put(MediaStore.Audio.Playlists.DATE_ADDED, System.currentTimeMillis());
+            mInserts.put(MediaStore.Audio.Playlists.DATE_MODIFIED, System.currentTimeMillis());
+
+            Uri currentRow = mContext.getContentResolver().insert(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, mInserts);
+
+            // insert current tracks
+
+            // TODO optimize
+            String[] projection = { MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA };
+            String where = MediaStore.Audio.Media.DATA + "=?";
+
+            TrackItem item = null;
+
+            for (int i = 0; i < mCurrentList.size(); i++) {
+
+                item = mCurrentList.get(i);
+
+                if (item != null) {
+                    String[] whereVal = { item.getTrackURL() };
+
+                    // get ID of current track
+                    Cursor c = mContext.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, where, whereVal, null);
+
+                    if (c.moveToFirst()) {
+                        // insert track into playlist
+                        String id = c.getString(c.getColumnIndex(MediaStore.Audio.Media._ID));
+
+                        mInserts.clear();
+                        mInserts.put(MediaStore.Audio.Playlists.Members.AUDIO_ID, id);
+                        mInserts.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, i);
+
+                        mContext.getContentResolver().insert(currentRow, mInserts);
+                    }
+                }
+            }
+        }
+    }
 }

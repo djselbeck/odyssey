@@ -12,11 +12,16 @@ import org.odyssey.playbackservice.TrackItem;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -34,6 +39,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class PlaylistFragment extends Fragment {
 
@@ -146,6 +152,9 @@ public class PlaylistFragment extends Fragment {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
+            return true;
+        case R.id.action_saveplaylist:
+            openPlaylistNameDialog();
             return true;
         case R.id.action_jumpcurrent:
             mListView.setSelection(mPlayingIndex);
@@ -385,4 +394,21 @@ public class PlaylistFragment extends Fragment {
 
     }
 
+    private void openPlaylistNameDialog() {
+
+        PlaylistNameDialogFragment dlg = new PlaylistNameDialogFragment();
+
+        dlg.show(getActivity().getSupportFragmentManager(), "PlaylistNameDialog");
+    }
+
+    public void savePlaylist(String playlistName) {
+
+        // call pbs and save current playlist to mediastore
+        try {
+            mServiceConnection.getPBS().savePlaylist(playlistName);
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }
