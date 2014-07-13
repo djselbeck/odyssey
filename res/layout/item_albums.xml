@@ -3,12 +3,28 @@
     android:layout_width="0dp"
     android:layout_height="0dp" >
 
-    <ImageView
-        android:id="@+id/imageViewAlbum"
+    <ViewSwitcher
+        android:id="@+id/albumgridSwitcher"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
-        android:scaleType="centerCrop" />
+        android:outAnimation="@animator/fadeout" 
+        android:inAnimation="@animator/fadein"
+        android:animateFirstView="true">
+
+        <ImageView
+            android:id="@+id/imageViewAlbumPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/coverplaceholder" />
+
+        <ImageView
+            android:id="@+id/imageViewAlbum"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+    </ViewSwitcher>
 
     <View
         android:layout_width="fill_parent"

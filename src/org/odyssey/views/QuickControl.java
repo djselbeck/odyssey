@@ -157,6 +157,14 @@ public class QuickControl extends LinearLayout {
         mArtistView.setText(text);
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        // View is now detached, and about to be destroyed
+        mServiceConnection.closeConnection();
+        mServiceConnection = null;
+    }
+
     public void recheckStatus() {
         // Rechecks repeat/random status on visibility change
 

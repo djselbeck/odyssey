@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.support.v4.util.LruCache;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 /*
  * Loaderclass for covers
@@ -24,6 +25,7 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Bi
         public String imagePath;
         // public String labelText;
         public WeakReference<ImageView> coverViewReference;
+        public WeakReference<ViewSwitcher> coverViewSwitcher;
         public TextView labelView;
         public AsyncLoader task;
         public WeakReference<LruCache<String, Bitmap>> cache;
@@ -99,6 +101,7 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Bi
                 cover.cache.get().put(cover.imagePath, result);
             }
             cover.coverViewReference.get().setImageBitmap(result);
+            cover.coverViewSwitcher.get().setDisplayedChild(1);
         }
 
         // always set label

@@ -1648,6 +1648,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 // Gets the system MetaData editor for lockscreen control
                 RemoteControlClient.MetadataEditor editor = mRemoteControlClient.editMetadata(false);
                 TrackItem track = getCurrentTrack();
+                if (track == null) {
+                    return;
+                }
 
                 // Set all the different things
                 editor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, track.getTrackAlbum());

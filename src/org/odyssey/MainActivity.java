@@ -6,6 +6,7 @@ import org.odyssey.fragments.AboutFragment;
 import org.odyssey.fragments.AlbumsSectionFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
+import org.odyssey.fragments.AllPlaylistsFragment.OnPlaylistSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
@@ -14,7 +15,6 @@ import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.NowPlayingFragment;
 import org.odyssey.fragments.PlaylistFragment;
 import org.odyssey.fragments.PlaylistNameDialogFragment.OnPlaylistNameListener;
-import org.odyssey.fragments.AllPlaylistsFragment.OnPlaylistSelectedListener;
 import org.odyssey.fragments.SettingsFragment;
 import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.PlaybackService.RANDOMSTATE;
@@ -180,6 +180,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
         // TODO evaluate
         // Cleanup fragments?
+        mServiceConnection.closeConnection();
         mServiceConnection = null;
     }
 

@@ -44,6 +44,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 public class ArtistsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
 
@@ -201,7 +202,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
             AsyncLoader.CoverViewHolder coverHolder = null;
 
-            if (convertView == null) {
+            if (true) {
 
                 convertView = mInflater.inflate(R.layout.item_artists, null);
                 convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
@@ -209,6 +210,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
                 // textview(artistlabel)
                 coverHolder = new AsyncLoader.CoverViewHolder();
                 coverHolder.coverViewReference = new WeakReference<ImageView>((ImageView) convertView.findViewById(R.id.imageViewArtists));
+                coverHolder.coverViewSwitcher = new WeakReference<ViewSwitcher>((ViewSwitcher) convertView.findViewById(R.id.albumgridSwitcher));
                 coverHolder.labelView = (TextView) convertView.findViewById(R.id.textViewArtistsItem);
 
                 convertView.setTag(coverHolder);
@@ -258,13 +260,10 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
                     } else {
                         // Cache hit
                         coverHolder.coverViewReference.get().setImageBitmap(cacheImage);
+                        coverHolder.coverViewSwitcher.get().setDisplayedChild(1);
                     }
-                } else {
-                    // Cover entry has no album art
-                    coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
                 }
             } else {
-                coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
                 coverHolder.imagePath = null;
             }
 

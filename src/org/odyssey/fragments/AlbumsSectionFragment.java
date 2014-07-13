@@ -46,6 +46,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 public class AlbumsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
 
@@ -243,7 +244,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
             AsyncLoader.CoverViewHolder coverHolder = null;
 
-            if (convertView == null) {
+            if (true) {
 
                 convertView = mInflater.inflate(R.layout.item_albums, null);
                 convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
@@ -252,6 +253,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
                 // textview(albumlabel)
                 coverHolder = new AsyncLoader.CoverViewHolder();
                 coverHolder.coverViewReference = new WeakReference<ImageView>((ImageView) convertView.findViewById(R.id.imageViewAlbum));
+                coverHolder.coverViewSwitcher = new WeakReference<ViewSwitcher>((ViewSwitcher) convertView.findViewById(R.id.albumgridSwitcher));
                 coverHolder.labelView = (TextView) convertView.findViewById(R.id.textViewAlbumItem);
 
                 convertView.setTag(coverHolder);
@@ -259,7 +261,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             } else {
                 // get coverholder from convertview and cancel asynctask
                 coverHolder = (CoverViewHolder) convertView.getTag();
-                coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
+                coverHolder.coverViewSwitcher.get().setDisplayedChild(0);
                 if (coverHolder.task != null)
                     coverHolder.task.cancel(true);
             }
@@ -302,13 +304,10 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
                     } else {
                         // Cache hit
                         coverHolder.coverViewReference.get().setImageBitmap(cacheImage);
+                        coverHolder.coverViewSwitcher.get().setDisplayedChild(1);
                     }
-                } else {
-                    // Cover entry has no album art
-                    coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
                 }
             } else {
-                coverHolder.coverViewReference.get().setImageResource(R.drawable.coverplaceholder);
                 coverHolder.imagePath = null;
             }
 

@@ -50,6 +50,10 @@ public class PlaybackServiceConnection implements ServiceConnection {
         mContext.bindService(serviceStartIntent, this, Context.BIND_AUTO_CREATE);
     }
 
+    public void closeConnection() {
+        mContext.unbindService(this);
+    }
+
     public synchronized IOdysseyPlaybackService getPBS() throws RemoteException {
         if (mPlaybackService != null) {
             return mPlaybackService;
