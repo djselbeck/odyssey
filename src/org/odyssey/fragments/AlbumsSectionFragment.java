@@ -38,6 +38,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
@@ -128,7 +129,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         mRootGrid = (GridView) rootView;
 
-        mRootGrid.setNumColumns(2);
+        // mRootGrid.setNumColumns(2);
 
         mRootGrid.setAdapter(mCursorAdapter);
 
@@ -245,6 +246,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             if (convertView == null) {
 
                 convertView = mInflater.inflate(R.layout.item_albums, null);
+                convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
 
                 // create new coverholder for imageview(cover) and
                 // textview(albumlabel)
@@ -253,7 +255,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
                 coverHolder.labelView = (TextView) convertView.findViewById(R.id.textViewAlbumItem);
 
                 convertView.setTag(coverHolder);
-
+                // TODO FIX ELSE
             } else {
                 // get coverholder from convertview and cancel asynctask
                 coverHolder = (CoverViewHolder) convertView.getTag();
@@ -262,10 +264,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
                     coverHolder.task.cancel(true);
             }
 
-            // set default cover
-
             // get imagepath and labeltext
             if (this.mCursor == null) {
+                convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
                 return convertView;
             }
 
@@ -282,7 +283,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
                 }
             } else {
                 // placeholder for empty labels
-                coverHolder.labelView.setText("");
+                coverHolder.labelView.setText("EMTPY");
             }
 
             // Check for valid column

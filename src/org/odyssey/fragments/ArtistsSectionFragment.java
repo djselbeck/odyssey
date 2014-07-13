@@ -36,6 +36,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
@@ -110,8 +111,6 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
         mCursorAdapter = new ArtistsCursorAdapter(getActivity(), null, 0);
 
         mRootGrid = (GridView) rootView;
-
-        mRootGrid.setNumColumns(2);
 
         mRootGrid.setAdapter(mCursorAdapter);
 
@@ -205,7 +204,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
             if (convertView == null) {
 
                 convertView = mInflater.inflate(R.layout.item_artists, null);
-
+                convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
                 // create new coverholder for imageview(cover) and
                 // textview(artistlabel)
                 coverHolder = new AsyncLoader.CoverViewHolder();
@@ -223,6 +222,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
             // get imagepath and labeltext
             if (this.mCursor == null) {
+                convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
                 return convertView;
             }
 

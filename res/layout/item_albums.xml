@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="@dimen/album_item_height"
-    android:layout_height="@dimen/album_item_height"
->
+    android:layout_width="0dp"
+    android:layout_height="0dp" >
 
     <ImageView
         android:id="@+id/imageViewAlbum"
-        android:layout_width="fill_parent"
-        android:layout_height="@dimen/album_item_height"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
         android:scaleType="centerCrop" />
+
     <View
         android:layout_width="fill_parent"
-        android:layout_height="@dimen/album_item_height"
+        android:layout_height="fill_parent"
         android:layout_alignParentBottom="true"
         android:background="?android:selectableItemBackground"
         android:clickable="false" />
+
     <RelativeLayout
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_alignParentBottom="true" >
 
@@ -29,12 +30,8 @@
 
         <TextView
             android:id="@+id/textViewAlbumItem"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_margin="4dp"
             android:ellipsize="marquee"
             android:fadingEdgeLength="16sp"
@@ -45,7 +42,5 @@
             android:textColor="@android:color/primary_text_dark"
             android:textSize="14sp" />
     </RelativeLayout>
-
-
 
 </RelativeLayout>

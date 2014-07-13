@@ -2,7 +2,15 @@
 <GridView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fastScrollEnabled="true"
+    android:columnWidth="@dimen/album_item_height"
+    android:stretchMode="columnWidth"
+    
+    android:verticalSpacing="4dp"
+    android:horizontalSpacing="4dp"
+    
     android:fastScrollAlwaysVisible="true"
-    android:scrollbarStyle="outsideInset">
+    android:fastScrollEnabled="true"
+    android:numColumns="auto_fit"
+    android:scrollbarStyle="outsideInset" >
+
 </GridView>
