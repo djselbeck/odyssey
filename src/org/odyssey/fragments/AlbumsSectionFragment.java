@@ -244,27 +244,26 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
             AsyncLoader.CoverViewHolder coverHolder = null;
 
-            if (true) {
-
-                convertView = mInflater.inflate(R.layout.item_albums, null);
-                convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
-
-                // create new coverholder for imageview(cover) and
-                // textview(albumlabel)
-                coverHolder = new AsyncLoader.CoverViewHolder();
-                coverHolder.coverViewReference = new WeakReference<ImageView>((ImageView) convertView.findViewById(R.id.imageViewAlbum));
-                coverHolder.coverViewSwitcher = new WeakReference<ViewSwitcher>((ViewSwitcher) convertView.findViewById(R.id.albumgridSwitcher));
-                coverHolder.labelView = (TextView) convertView.findViewById(R.id.textViewAlbumItem);
-
-                convertView.setTag(coverHolder);
-                // TODO FIX ELSE
-            } else {
+            if (convertView != null) {
                 // get coverholder from convertview and cancel asynctask
                 coverHolder = (CoverViewHolder) convertView.getTag();
-                coverHolder.coverViewSwitcher.get().setDisplayedChild(0);
-                if (coverHolder.task != null)
+                // coverHolder.coverViewSwitcher.get().setDisplayedChild(0);
+                if (coverHolder.task != null) {
                     coverHolder.task.cancel(true);
+                }
             }
+
+            convertView = mInflater.inflate(R.layout.item_albums, null);
+            convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
+
+            // create new coverholder for imageview(cover) and
+            // textview(albumlabel)
+            coverHolder = new AsyncLoader.CoverViewHolder();
+            coverHolder.coverViewReference = new WeakReference<ImageView>((ImageView) convertView.findViewById(R.id.imageViewAlbum));
+            coverHolder.coverViewSwitcher = new WeakReference<ViewSwitcher>((ViewSwitcher) convertView.findViewById(R.id.albumgridSwitcher));
+            coverHolder.labelView = (TextView) convertView.findViewById(R.id.textViewAlbumItem);
+
+            convertView.setTag(coverHolder);
 
             // get imagepath and labeltext
             if (this.mCursor == null) {
