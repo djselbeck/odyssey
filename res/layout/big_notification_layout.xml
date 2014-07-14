@@ -12,7 +12,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="0dp"
         android:layout_marginTop="0dp"
-        android:src="@drawable/coverplaceholder" />
+        android:src="@drawable/ic_big_notification" />
 
     <RelativeLayout
         android:layout_width="wrap_content"

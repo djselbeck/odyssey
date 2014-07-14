@@ -972,8 +972,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Cover
             // TODO SPEED UP
 
-            remoteViewBig.setImageViewResource(R.id.notificationImage, R.drawable.ic_stat_odys);
-            remoteViewSmall.setImageViewResource(R.id.notificationImage, R.drawable.ic_stat_odys);
+            remoteViewBig.setImageViewResource(R.id.notificationImage, R.drawable.ic_big_notification);
+            remoteViewSmall.setImageViewResource(R.id.notificationImage, R.drawable.ic_big_notification);
 
             mNotificationCoverGenerator.getImage(track);
 
