@@ -57,6 +57,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     private final static String TAG = "OdysseyNowPlayingFragment";
     private NowPlayingReceiver mNowPlayingReceiver = null;
 
+    private String mAlbum;
+
     private MusicLibraryHelper.CoverBitmapGenerator mCoverGenerator = null;
 
     @Override
@@ -84,6 +86,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         mSeekBar = (SeekBar) rootView.findViewById(R.id.nowPlayingSeekBar);
 
         mCoverGenerator = new CoverBitmapGenerator(getActivity(), new CoverReceiverClass());
+
+        mAlbum = "";
 
         // indicate this fragment has its own menu
         setHasOptionsMenu(true);
@@ -277,44 +281,12 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         mTitleTextView.setText(currentTrack.getTrackTitle());
 
         mAlbumTextView.setText(currentTrack.getTrackAlbum());
-
+        if (!currentTrack.getTrackAlbum().equals(mAlbum)) {
+            mCoverImageView.setImageResource(R.drawable.coverplaceholder);
+            mCoverGenerator.getImage(currentTrack);
+        }
+        mAlbum = currentTrack.getTrackAlbum();
         mArtistTextView.setText(currentTrack.getTrackArtist());
-        mCoverGenerator.getImage(currentTrack);
-
-        // String where = android.provider.MediaStore.Audio.Albums.ALBUM_KEY +
-        // "=?";
-        //
-        // String whereVal[] = { currentTrack.getTrackAlbumKey() };
-        //
-        // Cursor cursor =
-        // getActivity().getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-        // new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where, whereVal,
-        // "");
-        //
-        // String coverPath = null;
-        // if (cursor == null) {
-        // return;
-        // }
-        // if (cursor.moveToFirst()) {
-        // coverPath =
-        // cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-        // }
-        //
-        // cursor.close();
-        //
-        // if (coverPath != null) {
-        // // create and execute new asynctask
-        // AsyncLoader.CoverViewHolder coverHolder = new
-        // AsyncLoader.CoverViewHolder();
-        // coverHolder.coverViewReference = new
-        // WeakReference<ImageView>(mCoverImageView);
-        // coverHolder.imagePath = coverPath;
-        // coverHolder.task = new AsyncLoader();
-        //
-        // coverHolder.task.execute(coverHolder);
-        // } else {
-        // mCoverImageView.setImageResource(R.drawable.coverplaceholder);
-        // }
 
         // calculate duration in minutes and seconds
         String seconds = String.valueOf((currentTrack.getTrackDuration() % 60000) / 1000);

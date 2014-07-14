@@ -31,7 +31,6 @@ public class QuickControl extends LinearLayout {
 
     public QuickControl(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // TODO Auto-generated constructor stub
 
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.quickcontrol_view, this, true);

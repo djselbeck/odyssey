@@ -1,7 +1,7 @@
 package org.odyssey.fragments;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
@@ -10,10 +10,9 @@ import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
-import org.odyssey.manager.AsyncLoader;
-import org.odyssey.manager.AsyncLoader.CoverViewHolder;
 import org.odyssey.playbackservice.PlaybackServiceConnection;
 import org.odyssey.playbackservice.TrackItem;
+import org.odyssey.views.GridItem;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -39,14 +38,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
-import android.widget.ImageView;
 import android.widget.SectionIndexer;
-import android.widget.TextView;
-import android.widget.ViewSwitcher;
 
 public class AlbumsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
 
@@ -65,10 +63,14 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     public final static String ARG_ARTISTNAME = "artistname";
     public final static String ARG_ARTISTID = "artistid";
 
+    // Scroll speed in Rows per second for cover loading
+    private final static int MAX_SCROLLSPEED = 10;
+
     private static final String TAG = "AlbumsSectionFragment";
 
     private GridView mRootGrid;
     private int mLastPosition;
+    private int mScrollSpeed = 0;
 
     private PlaybackServiceConnection mServiceConnection;
 
@@ -117,7 +119,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
 
-        Log.v(TAG, "Creating");
         // indicate this fragment has its own menu
         setHasOptionsMenu(true);
 
@@ -129,8 +130,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         mCursorAdapter = new AlbumCursorAdapter(getActivity(), null, 0);
 
         mRootGrid = (GridView) rootView;
-
-        // mRootGrid.setNumColumns(2);
 
         mRootGrid.setAdapter(mCursorAdapter);
 
@@ -148,9 +147,56 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             mRootGrid.setFastScrollAlwaysVisible(false);
         }
 
+        mRootGrid.setOnScrollListener(new OnScrollListener() {
+            private long mLastTime = 0;
+            private int mLastFirstVisibleItem = 0;
+            private boolean mFloating = false;
+
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                    mScrollSpeed = 0;
+                    for (int i = 0; i < mRootGrid.getLastVisiblePosition() - mRootGrid.getFirstVisiblePosition(); i++) {
+                        GridItem gridItem = (GridItem) mRootGrid.getChildAt(i);
+                        gridItem.startCoverImageTask();
+                    }
+                    mFloating = false;
+                } else if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+                    mFloating = true;
+                } else {
+                    mFloating = false;
+                }
+            }
+
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                // Log.v(TAG, "Scroll from : " + firstVisibleItem +
+                // " with items: " + visibleItemCount + " and total items of: "
+                // + totalItemCount);
+                if (firstVisibleItem != mLastFirstVisibleItem) {
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime == mLastTime) {
+                        return;
+                    }
+                    long timeScrollPerRow = currentTime - mLastTime;
+                    mScrollSpeed = (int) (1000 / timeScrollPerRow);
+
+                    mLastFirstVisibleItem = firstVisibleItem;
+                    mLastTime = currentTime;
+                    // Log.v(TAG, "Scrolling with: " + mScrollSpeed +
+                    // " rows per second");
+
+                    if (mScrollSpeed < visibleItemCount) {
+                        for (int i = 0; i < visibleItemCount; i++) {
+                            GridItem gridItem = (GridItem) mRootGrid.getChildAt(i);
+                            gridItem.startCoverImageTask();
+                        }
+                    }
+                }
+
+            }
+        });
+
         // register context menu
         registerForContextMenu(mRootGrid);
-        Log.v(TAG, "Created");
         // Prepare loader ( start new one or reuse old)
         getLoaderManager().initLoader(0, getArguments(), this);
         return rootView;
@@ -215,6 +261,8 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         private LruCache<String, Bitmap> mCache;
         ArrayList<String> mSectionList;
         ArrayList<Integer> mSectionPositions;
+        HashMap<Character, Integer> mPositionSectionMap;
+        private Context mContext;
 
         public AlbumCursorAdapter(Context context, Cursor c, int flags) {
             super(context, c, flags);
@@ -223,6 +271,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             this.mCursor = c;
             this.mCache = new LruCache<String, Bitmap>(24);
             mSectionList = new ArrayList<String>();
+            mSectionPositions = new ArrayList<Integer>();
+            mPositionSectionMap = new HashMap<Character, Integer>();
+            mContext = context;
         }
 
         @Override
@@ -242,75 +293,31 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             int coverIndex = 0;
             int labelIndex = 0;
 
-            AsyncLoader.CoverViewHolder coverHolder = null;
-
-            if (true) {
-
-                convertView = mInflater.inflate(R.layout.item_albums, null);
-                convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
-
-                // create new coverholder for imageview(cover) and
-                // textview(albumlabel)
-                coverHolder = new AsyncLoader.CoverViewHolder();
-                coverHolder.coverViewReference = new WeakReference<ImageView>((ImageView) convertView.findViewById(R.id.imageViewAlbum));
-                coverHolder.coverViewSwitcher = new WeakReference<ViewSwitcher>((ViewSwitcher) convertView.findViewById(R.id.albumgridSwitcher));
-                coverHolder.labelView = (TextView) convertView.findViewById(R.id.textViewAlbumItem);
-
-                convertView.setTag(coverHolder);
-                // TODO FIX ELSE
-            } else {
-                // get coverholder from convertview and cancel asynctask
-                coverHolder = (CoverViewHolder) convertView.getTag();
-                coverHolder.coverViewSwitcher.get().setDisplayedChild(0);
-                if (coverHolder.task != null)
-                    coverHolder.task.cancel(true);
-            }
-
-            // get imagepath and labeltext
-            if (this.mCursor == null) {
-                convertView.setLayoutParams(new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
-                return convertView;
+            if (convertView != null) {
+                convertView = null;
             }
 
             this.mCursor.moveToPosition(position);
 
             coverIndex = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
             labelIndex = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
-
+            String label = "";
+            String imageURL = null;
             if (labelIndex >= 0) {
                 // coverHolder.labelText = mCursor.getString(labelIndex);
-                String labelText = mCursor.getString(labelIndex);
-                if (labelText != null) {
-                    coverHolder.labelView.setText(labelText);
-                }
-            } else {
-                // placeholder for empty labels
-                coverHolder.labelView.setText("EMTPY");
+                label = mCursor.getString(labelIndex);
+
             }
 
             // Check for valid column
             if (coverIndex >= 0) {
                 // Get column value (Image-URL)
-                coverHolder.imagePath = mCursor.getString(coverIndex);
-                if (coverHolder.imagePath != null) {
-                    // Check cache first
-                    Bitmap cacheImage = mCache.get(coverHolder.imagePath);
-                    if (cacheImage == null) {
-                        // Cache miss
-                        // create and execute new asynctask
-                        coverHolder.task = new AsyncLoader();
-                        coverHolder.cache = new WeakReference<LruCache<String, Bitmap>>(mCache);
-                        coverHolder.task.execute(coverHolder);
-                    } else {
-                        // Cache hit
-                        coverHolder.coverViewReference.get().setImageBitmap(cacheImage);
-                        coverHolder.coverViewSwitcher.get().setDisplayedChild(1);
-                    }
-                }
-            } else {
-                coverHolder.imagePath = null;
+                imageURL = mCursor.getString(coverIndex);
             }
-
+            convertView = new GridItem(mContext, label, imageURL, new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
+            if (mScrollSpeed == 0) {
+                ((GridItem) convertView).startCoverImageTask();
+            }
             return convertView;
         }
 
@@ -324,8 +331,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
             // create sectionlist for fastscrolling
 
-            mSectionList = new ArrayList<String>();
-            mSectionPositions = new ArrayList<Integer>();
+            mSectionList.clear();
+            mSectionPositions.clear();
+            mPositionSectionMap.clear();
 
             mCursor.moveToPosition(0);
 
@@ -338,6 +346,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
             mSectionList.add("" + lastSection);
             mSectionPositions.add(0);
+            mPositionSectionMap.put(lastSection, mSectionList.size() - 1);
 
             for (int i = 1; i < mCursor.getCount(); i++) {
 
@@ -350,6 +359,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
                     lastSection = currentSection;
                     mSectionPositions.add(i);
+                    mPositionSectionMap.put(currentSection, mSectionList.size() - 1);
                 }
 
             }
@@ -359,10 +369,13 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public int getPositionForSection(int sectionIndex) {
-            if (sectionIndex >= 0 && sectionIndex < mSectionPositions.size()) {
-                return mSectionPositions.get(sectionIndex);
-            }
-            return 0;
+            // if (sectionIndex >= 0 && sectionIndex < mSectionPositions.size())
+            // {
+            // return mSectionPositions.get(sectionIndex);
+            // }
+            // return 0;
+            // FIXME STRESS TEST STABILTIY
+            return mSectionPositions.get(sectionIndex);
         }
 
         @Override
@@ -373,14 +386,10 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
             char albumSection = albumName.toUpperCase().charAt(0);
 
-            for (int i = 0; i < mSectionList.size(); i++) {
-
-                if (albumSection == mSectionList.get(i).toUpperCase().charAt(0)) {
-                    return i;
-                }
-
+            if (mPositionSectionMap.containsKey(albumSection)) {
+                int sectionIndex = mPositionSectionMap.get(albumSection);
+                return sectionIndex;
             }
-
             return 0;
         }
 

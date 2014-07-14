@@ -17,6 +17,7 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Bi
 
     private CoverViewHolder cover;
     private static boolean mIsScaled;
+    private static final String TAG = "OdysseyAsyncLoader";
 
     /*
      * Wrapperclass for covers
@@ -29,13 +30,18 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Bi
         public TextView labelView;
         public AsyncLoader task;
         public WeakReference<LruCache<String, Bitmap>> cache;
+
     }
 
     @Override
     protected Bitmap doInBackground(CoverViewHolder... params) {
-
         cover = params[0];
-
+        // try {
+        // Thread.sleep(1000);
+        // } catch (InterruptedException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
         if (cover.imagePath != null) {
 
             return decodeSampledBitmapFromResource(params[0].imagePath, cover.coverViewReference.get().getWidth(), cover.coverViewReference.get().getHeight());
@@ -95,7 +101,7 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Bi
         super.onPostExecute(result);
 
         // set cover if exists
-        if (cover.coverViewReference != null && result != null) {
+        if (cover.coverViewReference.get() != null && result != null) {
             if (cover.cache != null && mIsScaled) {
                 // only use cache if image was scaled
                 cover.cache.get().put(cover.imagePath, result);
@@ -103,10 +109,5 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Bi
             cover.coverViewReference.get().setImageBitmap(result);
             cover.coverViewSwitcher.get().setDisplayedChild(1);
         }
-
-        // always set label
-        // cover.labelView.setText(cover.labelText);
-
     }
-
 }
