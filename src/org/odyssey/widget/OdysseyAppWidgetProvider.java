@@ -136,7 +136,7 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
                 // // views.setImageViewResource(R.id.odysseyWidgetImageView,
                 // // R.drawable.coverplaceholder);
                 // // }
-                views.setImageViewResource(R.id.odysseyWidgetImageView, R.drawable.coverplaceholder);
+                views.setImageViewResource(R.id.odysseyWidgetImageView, R.drawable.ic_big_notification);
                 mCoverGenerator = new CoverBitmapGenerator(context, new CoverReceiver(views));
                 mCoverGenerator.getImage(item);
             }
