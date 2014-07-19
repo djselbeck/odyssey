@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:columnWidth="@dimen/album_item_height"
     android:stretchMode="columnWidth"
-    android:scrollingCache="true"
+    android:scrollingCache="false"
     
     android:verticalSpacing="4dp"
     android:horizontalSpacing="4dp"

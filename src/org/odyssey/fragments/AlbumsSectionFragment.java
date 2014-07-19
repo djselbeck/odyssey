@@ -2,14 +2,17 @@ package org.odyssey.fragments;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.R;
+import org.odyssey.databasemodel.AlbumModel;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnSettingsSelectedListener;
 import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
+import org.odyssey.loader.AlbumLoader;
 import org.odyssey.playbackservice.PlaybackServiceConnection;
 import org.odyssey.playbackservice.TrackItem;
 import org.odyssey.views.GridItem;
@@ -24,10 +27,8 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.util.LruCache;
-import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -37,18 +38,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.SectionIndexer;
 
-public class AlbumsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnItemClickListener {
+public class AlbumsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<AlbumModel>>, OnItemClickListener {
 
-    AlbumCursorAdapter mCursorAdapter;
+    AlbumAdapter mCursorAdapter;
 
     // FIXME listener in new file?
     OnAlbumSelectedListener mAlbumSelectedCallback;
@@ -59,6 +60,8 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
     private String mArtist = "";
     private long mArtistID = -1;
+
+    private boolean mLoaderInit = false;
 
     public final static String ARG_ARTISTNAME = "artistname";
     public final static String ARG_ARTISTID = "artistid";
@@ -127,7 +130,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         View rootView = inflater.inflate(R.layout.fragment_albums, container, false);
 
-        mCursorAdapter = new AlbumCursorAdapter(getActivity(), null, 0);
+        mCursorAdapter = new AlbumAdapter(getActivity());
 
         mRootGrid = (GridView) rootView;
 
@@ -197,8 +200,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         // register context menu
         registerForContextMenu(mRootGrid);
-        // Prepare loader ( start new one or reuse old)
-        getLoaderManager().initLoader(0, getArguments(), this);
+        mLoaderInit = true;
+
+        Log.v(TAG, "view created");
         return rootView;
     }
 
@@ -233,138 +237,132 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-
-        Log.v(TAG, "Starting");
-
-        Log.v(TAG, "Started");
-    }
-
-    @Override
     public void onResume() {
         Log.v(TAG, "Resuming");
         super.onResume();
+
+        // Prepare loader ( start new one or reuse old)
+        getLoaderManager().initLoader(0, getArguments(), this);
+
         mServiceConnection = new PlaybackServiceConnection(getActivity().getApplicationContext());
         mServiceConnection.openConnection();
-        if (mLastPosition >= 0) {
-            mRootGrid.setSelection(mLastPosition);
-            mLastPosition = -1;
-        }
         Log.v(TAG, "Resumed");
+
     }
 
-    private class AlbumCursorAdapter extends CursorAdapter implements SectionIndexer {
+    @Override
+    public void onPause() {
+        super.onPause();
+
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // // Destroy loader for memory reasons
+        // if (mLoaderInit) {
+        // getLoaderManager().destroyLoader(0);
+        // mLoaderInit = false;
+        // }
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        // Destroy loader for memory reasons
+        if (mLoaderInit) {
+            getLoaderManager().destroyLoader(0);
+            mLoaderInit = false;
+        }
+    }
+
+    private class AlbumAdapter extends BaseAdapter implements SectionIndexer {
 
         private LayoutInflater mInflater;
-        private Cursor mCursor;
         private LruCache<String, Bitmap> mCache;
         ArrayList<String> mSectionList;
         ArrayList<Integer> mSectionPositions;
         HashMap<Character, Integer> mPositionSectionMap;
         private Context mContext;
 
-        public AlbumCursorAdapter(Context context, Cursor c, int flags) {
-            super(context, c, flags);
+        private List<AlbumModel> mModelData;
+
+        public AlbumAdapter(Context context) {
+            super();
 
             this.mInflater = LayoutInflater.from(context);
-            this.mCursor = c;
             this.mCache = new LruCache<String, Bitmap>(24);
             mSectionList = new ArrayList<String>();
             mSectionPositions = new ArrayList<Integer>();
             mPositionSectionMap = new HashMap<Character, Integer>();
             mContext = context;
-        }
-
-        @Override
-        public void bindView(View view, Context context, Cursor cursor) {
-            // placeholder
-        }
-
-        @Override
-        public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
-
-            // placeholder
-            return null;
+            mModelData = new ArrayList<AlbumModel>();
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            int coverIndex = 0;
-            int labelIndex = 0;
+            // Log.v(TAG,"Getting view: " + position);
+            AlbumModel album = mModelData.get(position);
+            String label = album.getAlbumName();
+            String imageURL = album.getAlbumArtURL();
+            // Log.v(TAG,"Got album: " + album);
 
             if (convertView != null) {
-                convertView = null;
+                // Log.v(TAG,"REUSE");
+                GridItem gridItem = (GridItem) convertView;
+                gridItem.setText(label);
+                gridItem.setImageURL(imageURL);
+            } else {
+                convertView = new GridItem(mContext, label, imageURL, new android.widget.AbsListView.LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
+                // Log.v(TAG,"Created view");
             }
 
-            this.mCursor.moveToPosition(position);
-
-            coverIndex = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
-            labelIndex = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
-            String label = "";
-            String imageURL = null;
-            if (labelIndex >= 0) {
-                // coverHolder.labelText = mCursor.getString(labelIndex);
-                label = mCursor.getString(labelIndex);
-
-            }
-
-            // Check for valid column
-            if (coverIndex >= 0) {
-                // Get column value (Image-URL)
-                imageURL = mCursor.getString(coverIndex);
-            }
-            convertView = new GridItem(mContext, label, imageURL, new LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
             if (mScrollSpeed == 0) {
                 ((GridItem) convertView).startCoverImageTask();
             }
             return convertView;
         }
 
-        @Override
-        public Cursor swapCursor(Cursor c) {
-            this.mCursor = c;
-
-            if (mCursor == null) {
-                return super.swapCursor(c);
+        public void swapModel(List<AlbumModel> albums) {
+            Log.v(TAG, "Swapping data model");
+            if (albums == null) {
+                mModelData.clear();
+            } else {
+                mModelData = albums;
             }
-
             // create sectionlist for fastscrolling
 
             mSectionList.clear();
             mSectionPositions.clear();
             mPositionSectionMap.clear();
+            if (mModelData.size() > 0) {
+                char lastSection = 0;
 
-            mCursor.moveToPosition(0);
+                AlbumModel currentAlbum = mModelData.get(0);
 
-            int index = mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
-            char lastSection = 0;
+                lastSection = currentAlbum.getAlbumName().toUpperCase().charAt(0);
 
-            if (index > 0) {
-                lastSection = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).toUpperCase().charAt(0);
-            }
+                mSectionList.add("" + lastSection);
+                mSectionPositions.add(0);
+                mPositionSectionMap.put(lastSection, mSectionList.size() - 1);
 
-            mSectionList.add("" + lastSection);
-            mSectionPositions.add(0);
-            mPositionSectionMap.put(lastSection, mSectionList.size() - 1);
+                for (int i = 1; i < getCount(); i++) {
 
-            for (int i = 1; i < mCursor.getCount(); i++) {
+                    currentAlbum = mModelData.get(i);
 
-                mCursor.moveToPosition(i);
+                    char currentSection = currentAlbum.getAlbumName().toUpperCase().charAt(0);
 
-                char currentSection = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)).toUpperCase().charAt(0);
+                    if (lastSection != currentSection) {
+                        mSectionList.add("" + currentSection);
 
-                if (lastSection != currentSection) {
-                    mSectionList.add("" + currentSection);
+                        lastSection = currentSection;
+                        mSectionPositions.add(i);
+                        mPositionSectionMap.put(currentSection, mSectionList.size() - 1);
+                    }
 
-                    lastSection = currentSection;
-                    mSectionPositions.add(i);
-                    mPositionSectionMap.put(currentSection, mSectionList.size() - 1);
                 }
-
             }
-            Cursor retC = super.swapCursor(c);
-            return retC;
+            notifyDataSetChanged();
         }
 
         @Override
@@ -380,9 +378,8 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public int getSectionForPosition(int pos) {
-            this.mCursor.moveToPosition(pos);
 
-            String albumName = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
+            String albumName = mModelData.get(pos).getAlbumName();
 
             char albumSection = albumName.toUpperCase().charAt(0);
 
@@ -398,42 +395,21 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             return mSectionList.toArray();
         }
 
-    }
-
-    // New loader needed
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-        Log.v(TAG, "oncreateloader");
-        if (bundle == null) {
-
-            // all albums
-            Log.v(TAG, "oncreateloaderR");
-
-            return new CursorLoader(getActivity(), MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionAlbums, "", null, MediaStore.Audio.Albums.ALBUM + " COLLATE NOCASE");
-
-        } else {
-
-            // only albums of artist mArtist
-
-            mArtist = bundle.getString(ARG_ARTISTNAME);
-            mArtistID = bundle.getLong(ARG_ARTISTID);
-            Log.v(TAG, "Getting albums for: " + mArtist + " with ID: " + mArtistID);
-
-            String[] whereVal = { mArtist };
-
-            Log.v(TAG, "oncreateloaderR");
-            return new CursorLoader(getActivity(), MediaStore.Audio.Artists.Albums.getContentUri("external", mArtistID), MusicLibraryHelper.projectionAlbums, "", null, MediaStore.Audio.Albums.ALBUM + " COLLATE NOCASE");
+        @Override
+        public int getCount() {
+            return mModelData.size();
         }
-    }
 
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        mCursorAdapter.swapCursor(cursor);
-    }
+        @Override
+        public Object getItem(int position) {
+            return mModelData.get(position);
+        }
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mCursorAdapter.swapCursor(null);
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
     }
 
     @Override
@@ -442,14 +418,13 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         mLastPosition = position;
 
         // identify current album
-        Cursor cursor = mCursorAdapter.getCursor();
 
-        cursor.moveToPosition(position);
+        AlbumModel clickedAlbum = (AlbumModel) mCursorAdapter.getItem(position);
 
-        String albumKey = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
-        String albumTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
-        String imagePath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-        String artistTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST));
+        String albumKey = clickedAlbum.getAlbumKey();
+        String albumTitle = clickedAlbum.getAlbumName();
+        String imagePath = clickedAlbum.getAlbumArtURL();
+        String artistTitle = clickedAlbum.getArtistName();
 
         // Send the event to the host activity
         mAlbumSelectedCallback.onAlbumSelected(albumKey, albumTitle, imagePath, artistTitle);
@@ -488,11 +463,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
     private void enqueueAlbum(int position) {
         // identify current album
-        Cursor albumCursor = mCursorAdapter.getCursor();
 
-        albumCursor.moveToPosition(position);
-
-        String albumKey = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
+        AlbumModel clickedAlbum = (AlbumModel) mCursorAdapter.getItem(position);
+        String albumKey = clickedAlbum.getAlbumKey();
         // get and enqueue albumtracks
 
         String whereVal[] = { albumKey };
@@ -576,11 +549,9 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
     private void showArtist(int position) {
         // identify current artist
-        Cursor cursor = mCursorAdapter.getCursor();
 
-        cursor.moveToPosition(position);
-
-        String artistTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST));
+        AlbumModel clickedAlbum = (AlbumModel) mCursorAdapter.getItem(position);
+        String artistTitle = clickedAlbum.getArtistName();
 
         // get artist id
         String whereVal[] = { artistTitle };
@@ -597,6 +568,42 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         // Send the event to the host activity
         mArtistSelectedCallback.onArtistSelected(artistTitle, artistID);
+    }
+
+    @Override
+    public Loader<List<AlbumModel>> onCreateLoader(int arg0, Bundle bundle) {
+        if (bundle == null) {
+
+            // all albums
+            Log.v(TAG, "oncreateloaderR");
+
+            return new AlbumLoader(getActivity(), -1);
+
+        } else {
+
+            // only albums of artist mArtist
+
+            mArtist = bundle.getString(ARG_ARTISTNAME);
+            mArtistID = bundle.getLong(ARG_ARTISTID);
+            return new AlbumLoader(getActivity(), mArtistID);
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<AlbumModel>> arg0, List<AlbumModel> model) {
+        Log.v(TAG, "Loader finished");
+        mCursorAdapter.swapModel(model);
+        // Reset old scroll position
+        if (mLastPosition >= 0) {
+            Log.v(TAG, "Found old scroll position and return to: " + mLastPosition);
+            mRootGrid.setSelection(mLastPosition);
+            mLastPosition = -1;
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<AlbumModel>> arg0) {
+        mCursorAdapter.swapModel(null);
     }
 
 }

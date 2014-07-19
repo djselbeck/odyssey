@@ -1,6 +1,7 @@
 package org.odyssey.fragments;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
@@ -145,6 +146,7 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
         private Cursor mCursor;
         ArrayList<String> mSectionList;
         ArrayList<Integer> mSectionPositions;
+        HashMap<Character, Integer> mPositionSectionMap;
 
         public AllTracksCursorAdapter(Context context, Cursor c, int flags) {
 
@@ -153,6 +155,8 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
             mInflater = LayoutInflater.from(context);
             mCursor = c;
             mSectionList = new ArrayList<String>();
+            mSectionPositions = new ArrayList<Integer>();
+            mPositionSectionMap = new HashMap<Character, Integer>();
         }
 
         @Override
@@ -171,13 +175,9 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
             String trackName = this.mCursor.getString(this.mCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
 
             char trackSection = trackName.toUpperCase().charAt(0);
-
-            for (int i = 0; i < mSectionList.size(); i++) {
-
-                if (trackSection == mSectionList.get(i).toUpperCase().charAt(0)) {
-                    return i;
-                }
-
+            if (mPositionSectionMap.containsKey(trackSection)) {
+                int sectionIndex = mPositionSectionMap.get(trackSection);
+                return sectionIndex;
             }
 
             return 0;
@@ -287,8 +287,9 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
             // create sectionlist for fastscrolling
 
-            mSectionList = new ArrayList<String>();
-            mSectionPositions = new ArrayList<Integer>();
+            mSectionList.clear();
+            mSectionPositions.clear();
+            mPositionSectionMap.clear();
 
             this.mCursor.moveToPosition(0);
 
@@ -301,6 +302,7 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
             mSectionList.add("" + lastSection);
             mSectionPositions.add(0);
+            mPositionSectionMap.put(lastSection, mSectionList.size() - 1);
 
             for (int i = 1; i < this.mCursor.getCount(); i++) {
 
@@ -313,6 +315,8 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
 
                     lastSection = currentSection;
                     mSectionPositions.add(i);
+                    mPositionSectionMap.put(currentSection, mSectionList.size() - 1);
+
                 }
 
             }
