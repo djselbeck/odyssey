@@ -130,7 +130,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
                     mScrollSpeed = 0;
-                    for (int i = 0; i < mRootGrid.getLastVisiblePosition() - mRootGrid.getFirstVisiblePosition(); i++) {
+                    for (int i = 0; i <= mRootGrid.getLastVisiblePosition() - mRootGrid.getFirstVisiblePosition(); i++) {
                         GridItem gridItem = (GridItem) mRootGrid.getChildAt(i);
                         gridItem.startCoverImageTask();
                     }

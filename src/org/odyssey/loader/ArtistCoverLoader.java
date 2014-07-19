@@ -33,7 +33,7 @@ public class ArtistCoverLoader extends AsyncTaskLoader<List<ArtistModel>> {
         Log.v(TAG, "load ArtistCovers");
 
         // get all album covers
-        Cursor cursorAlbumArt = mContext.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART, MediaStore.Audio.Albums.ARTIST }, "", null,
+        Cursor cursorAlbumArt = mContext.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, new String[] { MediaStore.Audio.Albums.ALBUM_ART, MediaStore.Audio.Albums.ARTIST, MediaStore.Audio.Albums.ALBUM }, "", null,
                 MediaStore.Audio.Albums.ARTIST + " COLLATE NOCASE");
 
         // get all artists
@@ -59,13 +59,15 @@ public class ArtistCoverLoader extends AsyncTaskLoader<List<ArtistModel>> {
         if (cursorArtists.moveToFirst()) {
             do {
                 artist = cursorArtists.getString(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST));
+                Log.v(TAG, "Checking artist: " + artist);
 
                 if (cursorAlbumArt.moveToPosition(pos)) {
                     foundCover = false;
                     do {
                         String albumArtist = cursorAlbumArt.getString(cursorAlbumArt.getColumnIndex(MediaStore.Audio.Albums.ARTIST));
-
-                        if (artist.equals(albumArtist)) {
+                        cover = cursorAlbumArt.getString(cursorAlbumArt.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+                        if (artist.equals(albumArtist) && cover != null && !cover.equals("")) {
+                            Log.v(TAG, "Found art album artist: " + albumArtist + " and album: " + cursorAlbumArt.getString(cursorAlbumArt.getColumnIndex(MediaStore.Audio.Albums.ALBUM)));
                             foundCover = true;
                             // artist and album cover match
                             artist = cursorArtists.getString(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST));
@@ -73,7 +75,6 @@ public class ArtistCoverLoader extends AsyncTaskLoader<List<ArtistModel>> {
                             numberOfTracks = cursorArtists.getInt(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_TRACKS));
                             artistID = cursorArtists.getLong(cursorArtists.getColumnIndex(MediaStore.Audio.Artists._ID));
                             numberOfAlbums = cursorArtists.getInt(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS));
-                            cover = cursorAlbumArt.getString(cursorAlbumArt.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
                             artists.add(new ArtistModel(artist, cover, artistKey, artistID, numberOfAlbums, numberOfTracks));
                             pos = cursorAlbumArt.getPosition();
                             break;
