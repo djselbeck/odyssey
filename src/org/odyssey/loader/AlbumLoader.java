@@ -10,7 +10,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.support.v4.content.AsyncTaskLoader;
-import android.util.Log;
 
 public class AlbumLoader extends AsyncTaskLoader<List<AlbumModel>> {
 
@@ -22,14 +21,20 @@ public class AlbumLoader extends AsyncTaskLoader<List<AlbumModel>> {
         super(context);
         mContext = context;
         mArtistID = artist;
-        Log.v(TAG, "Created new album loader");
+
+        // Starts the loading of backgroundData
         forceLoad();
     }
 
+    /*
+     * Creates an list of all albums on this device and caches them inside the
+     * memory(non-Javadoc)
+     * 
+     * @see android.support.v4.content.AsyncTaskLoader#loadInBackground()
+     */
     @Override
     public List<AlbumModel> loadInBackground() {
         // Create cursor for content retrieval
-        Log.v(TAG, "Start creating album model");
         Cursor albumCursor;
         if (mArtistID == -1) {
             albumCursor = mContext.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionAlbums, "", null, MediaStore.Audio.Albums.ALBUM + " COLLATE NOCASE");

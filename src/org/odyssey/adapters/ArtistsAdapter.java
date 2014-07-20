@@ -61,6 +61,15 @@ public class ArtistsAdapter extends BaseAdapter implements SectionIndexer {
         return convertView;
     }
 
+    /**
+     * Swaps the model of this adapter. This sets the dataset on which the
+     * adapter creates the GridItems. This should generally be safe to call.
+     * Clears old section data and model data and recreates sectionScrolling
+     * data.
+     * 
+     * @param albums
+     *            Actual model data
+     */
     public void swapModel(List<ArtistModel> artists) {
         Log.v(TAG, "Swapping data model");
         if (artists == null) {

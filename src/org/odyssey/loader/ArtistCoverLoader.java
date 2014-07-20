@@ -24,6 +24,7 @@ public class ArtistCoverLoader extends AsyncTaskLoader<List<ArtistModel>> {
         super(context);
         this.mContext = context;
 
+        // Starts loading of the backgroundData
         forceLoad();
     }
 

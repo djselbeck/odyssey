@@ -61,6 +61,15 @@ public class AlbumAdapter extends BaseAdapter implements SectionIndexer {
         return convertView;
     }
 
+    /**
+     * Swaps the model of this adapter. This sets the dataset on which the
+     * adapter creates the GridItems. This should generally be safe to call.
+     * Clears old section data and model data and recreates sectionScrolling
+     * data.
+     * 
+     * @param albums
+     *            Actual model data
+     */
     public void swapModel(List<AlbumModel> albums) {
         Log.v(TAG, "Swapping data model");
         if (albums == null) {
@@ -142,6 +151,11 @@ public class AlbumAdapter extends BaseAdapter implements SectionIndexer {
         return position;
     }
 
+    /**
+     * Sets the scrollspeed of the parent GridView. For smoother scrolling
+     * 
+     * @param speed
+     */
     public void setScrollSpeed(int speed) {
         mScrollSpeed = speed;
     }

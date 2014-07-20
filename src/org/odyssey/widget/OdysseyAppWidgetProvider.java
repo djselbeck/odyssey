@@ -107,35 +107,7 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
 
                 views.setTextViewText(R.id.odysseyWidgetTextViewTrack, item.getTrackTitle());
                 views.setTextViewText(R.id.odysseyWidgetTextViewArtist, item.getTrackArtist());
-                //
-                // // String where =
-                // // android.provider.MediaStore.Audio.Albums.ALBUM_KEY + "=?";
-                // //
-                // // String whereVal[] = { item.getTrackAlbumKey() };
-                // //
-                // // Cursor cursor =
-                // //
-                // context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                // // new String[] { MediaStore.Audio.Albums.ALBUM_ART }, where,
-                // // whereVal, "");
-                // //
-                // // String coverPath = null;
-                // // if (cursor.moveToFirst()) {
-                // // coverPath =
-                // //
-                // cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-                // // }
-                // //
-                // // if (coverPath != null) {
-                // // BitmapDrawable cover = (BitmapDrawable)
-                // // BitmapDrawable.createFromPath(coverPath);
-                // //
-                // // views.setImageViewBitmap(R.id.odysseyWidgetImageView,
-                // // cover.getBitmap());
-                // // } else {
-                // // views.setImageViewResource(R.id.odysseyWidgetImageView,
-                // // R.drawable.coverplaceholder);
-                // // }
+
                 views.setImageViewResource(R.id.odysseyWidgetImageView, R.drawable.ic_big_notification);
                 mCoverGenerator = new CoverBitmapGenerator(context, new CoverReceiver(views));
                 mCoverGenerator.getImage(item);
