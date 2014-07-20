@@ -1,12 +1,11 @@
 package org.odyssey.fragments;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.R;
+import org.odyssey.adapters.AlbumAdapter;
 import org.odyssey.databasemodel.AlbumModel;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
@@ -19,16 +18,13 @@ import org.odyssey.views.GridItem;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -43,9 +39,7 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.SectionIndexer;
 
 public class AlbumsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<AlbumModel>>, OnItemClickListener {
 
@@ -130,9 +124,8 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         View rootView = inflater.inflate(R.layout.fragment_albums, container, false);
 
-        mCursorAdapter = new AlbumAdapter(getActivity());
-
         mRootGrid = (GridView) rootView;
+        mCursorAdapter = new AlbumAdapter(getActivity(), mRootGrid);
 
         mRootGrid.setAdapter(mCursorAdapter);
 
@@ -158,6 +151,7 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
                     mScrollSpeed = 0;
+                    mCursorAdapter.setScrollSpeed(0);
                     for (int i = 0; i <= mRootGrid.getLastVisiblePosition() - mRootGrid.getFirstVisiblePosition(); i++) {
                         GridItem gridItem = (GridItem) mRootGrid.getChildAt(i);
                         gridItem.startCoverImageTask();
@@ -171,9 +165,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             }
 
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                // Log.v(TAG, "Scroll from : " + firstVisibleItem +
-                // " with items: " + visibleItemCount + " and total items of: "
-                // + totalItemCount);
                 if (firstVisibleItem != mLastFirstVisibleItem) {
                     long currentTime = System.currentTimeMillis();
                     if (currentTime == mLastTime) {
@@ -181,11 +172,11 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
                     }
                     long timeScrollPerRow = currentTime - mLastTime;
                     mScrollSpeed = (int) (1000 / timeScrollPerRow);
+                    mCursorAdapter.setScrollSpeed(mScrollSpeed);
 
                     mLastFirstVisibleItem = firstVisibleItem;
                     mLastTime = currentTime;
-                    // Log.v(TAG, "Scrolling with: " + mScrollSpeed +
-                    // " rows per second");
+                    ;
 
                     if (mScrollSpeed < visibleItemCount) {
                         for (int i = 0; i < visibleItemCount; i++) {
@@ -274,142 +265,6 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
             getLoaderManager().destroyLoader(0);
             mLoaderInit = false;
         }
-    }
-
-    private class AlbumAdapter extends BaseAdapter implements SectionIndexer {
-
-        private LayoutInflater mInflater;
-        private LruCache<String, Bitmap> mCache;
-        ArrayList<String> mSectionList;
-        ArrayList<Integer> mSectionPositions;
-        HashMap<Character, Integer> mPositionSectionMap;
-        private Context mContext;
-
-        private List<AlbumModel> mModelData;
-
-        public AlbumAdapter(Context context) {
-            super();
-
-            this.mInflater = LayoutInflater.from(context);
-            this.mCache = new LruCache<String, Bitmap>(24);
-            mSectionList = new ArrayList<String>();
-            mSectionPositions = new ArrayList<Integer>();
-            mPositionSectionMap = new HashMap<Character, Integer>();
-            mContext = context;
-            mModelData = new ArrayList<AlbumModel>();
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            // Log.v(TAG,"Getting view: " + position);
-            AlbumModel album = mModelData.get(position);
-            String label = album.getAlbumName();
-            String imageURL = album.getAlbumArtURL();
-            // Log.v(TAG,"Got album: " + album);
-
-            if (convertView != null) {
-                // Log.v(TAG,"REUSE");
-                GridItem gridItem = (GridItem) convertView;
-                gridItem.setText(label);
-                gridItem.setImageURL(imageURL);
-            } else {
-                convertView = new GridItem(mContext, label, imageURL, new android.widget.AbsListView.LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
-                // Log.v(TAG,"Created view");
-            }
-
-            if (mScrollSpeed == 0) {
-                ((GridItem) convertView).startCoverImageTask();
-            }
-            return convertView;
-        }
-
-        public void swapModel(List<AlbumModel> albums) {
-            Log.v(TAG, "Swapping data model");
-            if (albums == null) {
-                mModelData.clear();
-            } else {
-                mModelData = albums;
-            }
-            // create sectionlist for fastscrolling
-
-            mSectionList.clear();
-            mSectionPositions.clear();
-            mPositionSectionMap.clear();
-            if (mModelData.size() > 0) {
-                char lastSection = 0;
-
-                AlbumModel currentAlbum = mModelData.get(0);
-
-                lastSection = currentAlbum.getAlbumName().toUpperCase().charAt(0);
-
-                mSectionList.add("" + lastSection);
-                mSectionPositions.add(0);
-                mPositionSectionMap.put(lastSection, mSectionList.size() - 1);
-
-                for (int i = 1; i < getCount(); i++) {
-
-                    currentAlbum = mModelData.get(i);
-
-                    char currentSection = currentAlbum.getAlbumName().toUpperCase().charAt(0);
-
-                    if (lastSection != currentSection) {
-                        mSectionList.add("" + currentSection);
-
-                        lastSection = currentSection;
-                        mSectionPositions.add(i);
-                        mPositionSectionMap.put(currentSection, mSectionList.size() - 1);
-                    }
-
-                }
-            }
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public int getPositionForSection(int sectionIndex) {
-            // if (sectionIndex >= 0 && sectionIndex < mSectionPositions.size())
-            // {
-            // return mSectionPositions.get(sectionIndex);
-            // }
-            // return 0;
-            // FIXME STRESS TEST STABILTIY
-            return mSectionPositions.get(sectionIndex);
-        }
-
-        @Override
-        public int getSectionForPosition(int pos) {
-
-            String albumName = mModelData.get(pos).getAlbumName();
-
-            char albumSection = albumName.toUpperCase().charAt(0);
-
-            if (mPositionSectionMap.containsKey(albumSection)) {
-                int sectionIndex = mPositionSectionMap.get(albumSection);
-                return sectionIndex;
-            }
-            return 0;
-        }
-
-        @Override
-        public Object[] getSections() {
-            return mSectionList.toArray();
-        }
-
-        @Override
-        public int getCount() {
-            return mModelData.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return mModelData.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
     }
 
     @Override

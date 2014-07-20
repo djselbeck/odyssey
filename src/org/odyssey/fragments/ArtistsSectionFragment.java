@@ -1,12 +1,11 @@
 package org.odyssey.fragments;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
 import org.odyssey.R;
+import org.odyssey.adapters.ArtistsAdapter;
 import org.odyssey.databasemodel.ArtistModel;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnPlayAllSelectedListener;
@@ -17,16 +16,13 @@ import org.odyssey.playbackservice.TrackItem;
 import org.odyssey.views.GridItem;
 
 import android.app.Activity;
-import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -41,9 +37,7 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.SectionIndexer;
 
 public class ArtistsSectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<ArtistModel>>, OnItemClickListener {
 
@@ -111,9 +105,9 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
         View rootView = inflater.inflate(R.layout.fragment_artists, container, false);
 
-        mAdapter = new ArtistsAdapter(getActivity());
-
         mRootGrid = (GridView) rootView;
+
+        mAdapter = new ArtistsAdapter(getActivity(), mRootGrid);
 
         mRootGrid.setAdapter(mAdapter);
 
@@ -130,6 +124,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
                     mScrollSpeed = 0;
+                    mAdapter.setScrollSpeed(0);
                     for (int i = 0; i <= mRootGrid.getLastVisiblePosition() - mRootGrid.getFirstVisiblePosition(); i++) {
                         GridItem gridItem = (GridItem) mRootGrid.getChildAt(i);
                         gridItem.startCoverImageTask();
@@ -153,7 +148,7 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
                     }
                     long timeScrollPerRow = currentTime - mLastTime;
                     mScrollSpeed = (int) (1000 / timeScrollPerRow);
-
+                    mAdapter.setScrollSpeed(mScrollSpeed);
                     mLastFirstVisibleItem = firstVisibleItem;
                     mLastTime = currentTime;
                     // Log.v(TAG, "Scrolling with: " + mScrollSpeed +
@@ -221,143 +216,6 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
             getLoaderManager().destroyLoader(0);
             mLoaderInit = false;
         }
-    }
-
-    private class ArtistsAdapter extends BaseAdapter implements SectionIndexer {
-
-        private LayoutInflater mInflater;
-        private Context mContext;
-        private LruCache<String, Bitmap> mCache;
-        ArrayList<String> mSectionList;
-        ArrayList<Integer> mSectionPositions;
-        HashMap<Character, Integer> mPositionSectionMap;
-
-        private List<ArtistModel> mModelData;
-
-        public ArtistsAdapter(Context context) {
-            super();
-
-            this.mInflater = LayoutInflater.from(context);
-            this.mCache = new LruCache<String, Bitmap>(24);
-            mSectionList = new ArrayList<String>();
-            mSectionPositions = new ArrayList<Integer>();
-            mPositionSectionMap = new HashMap<Character, Integer>();
-            mModelData = new ArrayList<ArtistModel>();
-            mContext = context;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            // Log.v(TAG,"Getting view: " + position);
-            ArtistModel artist = mModelData.get(position);
-            String label = artist.getArtistName();
-            String imageURL = artist.getArtURL();
-            // Log.v(TAG,"Got album: " + album);
-
-            if (convertView != null) {
-                // Log.v(TAG,"REUSE");
-                GridItem gridItem = (GridItem) convertView;
-                gridItem.setText(label);
-                gridItem.setImageURL(imageURL);
-            } else {
-                convertView = new GridItem(mContext, label, imageURL, new android.widget.AbsListView.LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
-                // Log.v(TAG,"Created view");
-            }
-
-            if (mScrollSpeed == 0) {
-                ((GridItem) convertView).startCoverImageTask();
-            }
-            return convertView;
-        }
-
-        public void swapModel(List<ArtistModel> artists) {
-            Log.v(TAG, "Swapping data model");
-            if (artists == null) {
-                mModelData.clear();
-            } else {
-                mModelData = artists;
-            }
-            // create sectionlist for fastscrolling
-
-            mSectionList.clear();
-            mSectionPositions.clear();
-            mPositionSectionMap.clear();
-            if (mModelData.size() > 0) {
-                char lastSection = 0;
-
-                ArtistModel currentArtist = mModelData.get(0);
-
-                lastSection = currentArtist.getArtistName().toUpperCase().charAt(0);
-
-                mSectionList.add("" + lastSection);
-                mSectionPositions.add(0);
-                mPositionSectionMap.put(lastSection, mSectionList.size() - 1);
-
-                for (int i = 1; i < getCount(); i++) {
-
-                    currentArtist = mModelData.get(i);
-
-                    char currentSection = currentArtist.getArtistName().toUpperCase().charAt(0);
-
-                    if (lastSection != currentSection) {
-                        mSectionList.add("" + currentSection);
-
-                        lastSection = currentSection;
-                        mSectionPositions.add(i);
-                        mPositionSectionMap.put(currentSection, mSectionList.size() - 1);
-                    }
-
-                }
-            }
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public int getPositionForSection(int sectionIndex) {
-            if (sectionIndex >= 0 && sectionIndex < mSectionPositions.size()) {
-                return mSectionPositions.get(sectionIndex);
-            }
-            return 0;
-        }
-
-        @Override
-        public int getSectionForPosition(int pos) {
-
-            ArtistModel artist = (ArtistModel) getItem(pos);
-
-            String artistsName = artist.getArtistName();
-
-            char artistSection = artistsName.toUpperCase().charAt(0);
-
-            if (mPositionSectionMap.containsKey(artistSection)) {
-                int sectionIndex = mPositionSectionMap.get(artistSection);
-                return sectionIndex;
-            }
-
-            return 0;
-        }
-
-        @Override
-        public Object[] getSections() {
-
-            return mSectionList.toArray();
-        }
-
-        @Override
-        public int getCount() {
-            return mModelData.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return mModelData.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
     }
 
     @Override
