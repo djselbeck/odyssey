@@ -43,20 +43,16 @@ public class ArtistsAdapter extends BaseAdapter implements SectionIndexer {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        // Log.v(TAG,"Getting view: " + position);
         ArtistModel artist = mModelData.get(position);
         String label = artist.getArtistName();
         String imageURL = artist.getArtURL();
-        // Log.v(TAG,"Got album: " + album);
 
         if (convertView != null) {
-            // Log.v(TAG,"REUSE");
             GridItem gridItem = (GridItem) convertView;
             gridItem.setText(label);
             gridItem.setImageURL(imageURL);
         } else {
             convertView = new GridItem(mContext, label, imageURL, new android.widget.AbsListView.LayoutParams(mRootGrid.getColumnWidth(), mRootGrid.getColumnWidth()));
-            // Log.v(TAG,"Created view");
         }
 
         if (mScrollSpeed == 0) {

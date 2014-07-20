@@ -39,13 +39,11 @@ public class AlbumLoader extends AsyncTaskLoader<List<AlbumModel>> {
         ArrayList<AlbumModel> albums = new ArrayList<AlbumModel>();
         for (int i = 0; i < albumCursor.getCount(); i++) {
             albumCursor.moveToPosition(i);
-            // Add all albums to arraylist
             String albumKey = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
             String albumTitle = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
             String imagePath = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
             String artistTitle = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST));
             AlbumModel album = new AlbumModel(albumTitle, imagePath, artistTitle, albumKey);
-            // Log.v(TAG, "Added album: " + album);
             albums.add(album);
 
         }
