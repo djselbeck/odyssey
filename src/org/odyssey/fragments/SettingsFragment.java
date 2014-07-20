@@ -18,6 +18,9 @@ public class SettingsFragment extends Fragment {
         // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
+        // Set actionbar title
+        getActivity().getActionBar().setTitle(R.string.settings_fragment_title);
+
         View rootView = inflater.inflate(R.layout.fragment_section_dummy, container, false);
 
         TextView text = (TextView) rootView.findViewById(android.R.id.text1);

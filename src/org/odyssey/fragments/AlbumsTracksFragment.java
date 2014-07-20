@@ -128,6 +128,9 @@ public class AlbumsTracksFragment extends Fragment {
         mAlbumCoverPath = args.getString(ARG_ALBUMART);
         mAlbumArtist = args.getString(ARG_ALBUMARTIST);
 
+        // Set actionbar title
+        getActivity().getActionBar().setTitle(mAlbumTitle);
+
         setAlbumInformation();
 
         setAlbumTracks();

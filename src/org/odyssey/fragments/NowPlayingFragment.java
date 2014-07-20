@@ -67,6 +67,9 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
         // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.GONE);
 
+        // Set actionbar title
+        getActivity().getActionBar().setTitle(R.string.nowplaying_fragment_title);
+
         View rootView = inflater.inflate(R.layout.fragment_now_playing, container, false);
 
         mTitleTextView = (TextView) rootView.findViewById(R.id.nowPlayingTitleView);

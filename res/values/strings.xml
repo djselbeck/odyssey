@@ -48,6 +48,11 @@
     <string name="accept">OK</string>
     <string name="cancel">Cancel</string>
     
+    <string name="settings_fragment_title">Settings</string>
+    <string name="about_fragment_title">About</string>
+    <string name="nowplaying_fragment_title">Nowplaying</string>
+    <string name="playlist_fragment_title">Playlist</string>
+    
     <string name="authors_title">Authors: </string>
     <string name="authors">Hendrik Borghorst \nFrederik Lütkes</string>
     <string name="source_title">Sourcecode: </string>

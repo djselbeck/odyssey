@@ -52,6 +52,9 @@ public class PlaylistFragment extends Fragment {
         // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
+        // Set actionbar title
+        getActivity().getActionBar().setTitle(R.string.playlist_fragment_title);
+
         // indicate this fragment has its own menu
         setHasOptionsMenu(true);
 

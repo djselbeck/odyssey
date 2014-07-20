@@ -15,6 +15,7 @@ import org.odyssey.fragments.ArtistsSectionFragment.OnArtistSelectedListener;
 import org.odyssey.fragments.NowPlayingFragment;
 import org.odyssey.fragments.PlaylistFragment;
 import org.odyssey.fragments.PlaylistNameDialogFragment.OnPlaylistNameListener;
+import org.odyssey.fragments.SavedPlaylistFragment;
 import org.odyssey.fragments.SettingsFragment;
 import org.odyssey.playbackservice.PlaybackService;
 import org.odyssey.playbackservice.PlaybackService.RANDOMSTATE;
@@ -398,9 +399,28 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
     }
 
     @Override
-    public void onPlaylistSelected(long playlistID) {
-        // TODO open PlaylistView
-        Toast.makeText(getApplicationContext(), "open playlistview", Toast.LENGTH_SHORT).show();
+    public void onPlaylistSelected(String playlistName, long playlistID) {
+
+        mDrawerToggle.setDrawerIndicatorEnabled(false);
+        // Create fragment and give it an argument for the selected playlist
+        SavedPlaylistFragment newFragment = new SavedPlaylistFragment();
+        Bundle args = new Bundle();
+        args.putString(SavedPlaylistFragment.ARG_PLAYLISTNAME, playlistName);
+        args.putLong(SavedPlaylistFragment.ARG_PLAYLISTID, playlistID);
+
+        newFragment.setArguments(args);
+
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+        // Replace whatever is in the fragment_container view with this
+        // fragment,
+        // and add the transaction to the back stack so the user can navigate
+        // back
+        transaction.replace(R.id.fragmentFrame, newFragment);
+        transaction.addToBackStack("SavedPlaylistFragment");
+
+        // Commit the transaction
+        transaction.commit();
     }
 
     @Override

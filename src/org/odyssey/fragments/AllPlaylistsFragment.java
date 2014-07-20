@@ -53,7 +53,7 @@ public class AllPlaylistsFragment extends Fragment implements LoaderManager.Load
 
     // Listener for communication via container activity
     public interface OnPlaylistSelectedListener {
-        public void onPlaylistSelected(long playlistID);
+        public void onPlaylistSelected(String playlistName, long playlistID);
     }
 
     public void onAttach(Activity activity) {
@@ -230,10 +230,11 @@ public class AllPlaylistsFragment extends Fragment implements LoaderManager.Load
 
         cursor.moveToPosition(position);
 
+        String playlistName = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME));
         long playlistID = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
 
         // Send the event to the host activity
-        mPlaylistSelectedCallback.onPlaylistSelected(playlistID);
+        mPlaylistSelectedCallback.onPlaylistSelected(playlistName, playlistID);
     }
 
     @Override

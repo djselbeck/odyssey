@@ -232,6 +232,13 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
         Log.v(TAG, "Resuming");
         super.onResume();
 
+        // Set actionbar title
+        if (mArtist == "") {
+            getActivity().getActionBar().setTitle(R.string.app_name);
+        } else {
+            getActivity().getActionBar().setTitle(mArtist);
+        }
+
         // Prepare loader ( start new one or reuse old)
         getLoaderManager().initLoader(0, getArguments(), this);
 
@@ -440,6 +447,10 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
             mArtist = bundle.getString(ARG_ARTISTNAME);
             mArtistID = bundle.getLong(ARG_ARTISTID);
+
+            // Set actionbar title
+            getActivity().getActionBar().setTitle(mArtist);
+
             return new AlbumLoader(getActivity(), mArtistID);
         }
     }

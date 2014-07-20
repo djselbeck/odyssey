@@ -42,6 +42,9 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_artists_albums_tabs, container, false);
 
+        // Set actionbar title
+        getActivity().getActionBar().setTitle(R.string.app_name);
+
         // Create the adapter that will return a fragment for each of the three
         // primary sections
         // of the app.

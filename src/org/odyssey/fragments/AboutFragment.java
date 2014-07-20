@@ -25,6 +25,9 @@ public class AboutFragment extends Fragment {
         // set visibility of quickcontrols
         ((MainActivity) getActivity()).getQuickControl().setVisibility(View.VISIBLE);
 
+        // Set actionbar title
+        getActivity().getActionBar().setTitle(R.string.about_fragment_title);
+
         View rootView = inflater.inflate(R.layout.fragment_about, container, false);
 
         final TextView easterEgg = (TextView) rootView.findViewById(R.id.aboutFragmentEasterEgg);
