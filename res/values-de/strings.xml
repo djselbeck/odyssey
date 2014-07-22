@@ -40,7 +40,7 @@
     <string name="settings_fragment_title">Einstellungen</string>
     <string name="about_fragment_title">Über</string>
     <string name="nowplaying_fragment_title">Aktuelles Lied</string>
-    <string name="playlist_fragment_title">Wiedergabeliste</string>    
+    <string name="playlist_fragment_title">Aktuelle Playlist</string>    
     <string name="authors_title">Autoren: </string>
     <string name="authors">Hendrik Borghorst \nFrederik Lütkes</string>
     <string name="source_title">Quellcode: </string>
@@ -49,8 +49,9 @@
 
     <string-array name="navibar_array">
         <item>Meine Musik</item>
-        <item>Wiedergabeliste</item>
+        <item>Aktuelle Playlist</item>
         <item>Aktuelles Lied</item>
+        <item>Playlists</item>
     </string-array>
 
 </resources>

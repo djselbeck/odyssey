@@ -104,6 +104,9 @@ public class AllPlaylistsFragment extends Fragment implements LoaderManager.Load
         mListView.setAdapter(mCursorAdapter);
         mListView.setOnItemClickListener((OnItemClickListener) this);
 
+        // Set actionbar title
+        getActivity().getActionBar().setTitle(R.string.section_title_allplaylists);
+
         // register context menu
         registerForContextMenu(mListView);
 

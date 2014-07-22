@@ -62,8 +62,9 @@
 
     <string-array name="navibar_array">
         <item>My Music</item>
-        <item>Playlist</item>
+        <item>Current Playlist</item>
         <item>Now Playing</item>
+        <item>Playlists</item> 
     </string-array>
 
 </resources>

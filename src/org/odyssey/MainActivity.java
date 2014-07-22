@@ -6,6 +6,7 @@ import org.odyssey.fragments.AboutFragment;
 import org.odyssey.fragments.AlbumsSectionFragment;
 import org.odyssey.fragments.AlbumsSectionFragment.OnAlbumSelectedListener;
 import org.odyssey.fragments.AlbumsTracksFragment;
+import org.odyssey.fragments.AllPlaylistsFragment;
 import org.odyssey.fragments.AllPlaylistsFragment.OnPlaylistSelectedListener;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment;
 import org.odyssey.fragments.ArtistsAlbumsTabsFragment.OnAboutSelectedListener;
@@ -324,6 +325,21 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
                 transaction.replace(R.id.fragmentFrame, new NowPlayingFragment());
+                // transaction.addToBackStack("");
+
+                // Commit the transaction
+                transaction.commit();
+
+                invalidateOptionsMenu();
+
+                break;
+
+            case 3:
+                mDrawerToggle.setDrawerIndicatorEnabled(true);
+
+                // Replace whatever is in the fragment_container view with this
+                // fragment,
+                transaction.replace(R.id.fragmentFrame, new AllPlaylistsFragment());
                 // transaction.addToBackStack("");
 
                 // Commit the transaction
