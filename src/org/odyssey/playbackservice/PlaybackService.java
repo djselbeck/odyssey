@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Semaphore;
 
 import org.odyssey.MainActivity;
 import org.odyssey.MusicLibraryHelper;
@@ -17,6 +15,7 @@ import org.odyssey.R;
 import org.odyssey.manager.DatabaseManager;
 import org.odyssey.playbackservice.GaplessPlayer.PlaybackException;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -41,6 +40,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.Process;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -79,6 +79,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public static final String INTENT_TRACKITEMNAME = "OdysseyTrackItem";
     public static final String INTENT_NOWPLAYINGNAME = "OdysseyNowPlaying";
 
+    private PendingIntent mServiceTimeoutIntent = null;
+
     private final static int SERVICE_CANCEL_TIME = 60 * 5 * 1000;
 
     private HandlerThread mHandlerThread;
@@ -107,24 +109,15 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // Remote control
     private RemoteControlClient mRemoteControlClient = null;
-    private String mLastCoverURL = "";
 
     // Timer for service stop after certain amount of time
-    private Timer mServiceCancelTimer = null;
     private WakeLock mTempWakelock = null;
 
     private MusicLibraryHelper.CoverBitmapGenerator mNotificationCoverGenerator;
     private MusicLibraryHelper.CoverBitmapGenerator mLockscreenCoverGenerator;
 
-    // NowPlaying callbacks
-    // List holding registered callback clients
-    // private ArrayList<IOdysseyNowPlayingCallback> mNowPlayingCallbacks;
-
     // Playlistmanager for saving and reading playlist
     private DatabaseManager mPlaylistManager = null;
-
-    // Mutex for NowPlaying callbacks
-    private final Semaphore mCallbackMutex = new Semaphore(1, true);
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -178,9 +171,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         mLastPlayingIndex = -1;
         mNextPlayingIndex = -1;
-
-        // NowPlaying
-        // mNowPlayingCallbacks = new ArrayList<IOdysseyNowPlayingCallback>();
 
         mNotificationBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_stat_odys).setContentTitle("Odyssey").setContentText("");
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -287,7 +277,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         mPlayer.stop();
         mCurrentPlayingIndex = -1;
-        mLastCoverURL = "";
 
         mNextPlayingIndex = -1;
         mLastPlayingIndex = -1;
@@ -321,9 +310,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         updateStatus();
 
-        mServiceCancelTimer = new Timer();
-        // Set timeout to 10 minutes for now
-        mServiceCancelTimer.schedule(new ServiceCancelTask(), (long) (SERVICE_CANCEL_TIME));
+        AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        mServiceTimeoutIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_QUIT), 0);
+        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SERVICE_CANCEL_TIME, mServiceTimeoutIntent);
     }
 
     public void resume() {
@@ -348,9 +337,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Intent serviceStartIntent = new Intent(this, PlaybackService.class);
             serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
             startService(serviceStartIntent);
-            if (mServiceCancelTimer != null) {
-                mServiceCancelTimer.cancel();
-                mServiceCancelTimer = null;
+            if (mServiceTimeoutIntent != null) {
+                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                am.cancel(mServiceTimeoutIntent);
+                mServiceTimeoutIntent = null;
             }
             // Request audio focus before doing anything
             AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -475,7 +465,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Collections.shuffle(mCurrentList);
 
             // sent broadcast
-            // sendUpdateBroadcast();
             updateStatus();
         }
     }
@@ -605,9 +594,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Intent serviceStartIntent = new Intent(this, PlaybackService.class);
             serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
             startService(serviceStartIntent);
-            if (mServiceCancelTimer != null) {
-                mServiceCancelTimer.cancel();
-                mServiceCancelTimer = null;
+            if (mServiceTimeoutIntent != null) {
+                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                am.cancel(mServiceTimeoutIntent);
+                mServiceTimeoutIntent = null;
             }
             mIsPaused = false;
 
@@ -705,10 +695,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      */
     public void stopService() {
         // Cancel possible cancel timers ( yeah, very funny )
-        if (mServiceCancelTimer != null) {
-            mServiceCancelTimer.cancel();
-            mServiceCancelTimer.purge();
-            mServiceCancelTimer = null;
+        if (mServiceTimeoutIntent != null) {
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            am.cancel(mServiceTimeoutIntent);
+            mServiceTimeoutIntent = null;
         }
         mLastPosition = getTrackPosition();
 
