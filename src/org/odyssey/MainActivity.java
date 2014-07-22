@@ -310,7 +310,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
-                transaction.replace(R.id.fragmentFrame, new PlaylistFragment());
+                transaction.replace(R.id.fragmentFrame, new AllPlaylistsFragment());
                 // transaction.addToBackStack("");
 
                 // Commit the transaction
@@ -319,12 +319,13 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
                 invalidateOptionsMenu();
 
                 break;
+
             case 2:
                 mDrawerToggle.setDrawerIndicatorEnabled(true);
 
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
-                transaction.replace(R.id.fragmentFrame, new NowPlayingFragment());
+                transaction.replace(R.id.fragmentFrame, new PlaylistFragment());
                 // transaction.addToBackStack("");
 
                 // Commit the transaction
@@ -339,7 +340,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
                 // Replace whatever is in the fragment_container view with this
                 // fragment,
-                transaction.replace(R.id.fragmentFrame, new AllPlaylistsFragment());
+                transaction.replace(R.id.fragmentFrame, new NowPlayingFragment());
                 // transaction.addToBackStack("");
 
                 // Commit the transaction
