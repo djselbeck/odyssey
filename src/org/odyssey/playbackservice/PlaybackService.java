@@ -168,6 +168,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // mCurrentList = new ArrayList<TrackItem>();
         mCurrentPlayingIndex = (int) mPlaylistManager.getLastTrackNumber();
 
+        // Retrieve repeat/random state from settings db
+        mRandom = mPlaylistManager.getLastRandomState();
+        mRepeat = mPlaylistManager.getLastRepeatState();
+
         if (mCurrentPlayingIndex < 0 || mCurrentPlayingIndex > mCurrentList.size()) {
             mCurrentPlayingIndex = -1;
         }
@@ -717,7 +721,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mPlaylistManager.savePlaylist(mCurrentList);
 
         // Save position in settings table
-        mPlaylistManager.saveCurrentPlayState(mLastPosition, mCurrentPlayingIndex);
+        mPlaylistManager.saveCurrentPlayState(mLastPosition, mCurrentPlayingIndex, mRandom, mRepeat);
 
         // Get the actual trackitem and distribute the information
         if ((mCurrentList != null) && (mCurrentPlayingIndex >= 0) && (mCurrentPlayingIndex < mCurrentList.size())) {

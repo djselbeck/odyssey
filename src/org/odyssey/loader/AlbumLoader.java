@@ -10,6 +10,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
 
 public class AlbumLoader extends AsyncTaskLoader<List<AlbumModel>> {
 
@@ -47,6 +48,9 @@ public class AlbumLoader extends AsyncTaskLoader<List<AlbumModel>> {
             String albumKey = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
             String albumTitle = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
             String imagePath = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+            if (imagePath == null || imagePath.equals("")) {
+                Log.v(TAG, "Album: " + albumTitle);
+            }
             String artistTitle = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST));
             AlbumModel album = new AlbumModel(albumTitle, imagePath, artistTitle, albumKey);
             albums.add(album);
@@ -55,5 +59,4 @@ public class AlbumLoader extends AsyncTaskLoader<List<AlbumModel>> {
         albumCursor.close();
         return albums;
     }
-
 }

@@ -9,8 +9,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.RemoteException;
-import android.provider.MediaStore;
 
 public class DatabaseManager {
 
@@ -58,7 +56,6 @@ public class DatabaseManager {
 
         // get all trackitems from database and return them
 
-
         ArrayList<TrackItem> playList = new ArrayList<TrackItem>();
 
         Cursor cursor = mPlaylistDB.query(TrackItemTable.TABLE_NAME, projectionTrackItems, "", null, "", "", TrackItemTable.COLUMN_ID);
@@ -82,7 +79,6 @@ public class DatabaseManager {
 
         cursor.close();
 
-
         return playList;
     }
 
@@ -95,7 +91,6 @@ public class DatabaseManager {
     public TrackItem getTrackItem(int id) {
 
         // get row id and return the trackitem
-
 
         String whereVal[] = { "" + id };
 
@@ -117,14 +112,12 @@ public class DatabaseManager {
 
         cursor.close();
 
-
         return item;
     }
 
     public int getSize() {
 
         // get number of rows in the database
-
 
         String[] projection = { TrackItemTable.COLUMN_ID };
 
@@ -134,14 +127,12 @@ public class DatabaseManager {
 
         cursor.close();
 
-
         return size;
     }
 
     public void enqueueTrackItem(TrackItem item) {
 
         // save trackitem to database
-
 
         ContentValues values = new ContentValues();
 
@@ -166,7 +157,6 @@ public class DatabaseManager {
     public void enqueueTrackList(ArrayList<TrackItem> list) {
 
         // save trackitems to database
-
 
         ContentValues values = new ContentValues();
 
@@ -199,7 +189,6 @@ public class DatabaseManager {
 
         // delete current row
 
-
         String whereVal[] = { "" + id };
 
         mPlaylistDB.delete(TrackItemTable.TABLE_NAME, TrackItemTable.COLUMN_ID + "=?", whereVal);
@@ -209,7 +198,6 @@ public class DatabaseManager {
     public void shufflePlaylist() {
 
         // TODO not very efficient
-
 
         // get all Tracks
         ArrayList<TrackItem> playList = new ArrayList<TrackItem>();
@@ -267,44 +255,72 @@ public class DatabaseManager {
     public void playAllTracks() {
         // TODO
     }
-    
-    public void saveCurrentPlayState(long position, long trackNR) {
-    	// Delete old settings rows
-    	String whereStmt = SettingsTable.COLUMN_SETTINGSNAME + "=? OR " + SettingsTable.COLUMN_SETTINGSNAME + "=?";
-    	String[] whereArgs = {SettingsTable.TRACKNUMBER_ROW,SettingsTable.TRACKPOSITION_ROW};
-    	mPlaylistDB.delete(SettingsTable.TABLE_NAME, whereStmt, whereArgs);
-    	
-    	// Insert new values into table
-    	String positionStmt = "INSERT INTO " + SettingsTable.TABLE_NAME + " values ( \"" + SettingsTable.TRACKPOSITION_ROW  + "\","
-    			+ "\"" + position + "\");";
-    	mPlaylistDB.execSQL(positionStmt);
-    	
-    	String nrStmt = "INSERT INTO " + SettingsTable.TABLE_NAME + " values ( \"" + SettingsTable.TRACKNUMBER_ROW  + "\","
-    			+ "\"" + trackNR + "\");";
-    	mPlaylistDB.execSQL(nrStmt);
+
+    public void saveCurrentPlayState(long position, long trackNR, int random, int repeat) {
+        // Delete old settings rows
+        String whereStmt = SettingsTable.COLUMN_SETTINGSNAME + "=? OR " + SettingsTable.COLUMN_SETTINGSNAME + "=? OR " + SettingsTable.COLUMN_SETTINGSNAME + "=? OR " + SettingsTable.COLUMN_SETTINGSNAME + "=?";
+        String[] whereArgs = { SettingsTable.TRACKNUMBER_ROW, SettingsTable.TRACKPOSITION_ROW, SettingsTable.RANDOM_STATE_ROW, SettingsTable.REPEAT_STATE_ROW };
+        mPlaylistDB.delete(SettingsTable.TABLE_NAME, whereStmt, whereArgs);
+
+        // Insert new values into table
+        String positionStmt = "INSERT INTO " + SettingsTable.TABLE_NAME + " values ( \"" + SettingsTable.TRACKPOSITION_ROW + "\"," + "\"" + position + "\");";
+        mPlaylistDB.execSQL(positionStmt);
+
+        String nrStmt = "INSERT INTO " + SettingsTable.TABLE_NAME + " values ( \"" + SettingsTable.TRACKNUMBER_ROW + "\"," + "\"" + trackNR + "\");";
+        mPlaylistDB.execSQL(nrStmt);
+
+        String randomStmt = "INSERT INTO " + SettingsTable.TABLE_NAME + " values ( \"" + SettingsTable.RANDOM_STATE_ROW + "\"," + "\"" + random + "\");";
+        mPlaylistDB.execSQL(randomStmt);
+
+        String repeatStmt = "INSERT INTO " + SettingsTable.TABLE_NAME + " values ( \"" + SettingsTable.REPEAT_STATE_ROW + "\"," + "\"" + repeat + "\");";
+        mPlaylistDB.execSQL(repeatStmt);
     }
-    
+
     public long getLastTrackPosition() {
-    	String[] columns = {SettingsTable.COLUMN_SETTINGSVALUE};
-    	String selection = SettingsTable.COLUMN_SETTINGSNAME + "=?";
-    	String[] selectionArgs = {SettingsTable.TRACKPOSITION_ROW};
-    	Cursor resultCursor = mPlaylistDB.query(SettingsTable.TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
-    	if ( resultCursor.moveToFirst() ) {
-    		long value = resultCursor.getLong(resultCursor.getColumnIndex(SettingsTable.COLUMN_SETTINGSVALUE));
-    		return value;
-    	}
-    	return 0;
+        String[] columns = { SettingsTable.COLUMN_SETTINGSVALUE };
+        String selection = SettingsTable.COLUMN_SETTINGSNAME + "=?";
+        String[] selectionArgs = { SettingsTable.TRACKPOSITION_ROW };
+        Cursor resultCursor = mPlaylistDB.query(SettingsTable.TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
+        if (resultCursor.moveToFirst()) {
+            long value = resultCursor.getLong(resultCursor.getColumnIndex(SettingsTable.COLUMN_SETTINGSVALUE));
+            return value;
+        }
+        return 0;
     }
-    
+
     public long getLastTrackNumber() {
-    	String[] columns = {SettingsTable.COLUMN_SETTINGSVALUE};
-    	String selection = SettingsTable.COLUMN_SETTINGSNAME + "=?";
-    	String[] selectionArgs = {SettingsTable.TRACKNUMBER_ROW};
-    	Cursor resultCursor = mPlaylistDB.query(SettingsTable.TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
-    	if ( resultCursor.moveToFirst() ) {
-    		long value = resultCursor.getLong(resultCursor.getColumnIndex(SettingsTable.COLUMN_SETTINGSVALUE));
-    		return value;
-    	}
-    	return 0;
+        String[] columns = { SettingsTable.COLUMN_SETTINGSVALUE };
+        String selection = SettingsTable.COLUMN_SETTINGSNAME + "=?";
+        String[] selectionArgs = { SettingsTable.TRACKNUMBER_ROW };
+        Cursor resultCursor = mPlaylistDB.query(SettingsTable.TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
+        if (resultCursor.moveToFirst()) {
+            long value = resultCursor.getLong(resultCursor.getColumnIndex(SettingsTable.COLUMN_SETTINGSVALUE));
+            return value;
+        }
+        return 0;
+    }
+
+    public int getLastRandomState() {
+        String[] columns = { SettingsTable.COLUMN_SETTINGSVALUE };
+        String selection = SettingsTable.COLUMN_SETTINGSNAME + "=?";
+        String[] selectionArgs = { SettingsTable.RANDOM_STATE_ROW };
+        Cursor resultCursor = mPlaylistDB.query(SettingsTable.TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
+        if (resultCursor.moveToFirst()) {
+            int value = resultCursor.getInt(resultCursor.getColumnIndex(SettingsTable.COLUMN_SETTINGSVALUE));
+            return value;
+        }
+        return 0;
+    }
+
+    public int getLastRepeatState() {
+        String[] columns = { SettingsTable.COLUMN_SETTINGSVALUE };
+        String selection = SettingsTable.COLUMN_SETTINGSNAME + "=?";
+        String[] selectionArgs = { SettingsTable.REPEAT_STATE_ROW };
+        Cursor resultCursor = mPlaylistDB.query(SettingsTable.TABLE_NAME, columns, selection, selectionArgs, null, null, null, null);
+        if (resultCursor.moveToFirst()) {
+            int value = resultCursor.getInt(resultCursor.getColumnIndex(SettingsTable.COLUMN_SETTINGSVALUE));
+            return value;
+        }
+        return 0;
     }
 }
