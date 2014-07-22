@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,6 +59,7 @@ public class ArtistsAlbumsTabsFragment extends Fragment {
 
         // set start page to albumsection
         mViewPager.setCurrentItem(1);
+        ((PagerTabStrip) rootView.findViewById(R.id.pager_tab_strip)).setTabIndicatorColor(getResources().getColor(android.R.color.holo_blue_dark));
 
         return rootView;
     }
