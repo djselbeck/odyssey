@@ -209,7 +209,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         Intent buttonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         buttonIntent.setComponent(remoteReceiver);
-        PendingIntent buttonPendingIntent = PendingIntent.getBroadcast(this, REMOTECONTROL_INTENT_ID, buttonIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent buttonPendingIntent = PendingIntent.getBroadcast(this, 0, buttonIntent, 0);
 
         // Create remotecontrol instance
         mRemoteControlClient = new RemoteControlClient(buttonPendingIntent);
