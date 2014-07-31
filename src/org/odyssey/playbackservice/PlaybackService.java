@@ -78,6 +78,17 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     public static final String INTENT_TRACKITEMNAME = "OdysseyTrackItem";
     public static final String INTENT_NOWPLAYINGNAME = "OdysseyNowPlaying";
+    
+    // PendingIntent ids
+    private static final int NOTIFICATION_INTENT_PREVIOUS = 0;
+    private static final int NOTIFICATION_INTENT_PLAYPAUSE = 1;
+    private static final int NOTIFICATION_INTENT_NEXT = 2;
+    private static final int NOTIFICATION_INTENT_QUIT = 3;
+    private static final int NOTIFICATION_INTENT_OPENGUI = 4;
+    
+    private static final int TIMEOUT_INTENT_QUIT = 5;
+    private static final int REMOTECONTROL_INTENT_ID = 6;
+    
 
     private PendingIntent mServiceTimeoutIntent = null;
 
@@ -198,7 +209,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         Intent buttonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         buttonIntent.setComponent(remoteReceiver);
-        PendingIntent buttonPendingIntent = PendingIntent.getBroadcast(this, 0, buttonIntent, 0);
+        PendingIntent buttonPendingIntent = PendingIntent.getBroadcast(this, REMOTECONTROL_INTENT_ID, buttonIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         // Create remotecontrol instance
         mRemoteControlClient = new RemoteControlClient(buttonPendingIntent);
@@ -311,7 +322,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         updateStatus();
 
         AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        mServiceTimeoutIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_QUIT), 0);
+        mServiceTimeoutIntent = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, new Intent(ACTION_QUIT), 0);
         am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SERVICE_CANCEL_TIME, mServiceTimeoutIntent);
     }
 
@@ -933,20 +944,20 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Set pendingintents
             // Previous song action
             Intent prevIntent = new Intent(ACTION_PREVIOUS);
-            PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this, 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this, NOTIFICATION_INTENT_PREVIOUS, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             remoteViewBig.setOnClickPendingIntent(R.id.notificationPrevBtn, prevPendingIntent);
 
             // Pause/Play action
             if (playbackState == PLAYSTATE.PLAYING) {
                 Intent pauseIntent = new Intent(ACTION_PAUSE);
-                PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this, 1, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this, NOTIFICATION_INTENT_PLAYPAUSE, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 remoteViewBig.setOnClickPendingIntent(R.id.notificationPlayBtn, pausePendingIntent);
                 // Set right drawable
                 remoteViewBig.setImageViewResource(R.id.notificationPlayBtn, android.R.drawable.ic_media_pause);
 
             } else {
                 Intent playIntent = new Intent(ACTION_PLAY);
-                PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, 2, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, NOTIFICATION_INTENT_PLAYPAUSE, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 remoteViewBig.setOnClickPendingIntent(R.id.notificationPlayBtn, playPendingIntent);
                 // Set right drawable
                 remoteViewBig.setImageViewResource(R.id.notificationPlayBtn, android.R.drawable.ic_media_play);
@@ -954,12 +965,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
             // Next song action
             Intent nextIntent = new Intent(ACTION_NEXT);
-            PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this, 3, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this, NOTIFICATION_INTENT_NEXT, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             remoteViewBig.setOnClickPendingIntent(R.id.notificationNextBtn, nextPendingIntent);
 
             // Quit action
             Intent quitIntent = new Intent(ACTION_QUIT);
-            PendingIntent quitPendingIntent = PendingIntent.getBroadcast(this, 4, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent quitPendingIntent = PendingIntent.getBroadcast(this, NOTIFICATION_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             remoteViewBig.setOnClickPendingIntent(R.id.notificationCloseBtn, quitPendingIntent);
             remoteViewSmall.setOnClickPendingIntent(R.id.notificationCloseBtn, quitPendingIntent);
 
@@ -975,7 +986,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Intent resultIntent = new Intent(this, MainActivity.class);
             resultIntent.putExtra("Fragment", "currentsong");
 
-            PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            PendingIntent resultPendingIntent = PendingIntent.getActivity(this, NOTIFICATION_INTENT_OPENGUI, resultIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mNotificationBuilder.setContentIntent(resultPendingIntent);
 
             mNotification = mNotificationBuilder.build();
