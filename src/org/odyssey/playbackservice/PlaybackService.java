@@ -241,6 +241,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                     stop();
                 } else if (action.equals(ACTION_PLAY)) {
                     resume();
+                } else if (action.equals(ACTION_QUIT)) {
+                    stopService();
                 }
             }
         }
@@ -334,7 +336,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
 
         AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        mServiceTimeoutIntent = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, new Intent(ACTION_QUIT), 0);
+        Intent quitIntent = new Intent(this, PlaybackService.class).putExtra("action", ACTION_QUIT);
+        mServiceTimeoutIntent = PendingIntent.getService(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SERVICE_CANCEL_TIME, mServiceTimeoutIntent);
     }
 
@@ -982,7 +985,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             remoteViewSmall.setOnClickPendingIntent(R.id.notificationCloseBtn, quitPendingIntent);
 
             // Cover
-            // TODO SPEED UP
 
             remoteViewBig.setImageViewResource(R.id.notificationImage, R.drawable.ic_big_notification);
             remoteViewSmall.setImageViewResource(R.id.notificationImage, R.drawable.ic_big_notification);
@@ -993,7 +995,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Intent resultIntent = new Intent(this, MainActivity.class);
             resultIntent.putExtra("Fragment", "currentsong");
 
-            PendingIntent resultPendingIntent = PendingIntent.getActivity(this, NOTIFICATION_INTENT_OPENGUI, resultIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            PendingIntent resultPendingIntent = PendingIntent.getActivity(this, NOTIFICATION_INTENT_OPENGUI, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             mNotificationBuilder.setContentIntent(resultPendingIntent);
 
             mNotification = mNotificationBuilder.build();
@@ -1586,6 +1588,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.v(TAG, "Broadcast received: " + intent.getAction());
             if (intent.getAction().equals(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
                 Log.v(TAG, "NOISY AUDIO! CANCEL MUSIC");
                 pause();
