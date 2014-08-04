@@ -247,12 +247,6 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     @Override
     public void onDetach() {
         super.onDetach();
-        if (mRefreshTimer != null) {
-            mRefreshTimer.cancel();
-            mRefreshTimer.purge();
-            mRefreshTimer = null;
-        }
-        mServiceConnection = null;
     }
 
     @Override
