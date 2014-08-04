@@ -44,7 +44,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements OnAlbumSelectedListener, OnArtistSelectedListener, OnAboutSelectedListener, OnSettingsSelectedListener, OnPlayAllSelectedListener, OnPlaylistSelectedListener, OnPlaylistNameListener {
 
@@ -157,7 +156,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
 
         Log.v(TAG, "Resume mainactivity");
         Intent resumeIntent = getIntent();
-        setIntent(new Intent());
+        // setIntent(new Intent());
 
         if (resumeIntent != null && resumeIntent.getExtras() != null && resumeIntent.getExtras().getString("Fragment").equals("currentsong")) {
             mRequestedFragment = "currentsong";

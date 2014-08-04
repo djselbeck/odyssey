@@ -30,7 +30,7 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
     private AppWidgetManager mAppWidgetManager;
     private int[] mAppWidgets = null;
     private Context mContext;
-    
+
     private final static int INTENT_OPENGUI = 0;
     private final static int INTENT_PREVIOUS = 1;
     private final static int INTENT_PLAYPAUSE = 2;
@@ -58,7 +58,7 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
             // Main action
             Intent mainIntent = new Intent(context, MainActivity.class);
             mainIntent.putExtra("Fragment", "currentsong");
-            PendingIntent mainPendingIntent = PendingIntent.getActivity(context, INTENT_OPENGUI, mainIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            PendingIntent mainPendingIntent = PendingIntent.getActivity(context, INTENT_OPENGUI, mainIntent, PendingIntent.FLAG_ONE_SHOT);
             views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
 
             // Play/Pause action
@@ -138,7 +138,8 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
         // reset button actions
         // Main action
         Intent mainIntent = new Intent(context, MainActivity.class);
-        PendingIntent mainPendingIntent = PendingIntent.getActivity(context, INTENT_OPENGUI, mainIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        mainIntent.putExtra("Fragment", "currentsong");
+        PendingIntent mainPendingIntent = PendingIntent.getActivity(context, INTENT_OPENGUI, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
 
         // Play/Pause action

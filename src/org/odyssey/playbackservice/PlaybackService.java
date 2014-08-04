@@ -78,17 +78,16 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     public static final String INTENT_TRACKITEMNAME = "OdysseyTrackItem";
     public static final String INTENT_NOWPLAYINGNAME = "OdysseyNowPlaying";
-    
+
     // PendingIntent ids
     private static final int NOTIFICATION_INTENT_PREVIOUS = 0;
     private static final int NOTIFICATION_INTENT_PLAYPAUSE = 1;
     private static final int NOTIFICATION_INTENT_NEXT = 2;
     private static final int NOTIFICATION_INTENT_QUIT = 3;
     private static final int NOTIFICATION_INTENT_OPENGUI = 4;
-    
+
     private static final int TIMEOUT_INTENT_QUIT = 5;
     private static final int REMOTECONTROL_INTENT_ID = 6;
-    
 
     private PendingIntent mServiceTimeoutIntent = null;
 
@@ -271,6 +270,13 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // Stops all playback
     public void stop() {
+        // Cancel possible cancel timers ( yeah, very funny )
+        if (mServiceTimeoutIntent != null) {
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            am.cancel(mServiceTimeoutIntent);
+            mServiceTimeoutIntent = null;
+        }
+
         if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -320,6 +326,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
 
         updateStatus();
+
+        if (mServiceTimeoutIntent != null) {
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            am.cancel(mServiceTimeoutIntent);
+            mServiceTimeoutIntent = null;
+        }
 
         AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         mServiceTimeoutIntent = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, new Intent(ACTION_QUIT), 0);
@@ -705,12 +717,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      * any ongoing notification.
      */
     public void stopService() {
-        // Cancel possible cancel timers ( yeah, very funny )
-        if (mServiceTimeoutIntent != null) {
-            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            am.cancel(mServiceTimeoutIntent);
-            mServiceTimeoutIntent = null;
-        }
+        Log.v(TAG, "Stopping service");
         mLastPosition = getTrackPosition();
 
         // If it is still running stop playback.
