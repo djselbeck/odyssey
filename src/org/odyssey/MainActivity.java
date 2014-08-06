@@ -463,8 +463,11 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
             try {
                 if (mRequestedFragment.equals("currentsong") && mServiceConnection.getPBS().getCurrentIndex() >= 0 && mServiceConnection.getPBS().getPlaying() == 1) {
                     Log.v(TAG, "Opening nowplaying fragment");
+                    FragmentManager fm = getSupportFragmentManager();
+                    for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
+                        fm.popBackStack();
+                    }
                     android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
                     // Launch current song fragment
                     NowPlayingFragment mNowPlayingFragment = new NowPlayingFragment();
                     // Replace whatever is in the fragment_container view with

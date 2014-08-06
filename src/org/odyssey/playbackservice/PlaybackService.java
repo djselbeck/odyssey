@@ -994,6 +994,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Open application intent
             Intent resultIntent = new Intent(this, MainActivity.class);
             resultIntent.putExtra("Fragment", "currentsong");
+            resultIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION| Intent.FLAG_ACTIVITY_NO_HISTORY);
 
             PendingIntent resultPendingIntent = PendingIntent.getActivity(this, NOTIFICATION_INTENT_OPENGUI, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             mNotificationBuilder.setContentIntent(resultPendingIntent);

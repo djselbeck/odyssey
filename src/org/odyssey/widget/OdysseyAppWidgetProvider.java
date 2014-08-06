@@ -58,6 +58,7 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
             // Main action
             Intent mainIntent = new Intent(context, MainActivity.class);
             mainIntent.putExtra("Fragment", "currentsong");
+            mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION| Intent.FLAG_ACTIVITY_NO_HISTORY);
             PendingIntent mainPendingIntent = PendingIntent.getActivity(context, INTENT_OPENGUI, mainIntent, PendingIntent.FLAG_ONE_SHOT);
             views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);
 
@@ -138,6 +139,7 @@ public class OdysseyAppWidgetProvider extends AppWidgetProvider {
         // reset button actions
         // Main action
         Intent mainIntent = new Intent(context, MainActivity.class);
+        mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION| Intent.FLAG_ACTIVITY_NO_HISTORY);
         mainIntent.putExtra("Fragment", "currentsong");
         PendingIntent mainPendingIntent = PendingIntent.getActivity(context, INTENT_OPENGUI, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         views.setOnClickPendingIntent(R.id.odysseyWidgetImageView, mainPendingIntent);

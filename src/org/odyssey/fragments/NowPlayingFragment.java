@@ -53,6 +53,8 @@ public class NowPlayingFragment extends Fragment implements OnSeekBarChangeListe
     private ImageButton mPlayPauseButton;
     private ImageButton mRepeatButton;
     private ImageButton mRandomButton;
+    
+    private String mImageURL;
 
     private final static String TAG = "OdysseyNowPlayingFragment";
     private NowPlayingReceiver mNowPlayingReceiver = null;
