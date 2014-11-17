@@ -89,8 +89,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     private static final int TIMEOUT_INTENT_QUIT = 5;
     private static final int REMOTECONTROL_INTENT_ID = 6;
 
-    private PendingIntent mServiceTimeoutIntent = null;
-
     private final static int SERVICE_CANCEL_TIME = 60 * 5 * 1000;
 
     private HandlerThread mHandlerThread;
@@ -227,6 +225,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        Log.v(TAG, "PBS onStartCommand");
+        new Throwable().printStackTrace();
         if (intent.getExtras() != null) {
             String action = intent.getExtras().getString("action");
             if (action != null) {
@@ -270,14 +270,19 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         jumpToIndex(0, true);
     }
 
+    public synchronized void cancelQuitAlert() {
+        Log.v(TAG, "Cancelling quit alert in alertmanager");
+        AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        Intent quitIntent = new Intent(this, PlaybackService.class).putExtra("action", ACTION_QUIT);
+        PendingIntent cancelPendingIntent = PendingIntent.getService(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        am.cancel(cancelPendingIntent);
+    }
+
     // Stops all playback
     public void stop() {
+        new Throwable().printStackTrace();
         // Cancel possible cancel timers ( yeah, very funny )
-        if (mServiceTimeoutIntent != null) {
-            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            am.cancel(mServiceTimeoutIntent);
-            mServiceTimeoutIntent = null;
-        }
+        cancelQuitAlert();
 
         if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             // Broadcast simple.last.fm.scrobble broadcast
@@ -305,6 +310,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     public void pause() {
+        Log.v(TAG, "PBS pause");
+        new Throwable().printStackTrace();
         if (mPlayer.isRunning()) {
             mLastPosition = mPlayer.getPosition();
             mPlayer.pause();
@@ -329,16 +336,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         updateStatus();
 
-        if (mServiceTimeoutIntent != null) {
-            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            am.cancel(mServiceTimeoutIntent);
-            mServiceTimeoutIntent = null;
-        }
+        cancelQuitAlert();
 
         AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         Intent quitIntent = new Intent(this, PlaybackService.class).putExtra("action", ACTION_QUIT);
-        mServiceTimeoutIntent = PendingIntent.getService(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SERVICE_CANCEL_TIME, mServiceTimeoutIntent);
+        PendingIntent quitPI = PendingIntent.getService(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SERVICE_CANCEL_TIME, quitPI);
     }
 
     public void resume() {
@@ -363,11 +366,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Intent serviceStartIntent = new Intent(this, PlaybackService.class);
             serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
             startService(serviceStartIntent);
-            if (mServiceTimeoutIntent != null) {
-                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                am.cancel(mServiceTimeoutIntent);
-                mServiceTimeoutIntent = null;
-            }
+            cancelQuitAlert();
             // Request audio focus before doing anything
             AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
@@ -620,11 +619,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Intent serviceStartIntent = new Intent(this, PlaybackService.class);
             serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
             startService(serviceStartIntent);
-            if (mServiceTimeoutIntent != null) {
-                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                am.cancel(mServiceTimeoutIntent);
-                mServiceTimeoutIntent = null;
-            }
+            cancelQuitAlert();
             mIsPaused = false;
 
             try {
@@ -721,6 +716,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      */
     public void stopService() {
         Log.v(TAG, "Stopping service");
+        new Throwable().printStackTrace();
         mLastPosition = getTrackPosition();
 
         // If it is still running stop playback.
@@ -750,6 +746,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNotificationBuilder.setOngoing(false);
         mNotificationManager.cancel(NOTIFICATION_ID);
 
+        new Throwable().printStackTrace();
         // Stops the service itself.
         stopSelf();
     }
@@ -994,7 +991,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             // Open application intent
             Intent resultIntent = new Intent(this, MainActivity.class);
             resultIntent.putExtra("Fragment", "currentsong");
-            resultIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION| Intent.FLAG_ACTIVITY_NO_HISTORY);
+            resultIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_NO_HISTORY);
 
             PendingIntent resultPendingIntent = PendingIntent.getActivity(this, NOTIFICATION_INTENT_OPENGUI, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             mNotificationBuilder.setContentIntent(resultPendingIntent);
