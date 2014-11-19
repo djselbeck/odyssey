@@ -717,6 +717,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public void stopService() {
         Log.v(TAG, "Stopping service");
         new Throwable().printStackTrace();
+
+        // Cancel possible cancel timers ( yeah, very funny )
+        cancelQuitAlert();
+
         mLastPosition = getTrackPosition();
 
         // If it is still running stop playback.
