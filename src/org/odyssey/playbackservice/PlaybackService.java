@@ -340,7 +340,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         Intent quitIntent = new Intent(this, PlaybackService.class).putExtra("action", ACTION_QUIT);
-        PendingIntent quitPI = PendingIntent.getService(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent quitPI = PendingIntent.getService(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_UPDATE_CURRENT);
         am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SERVICE_CANCEL_TIME, quitPI);
     }
 
