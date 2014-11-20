@@ -281,8 +281,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     // Stops all playback
     public void stop() {
         new Throwable().printStackTrace();
-        // Cancel possible cancel timers ( yeah, very funny )
-        cancelQuitAlert();
 
         if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             // Broadcast simple.last.fm.scrobble broadcast
