@@ -273,9 +273,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public synchronized void cancelQuitAlert() {
         Log.v(TAG, "Cancelling quit alert in alertmanager");
         AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        Intent quitIntent = new Intent(this, PlaybackService.class).putExtra("action", ACTION_QUIT);
-        PendingIntent cancelPendingIntent = PendingIntent.getService(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_UPDATE_CURRENT);
-        am.cancel(cancelPendingIntent);
+        Intent quitIntent = new Intent(ACTION_QUIT);
+        PendingIntent quitPI = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        am.cancel(quitPI);
     }
 
     // Stops all playback
@@ -337,8 +337,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         cancelQuitAlert();
 
         AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        Intent quitIntent = new Intent(this, PlaybackService.class).putExtra("action", ACTION_QUIT);
-        PendingIntent quitPI = PendingIntent.getService(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent quitIntent = new Intent(ACTION_QUIT);
+        PendingIntent quitPI = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SERVICE_CANCEL_TIME, quitPI);
     }
 
