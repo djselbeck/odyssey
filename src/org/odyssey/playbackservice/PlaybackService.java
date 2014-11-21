@@ -40,7 +40,6 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.Process;
 import android.os.RemoteException;
-import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -310,6 +309,12 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public void pause() {
         Log.v(TAG, "PBS pause");
         new Throwable().printStackTrace();
+
+        AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        Intent quitIntent = new Intent(ACTION_QUIT);
+        PendingIntent quitPI = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        am.set(AlarmManager.RTC, System.currentTimeMillis() + SERVICE_CANCEL_TIME, quitPI);
+
         if (mPlayer.isRunning()) {
             mLastPosition = mPlayer.getPosition();
             mPlayer.pause();
@@ -334,15 +339,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         updateStatus();
 
-        cancelQuitAlert();
-
-        AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        Intent quitIntent = new Intent(ACTION_QUIT);
-        PendingIntent quitPI = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + SERVICE_CANCEL_TIME, quitPI);
     }
 
     public void resume() {
+        cancelQuitAlert();
+
         // Check if mediaplayer needs preparing
         long lastPosition = mPlaylistManager.getLastTrackPosition();
         if (!mPlayer.isPrepared() && (lastPosition != 0) && (mCurrentPlayingIndex != -1) && (mCurrentPlayingIndex < mCurrentList.size())) {
@@ -357,6 +358,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         } else if (mCurrentPlayingIndex < 0 && mCurrentList.size() == 0) {
             updateStatus();
         } else if (mCurrentPlayingIndex < mCurrentList.size()) {
+
             /*
              * Make sure service is "started" so android doesn't handle it as a
              * "bound service"
@@ -364,7 +366,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Intent serviceStartIntent = new Intent(this, PlaybackService.class);
             serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
             startService(serviceStartIntent);
-            cancelQuitAlert();
+
             // Request audio focus before doing anything
             AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
@@ -594,6 +596,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public void jumpToIndex(int index, boolean startPlayback, int jumpTime) {
         Log.v(TAG, "Playback of index: " + index + " requested");
         Log.v(TAG, "Playlist size: " + mCurrentList.size());
+
+        cancelQuitAlert();
+
         // Stop playback
         mPlayer.stop();
         // Set currentindex to new song
@@ -601,7 +606,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             mCurrentPlayingIndex = index;
             Log.v(TAG, "Start playback of: " + mCurrentList.get(mCurrentPlayingIndex));
 
-            // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
             // Request audio focus before doing anything
             AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -617,7 +621,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             Intent serviceStartIntent = new Intent(this, PlaybackService.class);
             serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
             startService(serviceStartIntent);
-            cancelQuitAlert();
+
             mIsPaused = false;
 
             try {
