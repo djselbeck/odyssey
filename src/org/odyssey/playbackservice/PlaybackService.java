@@ -253,6 +253,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public void onDestroy() {
         Log.v(TAG, "Service destroyed");
 
+        cancelQuitAlert();
+
         if (mNoisyReceiver != null) {
             unregisterReceiver(mNoisyReceiver);
             mNoisyReceiver = null;
@@ -363,9 +365,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
              * Make sure service is "started" so android doesn't handle it as a
              * "bound service"
              */
-            Intent serviceStartIntent = new Intent(this, PlaybackService.class);
-            serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-            startService(serviceStartIntent);
+            // Intent serviceStartIntent = new Intent(this,
+            // PlaybackService.class);
+            // serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+            // startService(serviceStartIntent);
 
             // Request audio focus before doing anything
             AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -618,9 +621,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
              * Make sure service is "started" so android doesn't handle it as a
              * "bound service"
              */
-            Intent serviceStartIntent = new Intent(this, PlaybackService.class);
-            serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-            startService(serviceStartIntent);
+            // Intent serviceStartIntent = new Intent(this,
+            // PlaybackService.class);
+            // serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+            // startService(serviceStartIntent);
 
             mIsPaused = false;
 
