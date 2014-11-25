@@ -607,7 +607,17 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (index < mCurrentList.size() && index >= 0) {
             mCurrentPlayingIndex = index;
             Log.v(TAG, "Start playback of: " + mCurrentList.get(mCurrentPlayingIndex));
+            
+            /*
+             * Make sure service is "started" so android doesn't handle it as a
+             * "bound service"
+             */
+            Intent serviceStartIntent = new Intent(this, PlaybackService.class);
+            serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+            startService(serviceStartIntent);
 
+            
+            
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
             // Request audio focus before doing anything
             AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -616,13 +626,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
                 // Abort command
                 return;
             }
-            /*
-             * Make sure service is "started" so android doesn't handle it as a
-             * "bound service"
-             */
-            Intent serviceStartIntent = new Intent(this, PlaybackService.class);
-            serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-            startService(serviceStartIntent);
 
             mIsPaused = false;
 
@@ -1074,8 +1077,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     /*
      * True if the GaplessPlayer is actually playing a song.
      */
-    public int isPlaying() {
-        return mPlayer.isRunning() ? 1 : 0;
+    public boolean isPlaying() {
+        return mPlayer.isRunning();
     }
 
     /*
@@ -1381,7 +1384,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
         @Override
         public int getPlaying() throws RemoteException {
-            return mService.get().isPlaying();
+            return mService.get().isPlaying() ? 1 : 0;
         }
 
         @Override
@@ -1559,8 +1562,9 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         case AudioManager.AUDIOFOCUS_LOSS:
             Log.v(TAG, "Lost audiofocus");
             // Stop playback service
-            // TODO save playlist position
-            pause();
+            if ( isPlaying() ) {
+            	pause();
+            }
             break;
         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
             Log.v(TAG, "Lost audiofocus temporarily");
