@@ -24,17 +24,21 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
@@ -93,6 +97,9 @@ public class AllTracksFragment extends Fragment implements LoaderManager.LoaderC
         mListView.setAdapter(mCursorAdapter);
 
         mListView.setOnItemClickListener((OnItemClickListener) this);
+        
+        // Add progressbar for notification of ongoing action
+        mListView.setEmptyView(rootView.findViewById(R.id.alltracksProgressbar));
 
         // register context menu
         registerForContextMenu(mListView);

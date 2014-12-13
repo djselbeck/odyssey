@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:columnWidth="@dimen/album_item_height"
-    android:stretchMode="columnWidth"
-    android:scrollingCache="false"
-    
-    android:verticalSpacing="4dp"
-    android:horizontalSpacing="4dp"
-    
-    android:fastScrollAlwaysVisible="true"
-    android:fastScrollEnabled="true"
-    android:numColumns="auto_fit"
-    android:scrollbarStyle="outsideInset" >
+    android:layout_height="match_parent" >
 
-</GridView>
+    <GridView
+        android:id="@+id/albumsGridview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:columnWidth="@dimen/album_item_height"
+        android:fastScrollAlwaysVisible="true"
+        android:fastScrollEnabled="true"
+        android:horizontalSpacing="4dp"
+        android:numColumns="auto_fit"
+        android:scrollbarStyle="outsideInset"
+        android:scrollingCache="false"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="4dp" >
+    </GridView>
+
+    <ProgressBar
+        android:id="@+id/albumsProgressbar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</FrameLayout>

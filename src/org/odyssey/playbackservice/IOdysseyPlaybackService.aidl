@@ -66,7 +66,4 @@ interface IOdysseyPlaybackService {
 	String getAlbum();
 	String getTrackname();
 	int getTrackNo();
-	int getBitrate();
-	int getSamplerate();
-
 }

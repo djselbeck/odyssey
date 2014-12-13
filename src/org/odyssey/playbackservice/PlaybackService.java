@@ -86,7 +86,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     private static final int NOTIFICATION_INTENT_OPENGUI = 4;
 
     private static final int TIMEOUT_INTENT_QUIT = 5;
-    private static final int REMOTECONTROL_INTENT_ID = 6;
 
     private final static int SERVICE_CANCEL_TIME = 60 * 5 * 1000;
 
@@ -1239,18 +1238,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             if (track != null) {
                 return track.getTrackNumber();
             }
-            return 0;
-        }
-
-        @Override
-        public int getBitrate() throws RemoteException {
-            // TODO Auto-generated method stub
-            return 0;
-        }
-
-        @Override
-        public int getSamplerate() throws RemoteException {
-            // TODO Auto-generated method stub
             return 0;
         }
 

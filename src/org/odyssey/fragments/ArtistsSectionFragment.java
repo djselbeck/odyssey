@@ -105,7 +105,10 @@ public class ArtistsSectionFragment extends Fragment implements LoaderManager.Lo
 
         View rootView = inflater.inflate(R.layout.fragment_artists, container, false);
 
-        mRootGrid = (GridView) rootView;
+        mRootGrid = (GridView) rootView.findViewById(R.id.artistsGridview);
+
+        // Add progressbar for notification of ongoing action
+        mRootGrid.setEmptyView(rootView.findViewById(R.id.artistsProgressbar));
 
         mAdapter = new ArtistsAdapter(getActivity(), mRootGrid);
 

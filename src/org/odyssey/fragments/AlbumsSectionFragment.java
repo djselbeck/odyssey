@@ -124,9 +124,14 @@ public class AlbumsSectionFragment extends Fragment implements LoaderManager.Loa
 
         View rootView = inflater.inflate(R.layout.fragment_albums, container, false);
 
-        mRootGrid = (GridView) rootView;
+        mRootGrid = (GridView) rootView.findViewById(R.id.albumsGridview);
+        
+        // Add progressbar for notification of ongoing action
+        mRootGrid.setEmptyView(rootView.findViewById(R.id.albumsProgressbar));
+        
         mCursorAdapter = new AlbumAdapter(getActivity(), mRootGrid);
-
+        
+        
         mRootGrid.setAdapter(mCursorAdapter);
 
         mRootGrid.setOnItemClickListener((OnItemClickListener) this);
