@@ -224,7 +224,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         Log.v(TAG, "PBS onStartCommand");
-        new Throwable().printStackTrace();
         if (intent.getExtras() != null) {
             String action = intent.getExtras().getString("action");
             if (action != null) {
@@ -280,8 +279,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     // Stops all playback
     public void stop() {
-        new Throwable().printStackTrace();
-
         if (mCurrentList.size() > 0 && mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
             // Broadcast simple.last.fm.scrobble broadcast
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
@@ -309,9 +306,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
 
     public void pause() {
         Log.v(TAG, "PBS pause");
-        new Throwable().printStackTrace();
-
-
 
         if (mPlayer.isRunning()) {
             mLastPosition = mPlayer.getPosition();
@@ -723,7 +717,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
      */
     public void stopService() {
         Log.v(TAG, "Stopping service");
-        new Throwable().printStackTrace();
 
         // Cancel possible cancel timers ( yeah, very funny )
         cancelQuitAlert();
@@ -757,7 +750,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         mNotificationBuilder.setOngoing(false);
         mNotificationManager.cancel(NOTIFICATION_ID);
 
-        new Throwable().printStackTrace();
         // Stops the service itself.
         stopSelf();
     }
