@@ -13,7 +13,7 @@ import android.os.PowerManager;
 import android.util.Log;
 
 public class GaplessPlayer {
-    private final static String TAG = "GaplessPlayer";
+    private final static String TAG = "OdysseyGaplessPlayer";
 
     public static enum REASON {
         IOError, SecurityError, StateError, ArgumentError;
@@ -22,7 +22,6 @@ public class GaplessPlayer {
     private MediaPlayer mCurrentMediaPlayer = null;
     private boolean mCurrentPrepared = false;
     private boolean mSecondPrepared = false;
-    private boolean mPlayOnPrepared = true;
     private boolean mSecondPreparing = false;
     private MediaPlayer mNextMediaPlayer = null;
 
@@ -418,6 +417,7 @@ public class GaplessPlayer {
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
             if (mp.equals(mCurrentMediaPlayer)) {
+            	// FIXME notify PBS
                 // Signal PlaybackService to continue with next song
                 mPlaybackService.setNextTrack();
             } else {
@@ -439,6 +439,23 @@ public class GaplessPlayer {
         public REASON getReason() {
             return mReason;
         }
+    }
+    
+    /** 
+     * Returns whether Gaplessplayer is active or inactive so it can receive commands
+     * @return
+     */
+    public boolean getActive()
+    {
+    	if ( mSecondPreparing ) {
+    		Log.v(TAG,"Seconded player is preparing");
+    		return true;
+    	} else if ( !mCurrentPrepared && (mCurrentMediaPlayer != null) ) {
+    		Log.v(TAG,"It seems like the first player is preparing");
+    		return true;
+    	}
+    	
+    	return false;
     }
 
 }

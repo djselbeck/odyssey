@@ -312,14 +312,16 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         Log.v(TAG, "PBS pause");
         new Throwable().printStackTrace();
 
-        AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        Intent quitIntent = new Intent(ACTION_QUIT);
-        PendingIntent quitPI = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        am.set(AlarmManager.RTC, System.currentTimeMillis() + SERVICE_CANCEL_TIME, quitPI);
+
 
         if (mPlayer.isRunning()) {
             mLastPosition = mPlayer.getPosition();
             mPlayer.pause();
+            
+            AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+            Intent quitIntent = new Intent(ACTION_QUIT);
+            PendingIntent quitPI = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            am.set(AlarmManager.RTC, System.currentTimeMillis() + SERVICE_CANCEL_TIME, quitPI);
 
             // Broadcast simple.last.fm.scrobble broadcast
             if (mCurrentPlayingIndex >= 0 && (mCurrentPlayingIndex < mCurrentList.size())) {
@@ -503,13 +505,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Needs to set gaplessplayer next object and reorganize playlist
         // Keep device at least for 5 seconds turned on
         mTempWakelock.acquire(5000);
-        mPlayer.stop();
         mLastPlayingIndex = mCurrentPlayingIndex;
-        if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
-            jumpToIndex(mNextPlayingIndex, true);
-        } else {
-            jumpToIndex(mNextPlayingIndex, true);
-        }
+        jumpToIndex(mNextPlayingIndex, true);
     }
 
     public void enqueueAsNextTrack(TrackItem track) {
@@ -540,7 +537,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         // Keep device at least for 5 seconds turned on
         mTempWakelock.acquire(5000);
 
-        mPlayer.stop();
         if (mRandom == RANDOMSTATE.RANDOM_ON.ordinal()) {
 
             if (mLastPlayingIndex == -1) {
@@ -599,6 +595,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         Log.v(TAG, "Playback of index: " + index + " requested");
         Log.v(TAG, "Playlist size: " + mCurrentList.size());
 
+        if ( mPlayer.getActive() ) {
+        	Log.v(TAG,"Ignoring command because gapless player is active");
+        	return ;
+        }
+        
         cancelQuitAlert();
 
         // Stop playback
