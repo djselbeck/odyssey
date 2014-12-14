@@ -405,9 +405,9 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
     @Override
     public void OnPlayAllSelected() {
 
-        // play all tracks on device
+        // play all tracks shuffled on device
         try {
-            mServiceConnection.getPBS().playAllTracks();
+            mServiceConnection.getPBS().playAllTracksShuffled();
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

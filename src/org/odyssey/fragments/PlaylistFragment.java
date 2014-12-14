@@ -141,7 +141,7 @@ public class PlaylistFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.action_clearplaylist:
-                mPlayListAdapter.clear();
+            mPlayListAdapter.clear();
             return true;
         case R.id.action_saveplaylist:
             openPlaylistNameDialog();
@@ -152,11 +152,11 @@ public class PlaylistFragment extends Fragment {
         case R.id.action_shuffleplaylist:
             try {
                 mServiceConnection.getPBS().shufflePlaylist();
-                mPlayListAdapter.notifyDataSetChanged();
             } catch (RemoteException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
+            mPlayListAdapter.notifyDataSetChanged();
             return true;
         }
         return super.onOptionsItemSelected(item);

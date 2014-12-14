@@ -13,7 +13,7 @@ public class PlaybackServiceHandler extends Handler {
     private static final String TAG = "OdysseyPlaybackServiceHandler";
 
     private final WeakReference<PlaybackService> mService;
-    
+
     private Semaphore mLock;
 
     public PlaybackServiceHandler(Looper looper, PlaybackService service) {
@@ -33,8 +33,8 @@ public class PlaybackServiceHandler extends Handler {
         ControlObject msgObj = (ControlObject) msg.obj;
 
         // Check if object is received
-        if (msgObj != null && mLock.tryAcquire() ) {
-        	Log.v(TAG,"Start control command");
+        if (msgObj != null && mLock.tryAcquire()) {
+            Log.v(TAG, "Start control command");
             // Parse message
             if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAY) {
                 mService.get().playURI(msgObj.getTrack());
@@ -78,11 +78,13 @@ public class PlaybackServiceHandler extends Handler {
                 mService.get().shufflePlaylist();
             } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAYALLTRACKS) {
                 mService.get().playAllTracks();
+            } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAYALLTRACKSSHUFFLED) {
+                mService.get().playAllTracksShuffled();
             } else if (msgObj.getAction() == ControlObject.PLAYBACK_ACTION.ODYSSEY_SAVEPLAYLIST) {
                 mService.get().savePlaylist(msgObj.getStringParam());
             }
             mLock.release();
-            Log.v(TAG,"End control command");
+            Log.v(TAG, "End control command");
         }
 
     }

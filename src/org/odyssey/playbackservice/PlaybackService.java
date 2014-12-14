@@ -310,7 +310,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (mPlayer.isRunning()) {
             mLastPosition = mPlayer.getPosition();
             mPlayer.pause();
-            
+
             AlarmManager am = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
             Intent quitIntent = new Intent(ACTION_QUIT);
             PendingIntent quitPI = PendingIntent.getBroadcast(this, TIMEOUT_INTENT_QUIT, quitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -402,7 +402,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
     }
 
-    // add all tracks to playlist, shuffle and play
+    // add all tracks to playlist and play
     public void playAllTracks() {
 
         // clear playlist
@@ -450,8 +450,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
 
         cursor.close();
+    }
 
-        // shuffle playlist
+    // add all tracks to playlist, shuffle and play
+    public void playAllTracksShuffled() {
+        playAllTracks();
         shufflePlaylist();
     }
 
@@ -573,11 +576,10 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
     }
 
     public void clearPlaylist() {
+        // Clear the list
+        mCurrentList.clear();
         // Stop the playback
         stop();
-        // Clear the list and reset index
-        mCurrentList.clear();
-        mCurrentPlayingIndex = -1;
     }
 
     public void jumpToIndex(int index, boolean startPlayback) {
@@ -588,11 +590,11 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         Log.v(TAG, "Playback of index: " + index + " requested");
         Log.v(TAG, "Playlist size: " + mCurrentList.size());
 
-        if ( mPlayer.getActive() ) {
-        	Log.v(TAG,"Ignoring command because gapless player is active");
-        	return ;
+        if (mPlayer.getActive()) {
+            Log.v(TAG, "Ignoring command because gapless player is active");
+            return;
         }
-        
+
         cancelQuitAlert();
 
         // Stop playback
@@ -601,7 +603,7 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         if (index < mCurrentList.size() && index >= 0) {
             mCurrentPlayingIndex = index;
             Log.v(TAG, "Start playback of: " + mCurrentList.get(mCurrentPlayingIndex));
-            
+
             /*
              * Make sure service is "started" so android doesn't handle it as a
              * "bound service"
@@ -610,8 +612,6 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
             serviceStartIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
             startService(serviceStartIntent);
 
-            
-            
             TrackItem item = mCurrentList.get(mCurrentPlayingIndex);
             // Request audio focus before doing anything
             AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -1350,6 +1350,14 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         }
 
         @Override
+        public void playAllTracksShuffled() throws RemoteException {
+            ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAYALLTRACKSSHUFFLED);
+            Message msg = mService.get().getHandler().obtainMessage();
+            msg.obj = obj;
+            mService.get().getHandler().sendMessage(msg);
+        }
+
+        @Override
         public void playAllTracks() throws RemoteException {
             ControlObject obj = new ControlObject(ControlObject.PLAYBACK_ACTION.ODYSSEY_PLAYALLTRACKS);
             Message msg = mService.get().getHandler().obtainMessage();
@@ -1542,8 +1550,8 @@ public class PlaybackService extends Service implements AudioManager.OnAudioFocu
         case AudioManager.AUDIOFOCUS_LOSS:
             Log.v(TAG, "Lost audiofocus");
             // Stop playback service
-            if ( isPlaying() ) {
-            	pause();
+            if (isPlaying()) {
+                pause();
             }
             break;
         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:

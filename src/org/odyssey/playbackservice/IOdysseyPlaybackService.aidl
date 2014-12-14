@@ -14,6 +14,7 @@ interface IOdysseyPlaybackService {
 	void togglePause();
 	void shufflePlaylist();
 	void playAllTracks();
+	void playAllTracksShuffled();
 	
 	/**
 	 * position = position in current track ( in seconds)
