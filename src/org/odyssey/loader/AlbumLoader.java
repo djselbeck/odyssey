@@ -43,15 +43,21 @@ public class AlbumLoader extends AsyncTaskLoader<List<AlbumModel>> {
             albumCursor = mContext.getContentResolver().query(MediaStore.Audio.Artists.Albums.getContentUri("external", mArtistID), MusicLibraryHelper.projectionAlbums, "", null, MediaStore.Audio.Albums.ALBUM + " COLLATE NOCASE");
         }
         ArrayList<AlbumModel> albums = new ArrayList<AlbumModel>();
+
+        int albumKeyColumnIndex = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY);
+        int albumTitleColumnIndex = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
+        int imagePathColumnIndex = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
+        int artistTitleColumnIndex = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST);
+
         for (int i = 0; i < albumCursor.getCount(); i++) {
             albumCursor.moveToPosition(i);
-            String albumKey = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_KEY));
-            String albumTitle = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
-            String imagePath = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-            if (imagePath == null || imagePath.equals("")) {
-                Log.v(TAG, "Album: " + albumTitle);
-            }
-            String artistTitle = albumCursor.getString(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST));
+            String albumKey = albumCursor.getString(albumKeyColumnIndex);
+            String albumTitle = albumCursor.getString(albumTitleColumnIndex);
+            String imagePath = albumCursor.getString(imagePathColumnIndex);
+            // if (imagePath == null || imagePath.equals("")) {
+            // Log.v(TAG, "Album: " + albumTitle);
+            // }
+            String artistTitle = albumCursor.getString(artistTitleColumnIndex);
             AlbumModel album = new AlbumModel(albumTitle, imagePath, artistTitle, albumKey);
             albums.add(album);
 

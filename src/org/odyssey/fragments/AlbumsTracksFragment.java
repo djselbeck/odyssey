@@ -173,8 +173,6 @@ public class AlbumsTracksFragment extends Fragment {
 
         Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionTracks, where, whereVal, orderBy);
 
-        boolean isSampler = false;
-
         ArrayList<TrackItem> trackList = new ArrayList<TrackItem>();
 
         // get all tracks on the current album
@@ -188,18 +186,12 @@ public class AlbumsTracksFragment extends Fragment {
                 String url = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
                 TrackItem item = new TrackItem(title, artist, album, url, no, duration, mAlbumKey);
-                if (!item.getTrackArtist().equals(mAlbumArtist)) {
 
-                    // trackartist not albumartist -> sampler
-                    isSampler = true;
-                }
                 trackList.add(item);
             } while (cursor.moveToNext());
         }
 
         cursor.close();
-
-        mTrackListAdapter.setIsSampler(isSampler);
 
         mTrackListAdapter.addAll(trackList);
     }
@@ -231,7 +223,6 @@ public class AlbumsTracksFragment extends Fragment {
         private Context mContext;
         private LayoutInflater mInflater;
         private int mLayoutResourceId;
-        private boolean mIsSampler;
 
         public TrackListArrayAdapter(Context context, int layoutResourceId, ArrayList<TrackItem> data) {
             super(context, layoutResourceId, data);
@@ -239,8 +230,6 @@ public class AlbumsTracksFragment extends Fragment {
             mContext = context;
             mLayoutResourceId = layoutResourceId;
             mInflater = LayoutInflater.from(context);
-            mIsSampler = false;
-
         }
 
         @Override
@@ -288,19 +277,12 @@ public class AlbumsTracksFragment extends Fragment {
                 trackNumberView.setText(trackNumber);
             }
 
-            // set artist if sampler
-            if (mIsSampler) {
-                trackArtistView.setText(trackItem.getTrackArtist());
-            }
+            // set artist
+            trackArtistView.setText(trackItem.getTrackArtist());
 
             return convertView;
 
         }
-
-        public void setIsSampler(boolean sampler) {
-            mIsSampler = sampler;
-        }
-
     }
 
     private void playAlbum(int position) {

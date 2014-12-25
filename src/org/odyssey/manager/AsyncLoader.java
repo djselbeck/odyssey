@@ -44,7 +44,7 @@ public class AsyncLoader extends AsyncTask<AsyncLoader.CoverViewHolder, Void, Bi
         // }
         if (cover.imagePath != null) {
 
-            return decodeSampledBitmapFromResource(params[0].imagePath, cover.coverViewReference.get().getWidth(), cover.coverViewReference.get().getHeight());
+            return decodeSampledBitmapFromResource(cover.imagePath, cover.coverViewReference.get().getWidth(), cover.coverViewReference.get().getHeight());
         }
 
         return null;

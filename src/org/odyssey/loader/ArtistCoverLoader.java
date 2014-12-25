@@ -8,6 +8,7 @@ import org.odyssey.databasemodel.ArtistModel;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.CursorJoiner;
 import android.provider.MediaStore;
 import android.support.v4.content.AsyncTaskLoader;
 
@@ -38,60 +39,88 @@ public class ArtistCoverLoader extends AsyncTaskLoader<List<ArtistModel>> {
         // get all artists
         Cursor cursorArtists = mContext.getContentResolver().query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, MusicLibraryHelper.projectionArtists, "", null, MediaStore.Audio.Artists.ARTIST + " COLLATE NOCASE");
 
-        // create a custom cursor to mix both
-        // MatrixCursor cursorArtistCover = new MatrixCursor(new String[] {
-        // MediaStore.Audio.Artists.ARTIST, MediaStore.Audio.Artists.ARTIST_KEY,
-        // MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
-        // MediaStore.Audio.Artists._ID,
-        // MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,
-        // MediaStore.Audio.Albums.ALBUM_ART });
-
         ArrayList<ArtistModel> artists = new ArrayList<ArtistModel>();
 
         // join both cursor if match is found
-        String artist, artistKey, cover;
+        String artist, artistKey, coverPath, albumArtist, albumCoverPath;
         int numberOfTracks, numberOfAlbums;
         long artistID;
         boolean foundCover = false;
         int pos = 0;
 
-        if (cursorArtists.moveToFirst()) {
-            do {
-                artist = cursorArtists.getString(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST));
+        int artistTitleColumnIndex = cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST);
+        int artistKeyColumnIndex = cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST_KEY);
+        int artistNoTColumnIndex = cursorArtists.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_TRACKS);
+        int artistIDColumnIndex = cursorArtists.getColumnIndex(MediaStore.Audio.Artists._ID);
+        int artistNoAColumnIndex = cursorArtists.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS);
 
-                if (cursorAlbumArt.moveToPosition(pos)) {
-                    foundCover = false;
-                    do {
-                        String albumArtist = cursorAlbumArt.getString(cursorAlbumArt.getColumnIndex(MediaStore.Audio.Albums.ARTIST));
-                        cover = cursorAlbumArt.getString(cursorAlbumArt.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-                        if (artist.equals(albumArtist) && cover != null && !cover.equals("")) {
-                            foundCover = true;
-                            // artist and album cover match
-                            artist = cursorArtists.getString(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST));
-                            artistKey = cursorArtists.getString(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST_KEY));
-                            numberOfTracks = cursorArtists.getInt(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_TRACKS));
-                            artistID = cursorArtists.getLong(cursorArtists.getColumnIndex(MediaStore.Audio.Artists._ID));
-                            numberOfAlbums = cursorArtists.getInt(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS));
-                            artists.add(new ArtistModel(artist, cover, artistKey, artistID, numberOfAlbums, numberOfTracks));
-                            pos = cursorAlbumArt.getPosition();
-                            break;
-                        }
+        int albumArtistTitleColumnIndex = cursorAlbumArt.getColumnIndex(MediaStore.Audio.Albums.ARTIST);
+        int albumCoverPathColumnIndex = cursorAlbumArt.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
 
-                    } while (cursorAlbumArt.moveToNext());
-                }
+        CursorJoiner cursorArtistsWithArt = new CursorJoiner(cursorAlbumArt, new String[] { MediaStore.Audio.Albums.ARTIST }, cursorArtists, new String[] { MediaStore.Audio.Artists.ARTIST });
 
-                if (!foundCover) {
-                    artist = cursorArtists.getString(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST));
-                    artistKey = cursorArtists.getString(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.ARTIST_KEY));
-                    numberOfTracks = cursorArtists.getInt(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_TRACKS));
-                    artistID = cursorArtists.getLong(cursorArtists.getColumnIndex(MediaStore.Audio.Artists._ID));
-                    numberOfAlbums = cursorArtists.getInt(cursorArtists.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS));
-                    cover = null;
-                    artists.add(new ArtistModel(artist, cover, artistKey, artistID, numberOfAlbums, numberOfTracks));
-                }
-
-            } while (cursorArtists.moveToNext());
+        for (CursorJoiner.Result result : cursorArtistsWithArt) {
+            switch (result) {
+            case LEFT:
+                // handle case where a row in cursorAlbumArt is unique
+                // this case should never occur
+                break;
+            case RIGHT:
+                // handle case where a row in cursorArtists is unique
+                artist = cursorArtists.getString(artistTitleColumnIndex);
+                artistKey = cursorArtists.getString(artistKeyColumnIndex);
+                numberOfTracks = cursorArtists.getInt(artistNoTColumnIndex);
+                artistID = cursorArtists.getLong(artistIDColumnIndex);
+                numberOfAlbums = cursorArtists.getInt(artistNoAColumnIndex);
+                coverPath = null;
+                artists.add(new ArtistModel(artist, coverPath, artistKey, artistID, numberOfAlbums, numberOfTracks));
+                break;
+            case BOTH:
+                // handle case where a row with the same key is in both cursors
+                artist = cursorArtists.getString(artistTitleColumnIndex);
+                artistKey = cursorArtists.getString(artistKeyColumnIndex);
+                numberOfTracks = cursorArtists.getInt(artistNoTColumnIndex);
+                artistID = cursorArtists.getLong(artistIDColumnIndex);
+                numberOfAlbums = cursorArtists.getInt(artistNoAColumnIndex);
+                coverPath = cursorAlbumArt.getString(albumCoverPathColumnIndex);
+                artists.add(new ArtistModel(artist, coverPath, artistKey, artistID, numberOfAlbums, numberOfTracks));
+                break;
+            }
         }
+
+        // if (cursorArtists.moveToFirst()) {
+        // do {
+        // artist = cursorArtists.getString(artistTitleColumnIndex);
+        // artistKey = cursorArtists.getString(artistKeyColumnIndex);
+        // numberOfTracks = cursorArtists.getInt(artistNoTColumnIndex);
+        // artistID = cursorArtists.getLong(artistIDColumnIndex);
+        // numberOfAlbums = cursorArtists.getInt(artistNoAColumnIndex);
+        // coverPath = null;
+        //
+        // if (cursorAlbumArt.moveToPosition(pos)) {
+        // foundCover = false;
+        // // search for cover match
+        // do {
+        // albumArtist = cursorAlbumArt.getString(albumArtistTitleColumnIndex);
+        // albumCoverPath = cursorAlbumArt.getString(albumCoverPathColumnIndex);
+        //
+        // if (artist.equals(albumArtist) && albumCoverPath != null &&
+        // !albumCoverPath.equals("")) {
+        // // artist and album cover match
+        // foundCover = true;
+        //
+        // coverPath = albumCoverPath;
+        // pos = cursorAlbumArt.getPosition();
+        // }
+        //
+        // } while (cursorAlbumArt.moveToNext() && !foundCover);
+        // }
+        //
+        // artists.add(new ArtistModel(artist, coverPath, artistKey, artistID,
+        // numberOfAlbums, numberOfTracks));
+        //
+        // } while (cursorArtists.moveToNext());
+        // }
 
         // return new custom cursor
 
