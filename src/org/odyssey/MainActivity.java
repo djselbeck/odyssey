@@ -158,7 +158,7 @@ public class MainActivity extends FragmentActivity implements OnAlbumSelectedLis
         Intent resumeIntent = getIntent();
         // setIntent(new Intent());
 
-        if (resumeIntent != null && resumeIntent.getExtras() != null && resumeIntent.getExtras().getString("Fragment").equals("currentsong")) {
+        if (resumeIntent != null && resumeIntent.getExtras() != null && resumeIntent.getExtras().getString("Fragment") != null && resumeIntent.getExtras().getString("Fragment").equals("currentsong")) {
             mRequestedFragment = "currentsong";
             Log.v(TAG, "Current song fragment requested: " + resumeIntent.getExtras().getString("Fragment"));
         }
